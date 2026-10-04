@@ -111,7 +111,7 @@ jobs:
           APP_ENV='${{ needs.build.outputs.entorno }}'
           DOCKERHUB_USERNAME='${{ secrets.DOCKERHUB_USERNAME }}'
           IMAGE_TAG='${{ needs.push.outputs.version }}'
-          HTTP_PORT='${{ vars.HTTP_PORT }}'
+          HTTP_PORT='${{ secrets.HTTP_PORT }}'
           EOF
       - name: Desplegar en la EC2
         run: |
