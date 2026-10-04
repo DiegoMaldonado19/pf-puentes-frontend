@@ -11,6 +11,7 @@ Cada entorno necesita su propio puerto y la referencia a la imagen. Los valores 
 ## Decisión
 
 - Hay GitHub Environments `dev`, `stage` y `prod`. El job `deploy` genera el `.env` y lo copia al clon del entorno.
+- Reglas de rama de cada Environment (Deployment branches and tags): `dev` sin restricción, `stage` solo `develop` y `prod` solo `main`.
 - Los secretos de repositorio son los mismos que en el backend.
 
 | Nivel       | Nombre                                  | Tipo    | Valor                                      |
@@ -23,3 +24,4 @@ Cada entorno necesita su propio puerto y la referencia a la imagen. Los valores 
 
 - El frontend no tiene secretos propios: todo lo sensible vive en el backend.
 - Agregar una variable implica tocar `.env.example`, `compose.yaml`, el heredoc del workflow y los Environments.
+- dev no puede limitarse a `develop`: sus deploys corren en `refs/pull/<n>/merge` y GitHub los rechaza (`Branch "refs/pull/1/merge" is not allowed to deploy to dev`). El workflow ya filtra qué PR despliega a dev (`github.base_ref == 'develop'`).
