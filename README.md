@@ -1,59 +1,119 @@
-# PfPuentesFrontend
+# pf-puentes-frontend
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 22.1.5.
+SPA en Angular del Sistema de Gestión de Puentes (SGP). No usa SSR: en dev, stage y prod la sirve nginx ([ADR 0001](docs/adr/0001-spa-sin-ssr-servida-por-nginx.md)).
 
-## Development server
+## Desarrollo local
 
-To start a local development server, run:
-
-```bash
-ng serve
-```
-
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
-
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+Requisitos: Docker con Compose 2.32 o superior. En Windows, Docker Desktop con la integración de WSL activada.
 
 ```bash
-ng generate component component-name
+docker compose -f compose.local.yaml up --watch
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+- Abre http://localhost:4200.
+- Al guardar en `src/` o `public/`, el navegador se recarga en un segundo aproximadamente. Si cambias `package.json`, se reconstruye la imagen.
+- `/api` se reenvía al backend local (`host.docker.internal:8080`): levanta también el `compose.local.yaml` del backend.
+- Para apagar: `docker compose -f compose.local.yaml down`.
+
+Sin Docker: `npm ci` y luego `npm start`. En ese caso el proxy apunta a `localhost:8080`.
+
+## Antes de abrir un PR
+
+Son los mismos chequeos que corre el CI, en el mismo orden:
 
 ```bash
-ng generate --help
+npx prettier --check .   # para corregir: npx prettier --write .
+npx ng lint
+npm run build
+npx ng test --watch=false
 ```
 
-## Building
+## Despliegue
 
-To build the project run:
+GitHub Actions (`.github/workflows/ci-cd.yml`) corre cuatro etapas: build → test → push → deploy.
+
+| Evento             | Entorno | URL                 |
+| ------------------ | ------- | ------------------- |
+| PR hacia `develop` | dev     | `http://<EC2>:8082` |
+| push a `develop`   | stage   | `http://<EC2>:8081` |
+| push a `main`      | prod    | `http://<EC2>`      |
+
+- **Imagen:** `<DOCKERHUB_USERNAME>/pf-puentes-frontend:<número de build>`, más el tag `:tree-<hash>` que la identifica por contenido.
+- **Promoción:** la misma imagen pasa de dev a stage y a prod sin reconstruirse. Prod solo acepta imágenes que pasaron por stage. Esto funciona porque la imagen no lleva la URL de la API compilada adentro.
+- **En la EC2:** cada entorno vive en `~/puentes/<entorno>/pf-puentes-frontend` y comparte la red `puentes-<entorno>` con el backend del mismo entorno.
+
+Las decisiones están en [docs/adr](docs/adr/) y los secretos y variables en el [ADR 0005](docs/adr/0005-configuracion-por-entorno-con-github-environments.md).
+
+### Qué hace nginx
+
+| Petición                                              | Respuesta                                                                              |
+| ----------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| `/api/...`                                            | Se reenvía al `backend:8080` del mismo entorno. Tiene prioridad sobre las demás reglas |
+| `/index.html`                                         | Sin caché, para que la PWA reciba actualizaciones                                      |
+| Archivos con huella (`main-XXXXXXXX.js`)              | Caché de 1 año (`immutable`)                                                           |
+| Cualquier otra ruta (`/puentes/123`, `/actuator/...`) | `index.html`, porque son rutas de la SPA. El actuator del backend no queda expuesto    |
+| Cuerpo de más de 25 MB                                | `413`                                                                                  |
+
+Además:
+
+- JS, CSS, JSON y SVG viajan comprimidos con gzip.
+- nginx resuelve `backend` en cada petición: arranca aunque el backend no exista todavía y no pierde la conexión cuando el backend se redespliega.
+
+## Problemas conocidos
+
+**npm falla en WSL con `ERR_SSL_CIPHER_OPERATION_FAILED`**
+
+En algunas instalaciones, la red de WSL corrompe las descargas HTTPS grandes. Dentro de Docker no pasa. Instala desde un contenedor con tu usuario:
 
 ```bash
-ng build
+docker run --rm -u "$(id -u):$(id -g)" -v "$PWD":/app -w /app -e HOME=/tmp \
+  node:24.21.0-trixie-slim npm install <paquete>
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+Para `ng add`, cambia el último comando por `npx ng add <paquete> --skip-confirmation`.
 
-## Running unit tests
+## Tecnologías y versiones
 
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+**Runtime y framework**
 
-```bash
-ng test
-```
+| Tecnología                                                        | Versión |
+| ----------------------------------------------------------------- | ------- |
+| Node.js                                                           | 24.21.0 |
+| npm                                                               | 11.19.0 |
+| Angular (core, common, compiler, forms, platform-browser, router) | 22.2.1  |
+| Angular CLI / @angular/build                                      | 22.2.1  |
+| TypeScript                                                        | 6.0.3   |
+| RxJS                                                              | 7.8.2   |
+| tslib                                                             | 2.8.1   |
+| Tailwind CSS (+ @tailwindcss/postcss)                             | 4.3.3   |
+| PostCSS                                                           | 8.5.28  |
 
-## Running end-to-end tests
+**Pruebas y calidad**
 
-For end-to-end (e2e) testing, run:
+| Herramienta       | Versión  |
+| ----------------- | -------- |
+| Vitest            | 4.1.11   |
+| jsdom             | 28.1.0   |
+| Prettier          | 3.9.9    |
+| ESLint            | 10.12.0  |
+| @eslint/js        | 10.0.1   |
+| angular-eslint    | 22.5.0   |
+| typescript-eslint | 8.69.0   |
+| @types/node       | 20.19.43 |
 
-```bash
-ng e2e
-```
+**Imágenes Docker**
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+| Imagen                                      | Uso                                             |
+| ------------------------------------------- | ----------------------------------------------- |
+| `node:24.21.0-alpine`                       | Compilación y desarrollo local                  |
+| `nginxinc/nginx-unprivileged:1.30.5-alpine` | Runtime: sirve la SPA y hace de proxy de `/api` |
 
-## Additional Resources
+**GitHub Actions**
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+| Action                       | Versión |
+| ---------------------------- | ------- |
+| `actions/checkout`           | v7.0.1  |
+| `actions/setup-node`         | v7.0.0  |
+| `docker/login-action`        | v4.6.0  |
+| `docker/setup-buildx-action` | v4.4.1  |
+| `docker/build-push-action`   | v7.4.0  |
