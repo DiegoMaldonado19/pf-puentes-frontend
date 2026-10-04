@@ -49,7 +49,7 @@ Las decisiones están en [docs/adr](docs/adr/) y los secretos y variables en el 
 | Petición                                              | Respuesta                                                                              |
 | ----------------------------------------------------- | -------------------------------------------------------------------------------------- |
 | `/api/...`                                            | Se reenvía al `backend:8080` del mismo entorno. Tiene prioridad sobre las demás reglas |
-| `/index.html`                                         | Sin caché, para que la PWA reciba actualizaciones                                      |
+| `/index.html` y `/ngsw.json`                          | Sin caché, para que la PWA reciba actualizaciones                                      |
 | Archivos con huella (`main-XXXXXXXX.js`)              | Caché de 1 año (`immutable`)                                                           |
 | Cualquier otra ruta (`/puentes/123`, `/actuator/...`) | `index.html`, porque son rutas de la SPA. El actuator del backend no queda expuesto    |
 | Cuerpo de más de 25 MB                                | `413`                                                                                  |
@@ -58,6 +58,14 @@ Además:
 
 - JS, CSS, JSON y SVG viajan comprimidos con gzip.
 - nginx resuelve `backend` en cada petición: arranca aunque el backend no exista todavía y no pierde la conexión cuando el backend se redespliega.
+
+## PWA
+
+- El service worker solo se registra en el build de producción y en un contexto seguro (HTTPS o `localhost`). Mientras dev, stage y prod sigan en HTTP, ahí no se instala.
+- `ngsw-config.json` precarga todo el JS y CSS para que la app arranque sin red.
+- Las navegaciones a `/api/**` van al backend, no a la SPA: así se pueden abrir un PDF o `/api/docs` en una pestaña. Los datos de inspección, fotos y sincronización los maneja `offline/`, no el service worker (DT-OFF-02).
+- Para probarla en local: `docker build -t pf-puentes-frontend:pwa . && docker run --rm -p 8090:8080 pf-puentes-frontend:pwa` y abre http://localhost:8090 (DevTools → Application).
+- Los íconos de `public/icons/` son los de Angular. Para cambiarlos, se reemplazan los PNG con el mismo nombre.
 
 ## Problemas conocidos
 
@@ -81,6 +89,7 @@ Para `ng add`, cambia el último comando por `npx ng add <paquete> --skip-confir
 | Node.js                                                           | 24.21.0 |
 | npm                                                               | 11.19.0 |
 | Angular (core, common, compiler, forms, platform-browser, router) | 22.2.1  |
+| @angular/service-worker                                           | 22.2.1  |
 | Angular CLI / @angular/build                                      | 22.2.1  |
 | TypeScript                                                        | 6.0.3   |
 | RxJS                                                              | 7.8.2   |
