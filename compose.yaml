@@ -1,0 +1,14 @@
+# Entornos dev, stage y prod en la EC2. Los valores vienen del .env que escribe el pipeline.
+name: puentes-${APP_ENV}-frontend
+
+services:
+  frontend:
+    image: ${DOCKERHUB_USERNAME}/pf-puentes-frontend:${IMAGE_TAG}
+    restart: unless-stopped
+    ports: ['${HTTP_PORT}:8080']
+
+# La crea el pipeline; ahí vive el backend del mismo entorno
+networks:
+  default:
+    name: puentes-${APP_ENV}
+    external: true
