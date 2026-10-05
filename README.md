@@ -2,6 +2,15 @@
 
 SPA en Angular del Sistema de Gestión de Puentes (SGP). No usa SSR: en dev, stage y prod la sirve nginx ([ADR 0001](docs/adr/0001-spa-sin-ssr-servida-por-nginx.md)).
 
+## Estado (04/10/2026)
+
+| Parte                             | Qué hay                                                                                              | Responsable      |
+| --------------------------------- | ---------------------------------------------------------------------------------------------------- | ---------------- |
+| `shared/captura-foto/`            | `<app-captura-foto>`: comprime la foto, genera la miniatura y registra ubicación y hora (contrato 9) | P1               |
+| PWA                               | Manifiesto, íconos de Angular y service worker; la lógica offline es de `offline/`                   | P1 (base) y P6   |
+| Infraestructura                   | nginx con TLS en los tres entornos, encabezados de seguridad y URL firmadas en `/archivos/`          | P1               |
+| `core/`, `features/` y `offline/` | Todavía no existen; `app.html` sigue siendo el de Angular                                            | Cada responsable |
+
 ## Desarrollo local
 
 Requisitos: Docker con Compose 2.32 o superior. En Windows, Docker Desktop con la integración de WSL activada.
@@ -41,6 +50,7 @@ GitHub Actions (`.github/workflows/ci-cd.yml`) corre cuatro etapas: build → te
 - **Imagen:** `<DOCKERHUB_USERNAME>/pf-puentes-frontend:<número de build>`, más el tag `:tree-<hash>` que la identifica por contenido.
 - **Promoción:** la misma imagen pasa de dev a stage y a prod sin reconstruirse. Prod solo acepta imágenes que pasaron por stage. Esto funciona porque la imagen no lleva la URL de la API compilada adentro.
 - **En la EC2:** cada entorno vive en `~/puentes/<entorno>/pf-puentes-frontend` y comparte la red `puentes-<entorno>` con el backend del mismo entorno.
+- **Puertos:** cada Environment necesita el secreto `HTTPS_PORT` (dev 8082, stage 8081, prod 443); si falta o está vacío, el deploy se detiene. Prod suma `compose.prod.yaml`, que publica además el 80 solo para redirigir a https.
 
 Las decisiones están en [docs/adr](docs/adr/) y los secretos y variables en el [ADR 0005](docs/adr/0005-configuracion-por-entorno-con-github-environments.md).
 
@@ -133,10 +143,11 @@ Para `ng add`, cambia el último comando por `npx ng add <paquete> --skip-confir
 
 **Imágenes Docker**
 
-| Imagen                                      | Uso                                             |
-| ------------------------------------------- | ----------------------------------------------- |
-| `node:24.21.0-alpine`                       | Compilación y desarrollo local                  |
-| `nginxinc/nginx-unprivileged:1.30.5-alpine` | Runtime: sirve la SPA y hace de proxy de `/api` |
+| Imagen                                      | Uso                                                                          |
+| ------------------------------------------- | ---------------------------------------------------------------------------- |
+| `node:24.21.0-alpine`                       | Compilación y desarrollo local                                               |
+| `nginxinc/nginx-unprivileged:1.30.5-alpine` | Runtime: sirve la SPA y hace de proxy de `/api` y `/archivos`                |
+| `goacme/lego:v4.35.2`                       | Emite y renueva el certificado TLS en el host (`scripts/certificado-tls.sh`) |
 
 **GitHub Actions**
 
