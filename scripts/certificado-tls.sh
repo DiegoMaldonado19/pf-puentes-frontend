@@ -10,15 +10,20 @@ set -a
 . "$HOME/puentes/duckdns.env"
 set +a
 
-# Como 101:101, el usuario de nginx-unprivileged: así nginx puede leer la llave
+# Como 101:101, el usuario de nginx-unprivileged: así nginx puede leer la llave.
+# Se monta en /tls porque en la imagen /lego es el ejecutable.
 lego() {
-  docker run --rm -u 101:101 -e DUCKDNS_TOKEN -v "$TLS:/lego" goacme/lego:v4.35.2 \
-    --path /lego "$@"
+  docker run --rm -u 101:101 -e DUCKDNS_TOKEN -v "$TLS:/tls" goacme/lego:v4.35.2 \
+    --path /tls "$@"
 }
 
-# El host no ve dentro de la carpeta (lego la deja en 700); se lo pregunta a lego
-accion=run
-lego list | grep -q "$DOMINIO" && accion=renew
+# El host no ve dentro de la carpeta (lego la deja en 700); se lo pregunta a lego.
+# Si esto falla, set -e corta: nunca se pide un certificado nuevo por error.
+certificados=$(lego list)
+case "$certificados" in
+  *"$DOMINIO"*) accion=renew ;;
+  *) accion=run ;;
+esac
 lego --accept-tos --email "$CORREO_TLS" --dns duckdns --domains "$DOMINIO" "$accion"
 
 docker ps -q --filter label=com.docker.compose.service=frontend |
