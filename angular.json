@@ -28,6 +28,14 @@
             "styles": ["src/styles.css"]
           },
           "configurations": {
+            "base-offline": {
+              "optimization": true,
+              "outputHashing": "all",
+              "serviceWorker": "ngsw-config.json",
+              "fileReplacements": [
+                { "replace": "src/app/app.routes.ts", "with": "src/app/offline/demo/routes.ts" }
+              ]
+            },
             "production": {
               "budgets": [
                 {
