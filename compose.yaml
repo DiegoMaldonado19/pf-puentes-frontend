@@ -5,7 +5,9 @@ services:
   frontend:
     image: ${DOCKERHUB_USERNAME}/pf-puentes-frontend:${IMAGE_TAG}
     restart: unless-stopped
-    ports: ['${HTTP_PORT}:8080']
+    ports: ['${HTTPS_PORT}:8443']
+    # Certificado del host, uno para los tres entornos (scripts/certificado-tls.sh, ADR 0008)
+    volumes: ['../../tls/certificates:/etc/nginx/tls:ro']
 
 # La crea el pipeline; ahí vive el backend del mismo entorno
 networks:

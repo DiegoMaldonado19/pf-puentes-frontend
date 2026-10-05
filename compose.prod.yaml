@@ -1,0 +1,4 @@
+# Solo prod: el 80 redirige a https (DT-SEC-10). El pipeline lo suma con COMPOSE_FILE.
+services:
+  frontend:
+    ports: ['80:8080']

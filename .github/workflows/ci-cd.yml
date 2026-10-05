@@ -111,7 +111,8 @@ jobs:
           APP_ENV='${{ needs.build.outputs.entorno }}'
           DOCKERHUB_USERNAME='${{ secrets.DOCKERHUB_USERNAME }}'
           IMAGE_TAG='${{ needs.push.outputs.version }}'
-          HTTP_PORT='${{ secrets.HTTP_PORT }}'
+          HTTPS_PORT='${{ secrets.HTTPS_PORT }}'
+          COMPOSE_FILE='${{ needs.build.outputs.entorno == 'prod' && 'compose.yaml:compose.prod.yaml' || 'compose.yaml' }}'
           EOF
       - name: Desplegar en la EC2
         run: |
