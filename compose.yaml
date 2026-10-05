@@ -5,7 +5,8 @@ services:
   frontend:
     image: ${DOCKERHUB_USERNAME}/pf-puentes-frontend:${IMAGE_TAG}
     restart: unless-stopped
-    ports: ['${HTTPS_PORT}:8443']
+    # :? corta el deploy si falta: vacía, Compose publicaría 8443 en un puerto al azar
+    ports: ['${HTTPS_PORT:?falta el secreto HTTPS_PORT}:8443']
     # Certificado del host, uno para los tres entornos (scripts/certificado-tls.sh, ADR 0008)
     volumes: ['../../tls/certificates:/etc/nginx/tls:ro']
 
