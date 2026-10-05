@@ -32,11 +32,11 @@ npx ng test --watch=false
 
 GitHub Actions (`.github/workflows/ci-cd.yml`) corre cuatro etapas: build → test → push → deploy.
 
-| Evento             | Entorno | URL                 |
-| ------------------ | ------- | ------------------- |
-| PR hacia `develop` | dev     | `http://<EC2>:8082` |
-| push a `develop`   | stage   | `http://<EC2>:8081` |
-| push a `main`      | prod    | `http://<EC2>`      |
+| Evento             | Entorno | URL                                                    |
+| ------------------ | ------- | ------------------------------------------------------ |
+| PR hacia `develop` | dev     | `https://pf-puentes.duckdns.org:8082`                  |
+| push a `develop`   | stage   | `https://pf-puentes.duckdns.org:8081`                  |
+| push a `main`      | prod    | `https://pf-puentes.duckdns.org` (el 80 redirige aquí) |
 
 - **Imagen:** `<DOCKERHUB_USERNAME>/pf-puentes-frontend:<número de build>`, más el tag `:tree-<hash>` que la identifica por contenido.
 - **Promoción:** la misma imagen pasa de dev a stage y a prod sin reconstruirse. Prod solo acepta imágenes que pasaron por stage. Esto funciona porque la imagen no lleva la URL de la API compilada adentro.
@@ -48,7 +48,9 @@ Las decisiones están en [docs/adr](docs/adr/) y los secretos y variables en el 
 
 | Petición                                              | Respuesta                                                                              |
 | ----------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| `http://...`                                          | `301` a la misma URL con `https://`                                                    |
 | `/api/...`                                            | Se reenvía al `backend:8080` del mismo entorno. Tiene prioridad sobre las demás reglas |
+| `/archivos/...` (GET)                                 | URL firmada de una foto: se reenvía a MinIO con el mismo `Host` (ADR 0013 del backend) |
 | `/index.html` y `/ngsw.json`                          | Sin caché, para que la PWA reciba actualizaciones                                      |
 | Archivos con huella (`main-XXXXXXXX.js`)              | Caché de 1 año (`immutable`)                                                           |
 | Cualquier otra ruta (`/puentes/123`, `/actuator/...`) | `index.html`, porque son rutas de la SPA. El actuator del backend no queda expuesto    |
@@ -56,16 +58,35 @@ Las decisiones están en [docs/adr](docs/adr/) y los secretos y variables en el 
 
 Además:
 
+- Todas las respuestas llevan HSTS, `Content-Security-Policy`, `X-Content-Type-Options`, `X-Frame-Options` y `Referrer-Policy` ([ADR 0008](docs/adr/0008-tls-con-lets-encrypt-y-encabezados-en-nginx.md)). Si un feature necesita un origen externo (p. ej. los mosaicos del mapa), agrégalo a la CSP en `nginx.conf`.
 - JS, CSS, JSON y SVG viajan comprimidos con gzip.
 - nginx resuelve `backend` en cada petición: arranca aunque el backend no exista todavía y no pierde la conexión cuando el backend se redespliega.
 
 ## PWA
 
-- El service worker solo se registra en el build de producción y en un contexto seguro (HTTPS o `localhost`). Mientras dev, stage y prod sigan en HTTP, ahí no se instala.
+- El service worker solo se registra en el build de producción y en un contexto seguro (HTTPS o `localhost`).
 - `ngsw-config.json` precarga todo el JS y CSS para que la app arranque sin red.
 - Las navegaciones a `/api/**` van al backend, no a la SPA: así se pueden abrir un PDF o `/api/docs` en una pestaña. Los datos de inspección, fotos y sincronización los maneja `offline/`, no el service worker (DT-OFF-02).
-- Para probarla en local: `docker build -t pf-puentes-frontend:pwa . && docker run --rm -p 8090:8080 pf-puentes-frontend:pwa` y abre http://localhost:8090 (DevTools → Application).
+- Para probarla en local: `npx ng build && python3 -m http.server -d dist/pf-puentes-frontend/browser 8090` y abre http://localhost:8090 (DevTools → Application). `localhost` cuenta como contexto seguro.
 - Los íconos de `public/icons/` son los de Angular. Para cambiarlos, se reemplazan los PNG con el mismo nombre.
+
+### TLS
+
+Un solo certificado de Let's Encrypt para `pf-puentes.duckdns.org` sirve a los tres entornos: cada nginx atiende https en su puerto ([ADR 0008](docs/adr/0008-tls-con-lets-encrypt-y-encabezados-en-nginx.md)). Vive en `~/puentes/tls` de la EC2 y lo emite y renueva `scripts/certificado-tls.sh` (lego, validación por DNS de DuckDNS).
+
+Primera vez, en la EC2:
+
+```bash
+install -m 600 /dev/null ~/puentes/duckdns.env   # DUCKDNS_TOKEN=<token de duckdns.org> y CORREO_TLS=<correo>
+sudo install -d -o 101 -g 101 ~/puentes/tls      # 101 = usuario de nginx-unprivileged
+sh scripts/certificado-tls.sh                    # desde un clon del repo
+```
+
+Renovación diaria (`crontab -e`); lego solo renueva cuando faltan 30 días:
+
+```
+0 4 * * * $HOME/puentes/prod/pf-puentes-frontend/scripts/certificado-tls.sh >> $HOME/puentes/tls-renovacion.log 2>&1
+```
 
 ## Problemas conocidos
 

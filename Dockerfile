@@ -12,4 +12,4 @@ RUN npx ng build
 FROM nginxinc/nginx-unprivileged:1.30.5-alpine
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /app/dist/pf-puentes-frontend/browser /usr/share/nginx/html
-EXPOSE 8080
+EXPOSE 8443 8080
