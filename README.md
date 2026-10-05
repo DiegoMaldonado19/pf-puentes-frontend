@@ -23,6 +23,7 @@ docker compose -f compose.local.yaml up --watch
 - Al guardar en `src/` o `public/`, el navegador se recarga en un segundo aproximadamente. Si cambias `package.json`, se reconstruye la imagen.
 - `/api` se reenvía al backend local (`host.docker.internal:8080`): levanta también el `compose.local.yaml` del backend.
 - Para apagar: `docker compose -f compose.local.yaml down`.
+- En local no hace falta `.env`: el `.env.example` es solo para la EC2.
 
 Sin Docker: `npm ci` y luego `npm start`. En ese caso el proxy apunta a `localhost:8080`.
 
