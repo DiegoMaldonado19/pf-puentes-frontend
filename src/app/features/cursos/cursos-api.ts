@@ -62,24 +62,30 @@ export class CursosApi {
       this.opciones(pagina),
     );
   }
-  estudiantes(pagina = 0) {
+  estudiantes(pagina = 0, busqueda = '') {
     return this.http.get<PaginaDTO<EstudianteElegibleDTO>>(
       `${this.base}/cursos/estudiantes-elegibles`,
-      this.opciones(pagina),
+      this.opciones(pagina, busqueda),
     );
   }
-  puentes(pagina = 0) {
+  puentes(pagina = 0, busqueda = '') {
     return this.http.get<PaginaDTO<PuenteDisponibleDTO>>(
       `${this.base}/cursos/puentes-disponibles`,
-      this.opciones(pagina),
+      this.opciones(pagina, busqueda),
     );
   }
 
-  private opciones(pagina?: number): { headers: HttpHeaders; params: Record<string, string> } {
+  private opciones(
+    pagina?: number,
+    busqueda = '',
+  ): { headers: HttpHeaders; params: Record<string, string> } {
     const token = this.sesion()?.token;
+    const params: Record<string, string> =
+      pagina === undefined ? {} : { page: String(pagina), size: '20' };
+    if (busqueda.trim()) params['q'] = busqueda.trim();
     return {
       headers: new HttpHeaders(token ? { Authorization: `Bearer ${token}` } : {}),
-      params: pagina === undefined ? {} : { page: String(pagina), size: '20' },
+      params,
     };
   }
 }

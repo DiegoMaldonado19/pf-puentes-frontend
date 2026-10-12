@@ -25,8 +25,10 @@ import { PaginacionCursos } from './paginacion';
         <ul>
           @for (asignacion of datos.content; track asignacion.id) {
             <li>
-              {{ textos.puenteId }} {{ asignacion.puente_id }} — {{ textos.cursoId }}
-              {{ asignacion.curso_id }} — {{ asignacion.creado_en | date: 'dd/MM/yyyy' : '-0600' }}
+              {{ textos.puenteId }} {{ asignacion.puente_codigo || asignacion.puente_id }} —
+              {{ asignacion.puente_nombre }} — {{ textos.cursoId }}
+              {{ asignacion.curso_nombre || asignacion.curso_id }} —
+              {{ asignacion.creado_en | date: 'dd/MM/yyyy' : '-0600' }}
             </li>
           } @empty {
             <li>{{ textos.sinAsignaciones }}</li>

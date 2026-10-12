@@ -117,6 +117,21 @@ describe('Contrato HTTP de cursos', () => {
     }
   });
 
+  it('envía la búsqueda normalizada junto con la página sin cambiar los filtros de sesión', async () => {
+    const estudiantes = firstValueFrom(api.estudiantes(1, '  Estudiante ajeno  '));
+    const req = http.expectOne((r) => r.url === '/api/v1/cursos/estudiantes-elegibles');
+    expect(req.request.params.get('q')).toBe('Estudiante ajeno');
+    expect(req.request.params.get('page')).toBe('1');
+    expect(req.request.headers.get('Authorization')).toBe('Bearer token-en-memoria');
+    req.flush(pagina([]));
+    await estudiantes;
+    const puentes = firstValueFrom(api.puentes(0, 'GT-99'));
+    const otro = http.expectOne((r) => r.url === '/api/v1/cursos/puentes-disponibles');
+    expect(otro.request.params.get('q')).toBe('GT-99');
+    otro.flush(pagina([]));
+    await puentes;
+  });
+
   it('presenta errores semánticos y la dependencia de activación', () => {
     expect(
       mensajeErrorCursos(
@@ -214,6 +229,7 @@ describe('Formulario y flujos de cursos', () => {
             {
               id: 'inscripcion',
               estudiante_id: 'estudiante',
+              estudiante_nombre: 'Estudiante visible',
               curso_id: curso.id,
               creado_en: curso.creado_en,
             },
@@ -256,6 +272,73 @@ describe('Formulario y flujos de cursos', () => {
     await componente.asignar();
     expect(api.asignar).toHaveBeenCalledWith(curso.id, 'inscripcion', 'puente');
     expect(componente.mensaje()).toBe(TEXTOS.cursos.asignado);
+  });
+
+  it('busca desde la primera página y conserva el filtro aplicado al paginar', async () => {
+    const { api, componente } = await prepararDetalle();
+    componente.inscripcion.controls.estudiante.setValue('estudiante');
+    componente.buscarEstudiante.controls.texto.setValue('  Estudiante  ');
+    await componente.buscar('estudiantes');
+    expect(api.estudiantes).toHaveBeenLastCalledWith(0, 'Estudiante');
+    expect(componente.inscripcion.controls.estudiante.value).toBe('');
+    componente.buscarEstudiante.controls.texto.setValue('Sin aplicar');
+    await componente.paginar('estudiantes', 1);
+    expect(api.estudiantes).toHaveBeenLastCalledWith(1, 'Estudiante');
+    componente.buscarPuente.controls.texto.setValue('GT-09');
+    await componente.buscar('puentes');
+    await componente.paginar('puentes', 1);
+    expect(api.puentes).toHaveBeenLastCalledWith(1, 'GT-09');
+  });
+
+  it('no consulta búsquedas excesivas ni cambia el filtro aplicado si falla una búsqueda', async () => {
+    const { api, componente } = await prepararDetalle();
+    api.estudiantes.mockClear();
+    componente.buscarEstudiante.controls.texto.setValue('a'.repeat(121));
+    await componente.buscar('estudiantes');
+    expect(api.estudiantes).not.toHaveBeenCalled();
+    componente.buscarEstudiante.controls.texto.setValue('Estudiante');
+    await componente.buscar('estudiantes');
+    api.estudiantes.mockImplementationOnce(() =>
+      throwError(() => new HttpErrorResponse({ status: 500 })),
+    );
+    componente.buscarEstudiante.controls.texto.setValue('Otro');
+    await componente.buscar('estudiantes');
+    expect(componente.error()).toBe(TEXTOS.cursos.error);
+    await componente.paginar('estudiantes', 1);
+    expect(api.estudiantes).toHaveBeenLastCalledWith(1, 'Estudiante');
+  });
+
+  it('muestra el nombre del estudiante y limpia la selección anterior al recargar', async () => {
+    const { componente, fixture } = await prepararDetalle();
+    fixture.detectChanges();
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain('Estudiante visible');
+    await componente.seleccionar(componente.inscritos()!.content[0]);
+    componente.inscripcion.controls.estudiante.setValue('estudiante');
+    componente.asignacion.controls.puente.setValue('puente');
+    await componente.cargar();
+    expect(componente.seleccionada()).toBeNull();
+    expect(componente.asignaciones()).toBeNull();
+    expect(componente.asignacion.controls.puente.value).toBe('');
+    expect(componente.inscripcion.controls.estudiante.value).toBe('');
+  });
+
+  it('la vista del estudiante presenta etiquetas de puente y curso sin perder los UUID', async () => {
+    const datos = {
+      ...asignacion,
+      puente_codigo: 'GT-99-9901-0201',
+      puente_nombre: 'Puente legible',
+      curso_nombre: 'Curso legible',
+    };
+    TestBed.configureTestingModule({
+      providers: [{ provide: CursosApi, useValue: { propias: () => of(pagina([datos])) } }],
+    });
+    const fixture = TestBed.createComponent(MisAsignaciones);
+    await fixture.whenStable();
+    fixture.detectChanges();
+    const texto = (fixture.nativeElement as HTMLElement).textContent;
+    expect(texto).toContain('Puente legible');
+    expect(texto).toContain('Curso legible');
+    expect(fixture.componentInstance.pagina()!.content[0].puente_id).toBe('puente');
   });
 
   it('un curso cerrado conserva consulta y bloquea inscribir/asignar', async () => {

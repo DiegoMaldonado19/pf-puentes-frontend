@@ -19,23 +19,37 @@
       <p>{{ textos.cursoCerrado }}</p>
     }
     <form [formGroup]="inscripcion" (ngSubmit)="inscribir()">
+      <fieldset [disabled]="ocupado() || !actual.vigente">
+        <legend>{{ textos.inscribir }}</legend>
+        <label
+          >{{ textos.elegirEstudiante }}
+          <select formControlName="estudiante">
+            <option value="">{{ textos.seleccionar }}</option>
+            @for (estudiante of estudiantes()?.content ?? []; track estudiante.id) {
+              <option [value]="estudiante.id">
+                {{ estudiante.nombre }} —
+                {{ estudiante.estado === 'ACTIVO' ? textos.activo : textos.pendiente }}
+              </option>
+            }
+          </select>
+        </label>
+        <button type="submit" [disabled]="ocupado() || !actual.vigente || inscripcion.invalid">
+          {{ textos.inscribir }}
+        </button>
+      </fieldset>
+    </form>
+    <form [formGroup]="buscarEstudiante" (ngSubmit)="buscar('estudiantes')">
       <label
-        >{{ textos.elegirEstudiante }}
-        <select formControlName="estudiante">
-          <option value="">{{ textos.seleccionar }}</option>
-          @for (estudiante of estudiantes()?.content ?? []; track estudiante.id) {
-            <option [value]="estudiante.id">
-              {{ estudiante.nombre }} —
-              {{ estudiante.estado === 'ACTIVO' ? textos.activo : textos.pendiente }}
-            </option>
-          }
-        </select>
-      </label>
-      <button type="submit" [disabled]="ocupado() || !actual.vigente || inscripcion.invalid">
-        {{ textos.inscribir }}
+        >{{ textos.buscarEstudiante }} <input type="search" formControlName="texto" maxlength="120"
+      /></label>
+      <button type="submit" [disabled]="ocupado() || buscarEstudiante.invalid">
+        {{ textos.buscar }}
       </button>
     </form>
     <p>{{ textos.activacionAviso }}</p>
+    @if (estudiantes() && !estudiantes()!.content.length) {
+      <p role="status">{{ textos.sinElegibles }}</p>
+    }
     @if (estudiantes(); as datos) {
       <app-paginacion-cursos
         [etiqueta]="textos.elegirEstudiante"
@@ -49,7 +63,7 @@
       <ul>
         @for (inscrito of datos.content; track inscrito.id) {
           <li>
-            {{ textos.estudianteId }} {{ inscrito.estudiante_id }}
+            {{ textos.estudianteId }} {{ inscrito.estudiante_nombre || inscrito.estudiante_id }}
             <button type="button" [disabled]="ocupado()" (click)="seleccionar(inscrito)">
               {{ textos.verAsignaciones }}
             </button>
@@ -68,22 +82,36 @@
     }
     @if (seleccionada(); as inscrito) {
       <h2>{{ textos.asignaciones }}</h2>
-      <p>{{ textos.estudianteId }} {{ inscrito.estudiante_id }}</p>
+      <p>{{ textos.estudianteId }} {{ inscrito.estudiante_nombre || inscrito.estudiante_id }}</p>
       <form [formGroup]="asignacion" (ngSubmit)="asignar()">
+        <fieldset [disabled]="ocupado() || !actual.vigente">
+          <legend>{{ textos.asignar }}</legend>
+          <label
+            >{{ textos.elegirPuente }}
+            <select formControlName="puente">
+              <option value="">{{ textos.seleccionar }}</option>
+              @for (puente of puentes()?.content ?? []; track puente.id) {
+                <option [value]="puente.id">{{ puente.codigo }} — {{ puente.nombre }}</option>
+              }
+            </select>
+          </label>
+          <button type="submit" [disabled]="ocupado() || !actual.vigente || asignacion.invalid">
+            {{ textos.asignar }}
+          </button>
+        </fieldset>
+      </form>
+      <form [formGroup]="buscarPuente" (ngSubmit)="buscar('puentes')">
         <label
-          >{{ textos.elegirPuente }}
-          <select formControlName="puente">
-            <option value="">{{ textos.seleccionar }}</option>
-            @for (puente of puentes()?.content ?? []; track puente.id) {
-              <option [value]="puente.id">{{ puente.codigo }} — {{ puente.nombre }}</option>
-            }
-          </select>
-        </label>
-        <button type="submit" [disabled]="ocupado() || !actual.vigente || asignacion.invalid">
-          {{ textos.asignar }}
+          >{{ textos.buscarPuente }} <input type="search" formControlName="texto" maxlength="120"
+        /></label>
+        <button type="submit" [disabled]="ocupado() || buscarPuente.invalid">
+          {{ textos.buscar }}
         </button>
       </form>
       @if (puentes(); as datos) {
+        @if (!datos.content.length) {
+          <p role="status">{{ textos.sinPuentes }}</p>
+        }
         <app-paginacion-cursos
           [etiqueta]="textos.elegirPuente"
           [pagina]="datos.number"
@@ -95,7 +123,10 @@
       @if (asignaciones(); as datos) {
         <ul>
           @for (asignada of datos.content; track asignada.id) {
-            <li>{{ textos.puenteId }} {{ asignada.puente_id }}</li>
+            <li>
+              {{ textos.puenteId }} {{ asignada.puente_codigo || asignada.puente_id }} —
+              {{ asignada.puente_nombre }}
+            </li>
           } @empty {
             <li>{{ textos.sinAsignaciones }}</li>
           }

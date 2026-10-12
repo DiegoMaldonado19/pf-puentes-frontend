@@ -21,6 +21,7 @@ export interface CursoDTO extends GuardarCursoDTO {
 }
 
 export interface InscripcionDTO {
+  estudiante_nombre?: string;
   id: string;
   curso_id: string;
   estudiante_id: string;
@@ -28,6 +29,9 @@ export interface InscripcionDTO {
 }
 
 export interface AsignacionDTO {
+  curso_nombre?: string;
+  puente_codigo?: string;
+  puente_nombre?: string;
   id: string;
   inscripcion_id: string;
   curso_id: string;

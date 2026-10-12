@@ -38,6 +38,10 @@ export class CursoDetalle {
   private readonly fb = inject(FormBuilder);
   readonly inscripcion = this.fb.nonNullable.group({ estudiante: ['', Validators.required] });
   readonly asignacion = this.fb.nonNullable.group({ puente: ['', Validators.required] });
+  readonly buscarEstudiante = this.fb.nonNullable.group({ texto: ['', Validators.maxLength(120)] });
+  readonly buscarPuente = this.fb.nonNullable.group({ texto: ['', Validators.maxLength(120)] });
+  private filtroEstudiantes = '';
+  private filtroPuentes = '';
 
   constructor() {
     void this.cargar();
@@ -45,11 +49,19 @@ export class CursoDetalle {
 
   async cargar() {
     await this.operar(async () => {
+      this.curso.set(null);
+      this.inscritos.set(null);
+      this.estudiantes.set(null);
+      this.puentes.set(null);
+      this.seleccionada.set(null);
+      this.asignaciones.set(null);
+      this.inscripcion.reset();
+      this.asignacion.reset();
       this.curso.set(await firstValueFrom(this.api.obtener(this.cursoId)));
       const [inscritos, estudiantes, puentes] = await Promise.all([
         firstValueFrom(this.api.inscripciones(this.cursoId)),
-        firstValueFrom(this.api.estudiantes()),
-        firstValueFrom(this.api.puentes()),
+        firstValueFrom(this.api.estudiantes(0, this.filtroEstudiantes)),
+        firstValueFrom(this.api.puentes(0, this.filtroPuentes)),
       ]);
       this.inscritos.set(inscritos);
       this.estudiantes.set(estudiantes);
@@ -73,7 +85,9 @@ export class CursoDetalle {
       this.inscripcion.reset();
       this.inscritos.set(await firstValueFrom(this.api.inscripciones(this.cursoId)));
       this.estudiantes.set(
-        await firstValueFrom(this.api.estudiantes(this.estudiantes()?.number ?? 0)),
+        await firstValueFrom(
+          this.api.estudiantes(this.estudiantes()?.number ?? 0, this.filtroEstudiantes),
+        ),
       );
       this.mensaje.set(this.textos.inscrito);
     });
@@ -110,10 +124,14 @@ export class CursoDetalle {
           this.inscritos.set(await firstValueFrom(this.api.inscripciones(this.cursoId, numero)));
           break;
         case 'estudiantes':
-          this.estudiantes.set(await firstValueFrom(this.api.estudiantes(numero)));
+          this.estudiantes.set(
+            await firstValueFrom(this.api.estudiantes(numero, this.filtroEstudiantes)),
+          );
+          this.inscripcion.reset();
           break;
         case 'puentes':
-          this.puentes.set(await firstValueFrom(this.api.puentes(numero)));
+          this.puentes.set(await firstValueFrom(this.api.puentes(numero, this.filtroPuentes)));
+          this.asignacion.reset();
           break;
         case 'asignaciones': {
           const seleccionada = this.seleccionada();
@@ -122,6 +140,24 @@ export class CursoDetalle {
               await firstValueFrom(this.api.asignaciones(this.cursoId, seleccionada.id, numero)),
             );
         }
+      }
+    });
+  }
+
+  async buscar(tipo: 'estudiantes' | 'puentes') {
+    const formulario = tipo === 'estudiantes' ? this.buscarEstudiante : this.buscarPuente;
+    formulario.markAllAsTouched();
+    if (formulario.invalid) return;
+    const texto = formulario.controls.texto.value.trim();
+    await this.operar(async () => {
+      if (tipo === 'estudiantes') {
+        this.estudiantes.set(await firstValueFrom(this.api.estudiantes(0, texto)));
+        this.filtroEstudiantes = texto;
+        this.inscripcion.reset();
+      } else {
+        this.puentes.set(await firstValueFrom(this.api.puentes(0, texto)));
+        this.filtroPuentes = texto;
+        this.asignacion.reset();
       }
     });
   }
