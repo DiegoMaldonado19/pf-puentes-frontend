@@ -1,0 +1,22 @@
+header {
+  padding: 1rem 1.5rem;
+  font-family: system-ui, sans-serif;
+  color: #172033;
+  border-bottom: 1px solid #64748b;
+}
+header h1 {
+  font-size: 1.3rem;
+}
+nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+a {
+  color: #174585;
+  padding: 0.5rem 0;
+}
+a:focus-visible {
+  outline: 3px solid #9a4200;
+  outline-offset: 3px;
+}

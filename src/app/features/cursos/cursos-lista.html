@@ -1,0 +1,30 @@
+<section [attr.aria-busy]="ocupado()">
+  <h1>{{ textos.misCursos }}</h1>
+  @if (error()) {
+    <p role="alert">{{ error() }}</p>
+    <button type="button" [disabled]="ocupado()" (click)="cargar()">{{ textos.reintentar }}</button>
+  }
+  @if (ocupado()) {
+    <p role="status">{{ textos.cargando }}</p>
+  }
+  <app-formulario-curso [ocupado]="ocupado()" (guardado)="crear($event)" />
+  @if (pagina(); as datos) {
+    <ul>
+      @for (curso of datos.content; track curso.id) {
+        <li>
+          <a [routerLink]="['/cursos', curso.id]">{{ curso.nombre }}</a> — {{ curso.anio }} /
+          {{ curso.semestre }} — {{ curso.vigente ? textos.vigente : textos.cerrado }}
+        </li>
+      } @empty {
+        <li>{{ textos.sinCursos }}</li>
+      }
+    </ul>
+    <app-paginacion-cursos
+      [etiqueta]="textos.misCursos"
+      [pagina]="datos.number"
+      [paginas]="datos.total_pages"
+      [ocupado]="ocupado()"
+      (cambio)="cargar($event)"
+    />
+  }
+</section>
