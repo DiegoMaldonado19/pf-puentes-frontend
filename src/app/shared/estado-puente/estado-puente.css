@@ -1,0 +1,43 @@
+:host {
+  display: inline-block;
+}
+
+.estado {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.75rem;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.indicador {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}
+
+.estado[data-estado='BUENO'] {
+  color: #166534;
+  background: #dcfce7;
+}
+
+.estado[data-estado='REGULAR'] {
+  color: #713f12;
+  background: #fef9c3;
+}
+
+.estado[data-estado='MALO'] {
+  color: #991b1b;
+  background: #fee2e2;
+}
+
+.estado[data-estado='SIN_EVALUAR'] {
+  color: #374151;
+  background: #f3f4f6;
+}
