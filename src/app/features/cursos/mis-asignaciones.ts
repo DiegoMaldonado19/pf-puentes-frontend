@@ -5,6 +5,7 @@ import { TEXTOS } from '../../shared/textos';
 import { CursosApi, mensajeErrorCursos } from './cursos-api';
 import { AsignacionDTO, PaginaDTO } from './modelos';
 import { PaginacionCursos } from './paginacion';
+import { vigilarSesionCursos } from './sesion-cursos';
 
 @Component({
   selector: 'app-mis-asignaciones',
@@ -52,6 +53,7 @@ export class MisAsignaciones {
   readonly ocupado = signal(false);
   readonly error = signal('');
   private readonly api = inject(CursosApi);
+  private readonly errorAcceso = vigilarSesionCursos('ESTUDIANTE', () => this.pagina.set(null));
   constructor() {
     void this.cargar();
   }
@@ -62,6 +64,7 @@ export class MisAsignaciones {
     try {
       this.pagina.set(await firstValueFrom(this.api.propias(numero)));
     } catch (error) {
+      this.errorAcceso(error);
       this.error.set(mensajeErrorCursos(error));
     } finally {
       this.ocupado.set(false);

@@ -6,6 +6,7 @@ import { CursosApi, mensajeErrorCursos } from './cursos-api';
 import { FormularioCurso } from './formulario-curso';
 import { CursoDTO, GuardarCursoDTO, PaginaDTO } from './modelos';
 import { PaginacionCursos } from './paginacion';
+import { vigilarSesionCursos } from './sesion-cursos';
 
 @Component({
   selector: 'app-cursos-lista',
@@ -20,6 +21,7 @@ export class CursosLista {
   readonly error = signal('');
   private readonly api = inject(CursosApi);
   private readonly router = inject(Router);
+  private readonly errorAcceso = vigilarSesionCursos('CATEDRATICO', () => this.pagina.set(null));
 
   constructor() {
     void this.cargar();
@@ -31,6 +33,7 @@ export class CursosLista {
     try {
       this.pagina.set(await firstValueFrom(this.api.listar(numero)));
     } catch (error) {
+      this.errorAcceso(error);
       this.error.set(mensajeErrorCursos(error));
     } finally {
       this.ocupado.set(false);
@@ -44,6 +47,7 @@ export class CursosLista {
       const curso = await firstValueFrom(this.api.crear(datos));
       await this.router.navigate(['/cursos', curso.id]);
     } catch (error) {
+      this.errorAcceso(error);
       this.error.set(mensajeErrorCursos(error));
     } finally {
       this.ocupado.set(false);

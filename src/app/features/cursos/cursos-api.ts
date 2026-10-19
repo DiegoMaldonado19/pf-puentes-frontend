@@ -1,7 +1,7 @@
 import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { TEXTOS } from '../../shared/textos';
-import { SESION_CURSOS } from './sesion-cursos';
+import { INTEGRACION_SESION_CURSOS, SESION_CURSOS } from './sesion-cursos';
 import {
   AsignacionDTO,
   CursoDTO,
@@ -16,6 +16,7 @@ import {
 export class CursosApi {
   private readonly http = inject(HttpClient);
   private readonly sesion = inject(SESION_CURSOS);
+  private readonly integracion = inject(INTEGRACION_SESION_CURSOS);
   private readonly base = '/api/v1';
 
   listar(pagina = 0) {
@@ -79,7 +80,8 @@ export class CursosApi {
     pagina?: number,
     busqueda = '',
   ): { headers: HttpHeaders; params: Record<string, string> } {
-    const token = this.sesion()?.token;
+    // Al conectarse P2, solo su interceptor administra Authorization y renovación.
+    const token = this.integracion ? null : this.sesion()?.token;
     const params: Record<string, string> =
       pagina === undefined ? {} : { page: String(pagina), size: '20' };
     if (busqueda.trim()) params['q'] = busqueda.trim();

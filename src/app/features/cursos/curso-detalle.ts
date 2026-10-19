@@ -15,6 +15,7 @@ import {
   PuenteDisponibleDTO,
 } from './modelos';
 import { PaginacionCursos } from './paginacion';
+import { vigilarSesionCursos } from './sesion-cursos';
 
 @Component({
   selector: 'app-curso-detalle',
@@ -42,6 +43,7 @@ export class CursoDetalle {
   readonly buscarPuente = this.fb.nonNullable.group({ texto: ['', Validators.maxLength(120)] });
   private filtroEstudiantes = '';
   private filtroPuentes = '';
+  private readonly errorAcceso = vigilarSesionCursos('CATEDRATICO', () => this.limpiar());
 
   constructor() {
     void this.cargar();
@@ -49,14 +51,7 @@ export class CursoDetalle {
 
   async cargar() {
     await this.operar(async () => {
-      this.curso.set(null);
-      this.inscritos.set(null);
-      this.estudiantes.set(null);
-      this.puentes.set(null);
-      this.seleccionada.set(null);
-      this.asignaciones.set(null);
-      this.inscripcion.reset();
-      this.asignacion.reset();
+      this.limpiar();
       this.curso.set(await firstValueFrom(this.api.obtener(this.cursoId)));
       const [inscritos, estudiantes, puentes] = await Promise.all([
         firstValueFrom(this.api.inscripciones(this.cursoId)),
@@ -162,6 +157,18 @@ export class CursoDetalle {
     });
   }
 
+  private limpiar() {
+    this.curso.set(null);
+    this.inscritos.set(null);
+    this.estudiantes.set(null);
+    this.puentes.set(null);
+    this.seleccionada.set(null);
+    this.asignaciones.set(null);
+    this.inscripcion.reset();
+    this.asignacion.reset();
+    this.mensaje.set('');
+  }
+
   private async operar(accion: () => Promise<void>) {
     if (this.ocupado()) return;
     this.ocupado.set(true);
@@ -170,6 +177,7 @@ export class CursoDetalle {
     try {
       await accion();
     } catch (error) {
+      this.errorAcceso(error);
       this.error.set(mensajeErrorCursos(error));
     } finally {
       this.ocupado.set(false);

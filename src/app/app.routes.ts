@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { rolCursosGuard } from './features/cursos/sesion-cursos';
+import { entradaCursosGuard, rolCursosGuard } from './features/cursos/sesion-cursos';
 
 export const routes: Routes = [
   {
@@ -23,6 +23,7 @@ export const routes: Routes = [
   },
   {
     path: 'acceso-cursos',
+    canActivate: [entradaCursosGuard],
     loadComponent: () => import('./features/cursos/acceso-cursos').then((m) => m.AccesoCursos),
   },
 ];

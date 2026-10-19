@@ -15,12 +15,16 @@ Actualizado al 11/10: búsquedas por nombre de estudiante y por nombre/código d
 
 ## Dependencia de P2
 
-`SESION_CURSOS` debe recibir una función que lea el AuthService de P2 y devuelva `{id, rol, token}` o null. No existe sesión por defecto y no se guardan tokens en localStorage. HttpClient se configura en `app.config.ts`; conectar allí los interceptores reales de P2 cuando existan. El backend autoriza cada operación.
+Al 18/10, P7 ofrece `IntegracionSesionCursos` y `proveerSesionCursos`: sesión reactiva, restauración delegada antes de guardias y ruta de acceso de P2. Con el puerto conectado, Authorization/renovación pertenecen exclusivamente al interceptor P2. El proveedor anterior `SESION_CURSOS` se conserva como compatibilidad. No hay sesión por defecto ni tokens persistidos. [Contrato, ejemplo de conexión y pruebas](integracion-sesion.md).
 
 Las cuentas pendientes necesitan el adaptador de activación de P2 en backend. La UI muestra 503 como dependencia de activación, sin anunciar éxito ni borrar la selección.
 
-El backend ya valida JWT y reutiliza auditoría común de P2, pero no hay login/renovación por HTTP ni AuthService Angular. El proveedor por defecto sigue devolviendo null; no se habilita una sesión ficticia para saltarse esta dependencia.
+El backend ya entrega login, renovación, cierre y perfil propio por HTTP. **AuthService e interceptores Angular siguen siendo responsabilidad pendiente de P2**: no se implementan ni se simulan desde P7. Sin ese proveedor las rutas privadas siguen cerradas. Al cerrar/cambiar sesión o recibir un rechazo de acceso final, P7 limpia sus datos y selecciones; no intenta renovar por su cuenta.
+
+Se corrigió la regresión del merge de `shared/textos.ts`: `estadoPuente`, `offline` y `capturaFoto` vuelven a la raíz junto a `cursos`, conservando los contratos de otros compañeros.
 
 Código y pruebas: `src/app/features/cursos/`. Textos en `shared/textos.ts`; fechas dd/MM/yyyy UTC−6. [ADR 0011](../adr/0011-integracion-de-sesion-en-cursos.md).
 
 Chequeos: `npx prettier --check .`, `npm run lint`, `npm run build`, `npx ng test --watch=false`.
+
+[Resultados posteriores al pull — 18/10/2026](verificacion-2026-10-18.md).
