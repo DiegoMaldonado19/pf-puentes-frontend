@@ -11,8 +11,6 @@ import { TEXTOS } from '../../shared/textos';
     <p role="status">{{ sinPermiso ? textos.sinPermiso : textos.sesionRequerida }}</p>
     @if (integracion; as sesion) {
       <a [routerLink]="sesion.urlAcceso">{{ textos.irAAcceso }}</a>
-    } @else {
-      <p>{{ textos.integracionSesion }}</p>
     }
   </section>`,
   styleUrl: './cursos.css',

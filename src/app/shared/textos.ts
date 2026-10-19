@@ -52,8 +52,6 @@ export const TEXTOS = {
     acceso: 'Acceso a cursos',
     irAAcceso: 'Ir al acceso de Usuarios',
     sesionRequerida: 'Inicia sesión con una cuenta habilitada para esta sección.',
-    integracionSesion:
-      'La sesión de Usuarios (P2) debe conectarse al módulo de cursos para habilitar el acceso.',
     sinPermiso: 'Tu cuenta no tiene permiso para esta operación.',
     error: 'No se pudo completar la operación. Intenta de nuevo.',
   },

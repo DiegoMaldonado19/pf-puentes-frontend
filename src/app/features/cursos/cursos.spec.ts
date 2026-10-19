@@ -157,6 +157,11 @@ describe('Guardias del módulo de cursos', () => {
     const harness = await RouterTestingHarness.create();
     await harness.navigateByUrl('/cursos');
     expect(TestBed.inject(Router).url).toBe('/acceso-cursos');
+    expect(harness.routeNativeElement?.querySelector('[role="status"]')?.textContent?.trim()).toBe(
+      TEXTOS.cursos.sesionRequerida,
+    );
+    expect(harness.routeNativeElement?.textContent).not.toContain('P2');
+    expect(harness.routeNativeElement?.querySelectorAll('p')).toHaveLength(1);
     await harness.navigateByUrl('/mis-asignaciones');
     expect(TestBed.inject(Router).url).toBe('/acceso-cursos');
   });
