@@ -2,16 +2,14 @@
 
 SPA en Angular del Sistema de Gestión de Puentes (SGP). No usa SSR: en dev, stage y prod la sirve nginx ([ADR 0001](docs/adr/0001-spa-sin-ssr-servida-por-nginx.md)).
 
-## Estado (04/10/2026)
+## Estado (12/10/2026)
 
-| Parte                      | Qué hay                                                                                                     | Responsable    |
-| -------------------------- | ----------------------------------------------------------------------------------------------------------- | -------------- |
-| `shared/captura-foto/`     | `<app-captura-foto>`: comprime la foto, genera la miniatura y registra ubicación y hora (contrato 9)        | P1             |
-| PWA                        | Manifiesto, íconos de Angular y service worker; la lógica offline es de `offline/`                          | P1 (base) y P6 |
-| Infraestructura            | nginx con TLS en los tres entornos, encabezados de seguridad y URL firmadas en `/archivos/`                 | P1             |
-| `features/cursos/` (07/10) | Cursos, inscripciones, asignaciones y consulta del estudiante; [manual e integración P2](docs/P7/README.md) | P7             |
-| `offline/`                 | Base de persistencia y cola offline con harness de pruebas                                                  | P6             |
-| `core/`                    | Integración de autenticación pendiente                                                                      | P2             |
+| Parte                             | Qué hay                                                                                              | Responsable      |
+| --------------------------------- | ---------------------------------------------------------------------------------------------------- | ---------------- |
+| `shared/captura-foto/`            | `<app-captura-foto>`: comprime la foto, genera la miniatura y registra ubicación y hora (contrato 9) | P1               |
+| PWA                               | Manifiesto, íconos de Angular y service worker; la lógica offline es de `offline/`                   | P1 (base) y P6   |
+| Infraestructura                   | nginx con TLS en los tres entornos, encabezados de seguridad y URL firmadas en `/archivos/`          | P1               |
+| `core/`, `features/` y `offline/` | Todavía no existen; `app.html` sigue siendo el de Angular                                            | Cada responsable |
 
 ## Desarrollo local
 
