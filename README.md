@@ -2,16 +2,17 @@
 
 SPA en Angular del Sistema de Gestión de Puentes (SGP). No usa SSR: en dev, stage y prod la sirve nginx ([ADR 0001](docs/adr/0001-spa-sin-ssr-servida-por-nginx.md)).
 
-## Estado (12/10/2026)
+## Estado (19/10/2026)
 
-| Parte                   | Qué hay                                                                                                                                                                         | Responsable      |
-| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------- |
-| `shared/captura-foto/`  | `<app-captura-foto>`: comprime la foto, genera la miniatura y registra ubicación y hora (contrato 9)                                                                            | P1               |
-| `shared/estado-puente/` | `<app-estado-puente>`: Bueno/Regular/Malo/Sin evaluar con texto y color; integración con P3 pendiente ([ADR 0011](docs/adr/0011-componente-compartido-de-estado-del-puente.md)) | P8               |
-| PWA                     | Manifiesto, íconos de Angular y service worker; la lógica offline es de `offline/`                                                                                              | P1 (base) y P6   |
-| Infraestructura         | nginx con TLS en los tres entornos, encabezados de seguridad y URL firmadas en `/archivos/`                                                                                     | P1               |
-| `offline/`              | Base de persistencia y cola con harness de prueba ([documentación](docs/base-offline.md))                                                                                       | P6               |
-| `core/`, `features/`    | Todavía no existen; `app.html` sigue siendo el de Angular                                                                                                                       | Cada responsable |
+| Parte                   | Qué hay                                                                                                                                                                                                                 | Responsable      |
+| ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------- |
+| `shared/captura-foto/`  | `<app-captura-foto>`: comprime la foto, genera la miniatura y registra ubicación y hora (contrato 9)                                                                                                                    | P1               |
+| `shared/estado-puente/` | `<app-estado-puente>`: Bueno/Regular/Malo/Sin evaluar con texto y color; integración con P3 pendiente ([ADR 0011](docs/adr/0011-componente-compartido-de-estado-del-puente.md))                                         | P8               |
+| PWA                     | Manifiesto, íconos de Angular y service worker; la lógica offline es de `offline/`                                                                                                                                      | P1 (base) y P6   |
+| Infraestructura         | nginx con TLS en los tres entornos, encabezados de seguridad y URL firmadas en `/archivos/`                                                                                                                             | P1               |
+| `offline/`              | Base de persistencia y cola con harness de prueba ([documentación](docs/base-offline.md))                                                                                                                               | P6               |
+| `features/admin/pesos/` | Cliente HTTP y vista de consulta de juegos/pesos, con paginación; ruta y sesión P2 pendientes ([ADR 0012](docs/adr/0012-cliente-http-de-consulta-de-pesos.md), [ADR 0013](docs/adr/0013-vista-de-consulta-de-pesos.md)) | P8               |
+| `core/`, rutas          | `core/` aún no existe; rutas vacías y `app.html` sigue siendo el de Angular                                                                                                                                             | Cada responsable |
 
 ## Desarrollo local
 

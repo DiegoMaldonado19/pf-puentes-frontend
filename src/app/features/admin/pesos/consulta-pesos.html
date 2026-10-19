@@ -1,0 +1,140 @@
+<section class="consulta" aria-labelledby="titulo-pesos">
+  <header>
+    <h1 id="titulo-pesos">{{ t.titulo }}</h1>
+    <p>{{ t.descripcion }}</p>
+  </header>
+
+  <section aria-labelledby="titulo-juegos" [attr.aria-busy]="cargandoJuegos()">
+    <h2 id="titulo-juegos">{{ t.juegos }}</h2>
+    @if (cargandoJuegos()) {
+      <p role="status">{{ t.cargando }}</p>
+    } @else if (errorJuegos()) {
+      <p role="alert">{{ errorJuegos() }}</p>
+      <button type="button" (click)="reintentarJuegos()">{{ t.reintentar }}</button>
+    } @else if (juegos(); as pagina) {
+      @if (pagina.content.length) {
+        <div class="tabla" role="region" [attr.aria-label]="t.juegos" tabindex="0">
+          <table>
+            <caption>
+              {{
+                t.juegos
+              }}
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">{{ t.vigencia }}</th>
+                <th scope="col">{{ t.acta }}</th>
+                <th scope="col">{{ t.acciones }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (juego of pagina.content; track juego.id) {
+                <tr>
+                  <td>{{ juego.vigente_desde | date: 'dd/MM/yyyy' : '-0600' }}</td>
+                  <td>{{ juego.acta ?? t.sinActa }}</td>
+                  <td>
+                    <button
+                      type="button"
+                      (click)="seleccionar(juego)"
+                      [attr.aria-pressed]="seleccionado()?.id === juego.id"
+                    >
+                      {{ seleccionado()?.id === juego.id ? t.seleccionado : t.ver }}
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        <nav [attr.aria-label]="t.paginasJuegos">
+          <button
+            type="button"
+            [disabled]="pagina.page === 0"
+            (click)="cambiarJuegos(pagina.page - 1)"
+          >
+            {{ t.anterior }}
+          </button>
+          <span aria-live="polite"
+            >{{ t.pagina }} {{ pagina.page + 1 }} {{ t.de }} {{ pagina.total_pages }}</span
+          >
+          <button
+            type="button"
+            [disabled]="pagina.page + 1 >= pagina.total_pages"
+            (click)="cambiarJuegos(pagina.page + 1)"
+          >
+            {{ t.siguiente }}
+          </button>
+        </nav>
+      } @else {
+        <p role="status">{{ t.sinJuegos }}</p>
+      }
+    }
+  </section>
+
+  <section aria-labelledby="titulo-detalle" [attr.aria-busy]="cargandoPesos()">
+    <h2 id="titulo-detalle">{{ t.detalle }}</h2>
+    @if (seleccionado(); as juego) {
+      <dl>
+        <dt>{{ t.vigencia }}</dt>
+        <dd>{{ juego.vigente_desde | date: 'dd/MM/yyyy' : '-0600' }}</dd>
+        <dt>{{ t.acta }}</dt>
+        <dd>{{ juego.acta ?? t.sinActa }}</dd>
+      </dl>
+      @if (cargandoPesos()) {
+        <p role="status">{{ t.cargandoPesos }}</p>
+      } @else if (errorPesos()) {
+        <p role="alert">{{ errorPesos() }}</p>
+        <button type="button" (click)="reintentarPesos()">{{ t.reintentar }}</button>
+      } @else if (pesos(); as pagina) {
+        @if (pagina.content.length) {
+          <div class="tabla" role="region" [attr.aria-label]="t.detalle" tabindex="0">
+            <table>
+              <caption>
+                {{
+                  t.detalle
+                }}
+              </caption>
+              <thead>
+                <tr>
+                  <th scope="col">{{ t.elemento }}</th>
+                  <th scope="col">{{ t.peso }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (peso of pagina.content; track peso.id) {
+                  <tr>
+                    <th scope="row">{{ peso.elemento_ref }}</th>
+                    <td>{{ peso.peso | number: '1.0-3' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+          <nav [attr.aria-label]="t.paginasPesos">
+            <button
+              type="button"
+              [disabled]="pagina.page === 0"
+              (click)="cambiarPesos(pagina.page - 1)"
+            >
+              {{ t.anterior }}
+            </button>
+            <span aria-live="polite"
+              >{{ t.pagina }} {{ pagina.page + 1 }} {{ t.de }} {{ pagina.total_pages }}</span
+            >
+            <button
+              type="button"
+              [disabled]="pagina.page + 1 >= pagina.total_pages"
+              (click)="cambiarPesos(pagina.page + 1)"
+            >
+              {{ t.siguiente }}
+            </button>
+          </nav>
+        } @else {
+          <p role="status">{{ t.sinPesos }}</p>
+        }
+      }
+    } @else {
+      <p>{{ t.seleccionar }}</p>
+    }
+  </section>
+</section>
