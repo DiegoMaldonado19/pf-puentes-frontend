@@ -1,5 +1,11 @@
 // DT-FE-12: los textos de la interfaz viven aquí para poder traducirla sin tocar las plantillas
 export const TEXTOS = {
+  estadoPuente: {
+    BUENO: 'Bueno',
+    REGULAR: 'Regular',
+    MALO: 'Malo',
+    SIN_EVALUAR: 'Sin evaluar',
+  },
   offline: {
     titulo: 'Base offline — datos ficticios',
     propietario: 'Propietario ficticio',
