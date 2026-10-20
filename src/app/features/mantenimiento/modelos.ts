@@ -29,8 +29,8 @@ export interface ReferenciaOrden {
   readonly id: string;
 }
 
-/** Contrato del GET de propuestas; conserva el puente también en páginas vacías. */
-export interface PaginaPropuestas {
+/** Contrato de página de órdenes; conserva el puente también en páginas vacías. */
+export interface PaginaOrdenes {
   /** El contenedor conserva el puente consultado, también cuando la página llega vacía. */
   readonly puente_id: string;
   readonly content: readonly OrdenMantenimientoDTO[];
@@ -39,6 +39,9 @@ export interface PaginaPropuestas {
   readonly total_elements: number;
   readonly total_pages: number;
 }
+
+/** El GET de propuestas usa la misma estructura, con filtro PROPUESTA en el servidor. */
+export type PaginaPropuestas = PaginaOrdenes;
 
 export interface ConsultaPropuestas {
   readonly puente_id: string;

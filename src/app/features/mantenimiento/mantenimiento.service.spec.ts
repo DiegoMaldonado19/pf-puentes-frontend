@@ -91,4 +91,31 @@ describe('MantenimientoService', () => {
     peticion.flush(aceptada);
     await respuesta;
   });
+  it('consulta historial paginado con los parámetros explícitos y el contrato snake_case', async () => {
+    const pagina = {
+      puente_id: puente,
+      content: [aceptada],
+      page: 2,
+      size: 1,
+      total_elements: 3,
+      total_pages: 3,
+    };
+    const respuesta = firstValueFrom(servicio.listarOrdenes(puente, 2, 1));
+    const peticion = http.expectOne(
+      `/api/v1/puentes/${puente}/ordenes-mantenimiento?page=2&size=1`,
+    );
+    expect(peticion.request.method).toBe('GET');
+    peticion.flush(pagina);
+    expect(await respuesta).toEqual(pagina);
+  });
+
+  it('escapa ambos identificadores en el GET de detalle y conserva campos históricos', async () => {
+    const respuesta = firstValueFrom(servicio.obtenerOrden('puente/ajeno', 'orden?otra'));
+    const peticion = http.expectOne(
+      '/api/v1/puentes/puente%2Fajeno/ordenes-mantenimiento/orden%3Fotra',
+    );
+    expect(peticion.request.method).toBe('GET');
+    peticion.flush(aceptada);
+    expect(await respuesta).toEqual(aceptada);
+  });
 });
