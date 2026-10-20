@@ -129,4 +129,44 @@ describe('MantenimientoService', () => {
     peticion.flush(iniciada);
     expect(await respuesta).toEqual(iniciada);
   });
+  it('consulta evidencia paginada escapando los identificadores', async () => {
+    const respuesta = firstValueFrom(servicio.listarEvidencias('puente/otro', 'orden?otra', 2, 5));
+    const req = http.expectOne(
+      '/api/v1/puentes/puente%2Fotro/ordenes-mantenimiento/orden%3Fotra/evidencias?page=2&size=5',
+    );
+    expect(req.request.method).toBe('GET');
+    const pagina = {
+      puente_id: 'puente/otro',
+      orden_id: 'orden?otra',
+      content: [],
+      page: 2,
+      size: 5,
+      total_elements: 0,
+      total_pages: 0,
+    };
+    req.flush(pagina);
+    expect(await respuesta).toEqual(pagina);
+  });
+
+  it('sube multipart por la cadena global y deja que el navegador defina su boundary', async () => {
+    const datos = new FormData();
+    datos.append('id', id);
+    const respuesta = firstValueFrom(servicio.subirEvidencia(puente, id, datos));
+    const req = http.expectOne(`/api/v1/puentes/${puente}/ordenes-mantenimiento/${id}/evidencias`);
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toBe(datos);
+    expect(req.request.headers.has('Content-Type')).toBe(false);
+    req.flush({ id });
+    await respuesta;
+  });
+
+  it('cierra mediante JSON sin enviar estado de destino ni contador de fotografías', async () => {
+    const datos = { fecha_ejecucion: '2026-10-20', responsable: 'Responsable de prueba' };
+    const respuesta = firstValueFrom(servicio.cerrar(puente, id, datos));
+    const req = http.expectOne(`/api/v1/puentes/${puente}/ordenes-mantenimiento/${id}/cierre`);
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual(datos);
+    req.flush({ ...aceptada, estado: 'EJECUTADA', ...datos });
+    expect((await respuesta).estado).toBe('EJECUTADA');
+  });
 });

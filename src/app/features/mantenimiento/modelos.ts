@@ -48,3 +48,29 @@ export interface ConsultaPropuestas {
   readonly page: number;
   readonly size: number;
 }
+
+/** Contrato de fotos de P1; las URL firmadas son temporales. */
+export interface EvidenciaDTO {
+  readonly id: string;
+  readonly tipo: 'JPEG' | 'WEBP';
+  readonly elemento_ref: string | null;
+  readonly latitud: number | null;
+  readonly longitud: number | null;
+  readonly capturada_en: string | null;
+  readonly tamano: number;
+  readonly url: string | null;
+  readonly url_miniatura: string | null;
+}
+export interface PaginaEvidencias {
+  readonly puente_id: string;
+  readonly orden_id: string;
+  readonly content: readonly EvidenciaDTO[];
+  readonly page: number;
+  readonly size: number;
+  readonly total_elements: number;
+  readonly total_pages: number;
+}
+export interface CierreOrden {
+  readonly fecha_ejecucion: string;
+  readonly responsable: string;
+}

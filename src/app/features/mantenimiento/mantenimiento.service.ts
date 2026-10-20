@@ -1,7 +1,14 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { OrdenMantenimientoDTO, PaginaOrdenes, PaginaPropuestas } from './modelos';
+import {
+  CierreOrden,
+  EvidenciaDTO,
+  PaginaEvidencias,
+  OrdenMantenimientoDTO,
+  PaginaOrdenes,
+  PaginaPropuestas,
+} from './modelos';
 
 /** La sesión la aporta la cadena HTTP global de P2; no administra tokens ni simula órdenes. */
 @Injectable({ providedIn: 'root' })
@@ -33,6 +40,33 @@ export class MantenimientoService {
       `/api/v1/puentes/${encodeURIComponent(puenteId)}/ordenes-mantenimiento/${encodeURIComponent(ordenId)}/inicio-ejecucion`,
       null,
     );
+  }
+
+  listarEvidencias(
+    puenteId: string,
+    ordenId: string,
+    page = 0,
+    size = 20,
+  ): Observable<PaginaEvidencias> {
+    return this.http.get<PaginaEvidencias>(`${this.rutaOrden(puenteId, ordenId)}/evidencias`, {
+      params: { page, size },
+    });
+  }
+
+  subirEvidencia(puenteId: string, ordenId: string, datos: FormData): Observable<EvidenciaDTO> {
+    // El navegador define el boundary de multipart; nunca fijar Content-Type manualmente.
+    return this.http.post<EvidenciaDTO>(`${this.rutaOrden(puenteId, ordenId)}/evidencias`, datos);
+  }
+
+  cerrar(puenteId: string, ordenId: string, datos: CierreOrden): Observable<OrdenMantenimientoDTO> {
+    return this.http.post<OrdenMantenimientoDTO>(
+      `${this.rutaOrden(puenteId, ordenId)}/cierre`,
+      datos,
+    );
+  }
+
+  private rutaOrden(puenteId: string, ordenId: string): string {
+    return `/api/v1/puentes/${encodeURIComponent(puenteId)}/ordenes-mantenimiento/${encodeURIComponent(ordenId)}`;
   }
 
   aceptar(puenteId: string, ordenId: string): Observable<OrdenMantenimientoDTO> {

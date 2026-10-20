@@ -1,4 +1,4 @@
-<section class="bandeja" [attr.aria-busy]="lista().cargando || iniciando()">
+<section class="bandeja" [attr.aria-busy]="lista().cargando || operacionPendiente()">
   <h1>{{ h.titulo }}</h1>
   <p>{{ h.descripcion }}</p>
   @if (avisoInicio(); as aviso) {
@@ -41,7 +41,7 @@
                     <button
                       type="button"
                       [attr.aria-pressed]="seleccion()?.id === orden.id"
-                      [disabled]="iniciando()"
+                      [disabled]="operacionPendiente()"
                       (click)="seleccionar(orden)"
                     >
                       {{ h.ver }}
@@ -56,7 +56,11 @@
         <p role="status">{{ pagina.total_elements ? h.paginaVacia : h.vacia }}</p>
       }
       <nav [attr.aria-label]="h.paginacion">
-        <button type="button" [disabled]="iniciando() || pagina.page === 0" (click)="anterior()">
+        <button
+          type="button"
+          [disabled]="operacionPendiente() || pagina.page === 0"
+          (click)="anterior()"
+        >
           {{ h.anterior }}
         </button>
         @if (pagina.total_pages && pagina.page < pagina.total_pages) {
@@ -64,12 +68,12 @@
         }
         <button
           type="button"
-          [disabled]="iniciando() || pagina.page + 1 >= pagina.total_pages"
+          [disabled]="operacionPendiente() || pagina.page + 1 >= pagina.total_pages"
           (click)="consultar(pagina.page + 1)"
         >
           {{ h.siguiente }}
         </button>
-        <button type="button" [disabled]="iniciando()" (click)="consultar(0)">
+        <button type="button" [disabled]="operacionPendiente()" (click)="consultar(0)">
           {{ h.actualizar }}
         </button>
       </nav>
@@ -79,14 +83,14 @@
         class="detalle"
         aria-live="polite"
         [attr.aria-label]="h.detalle"
-        [attr.aria-busy]="detalle().cargando || iniciando()"
+        [attr.aria-busy]="detalle().cargando || operacionPendiente()"
       >
         <h2>{{ h.detalle }}</h2>
         @if (detalle().cargando) {
           <p role="status">{{ h.cargandoDetalle }}</p>
         } @else if (detalle().error !== null) {
           <p role="alert">{{ mensaje(detalle().error!, true) }}</p>
-          <button type="button" [disabled]="iniciando()" (click)="actualizarDetalle()">
+          <button type="button" [disabled]="operacionPendiente()" (click)="actualizarDetalle()">
             {{ h.actualizarDetalle }}
           </button>
         } @else if (detalle().datos; as orden) {
@@ -125,11 +129,23 @@
           </dl>
           @if (orden.estado === 'PROGRAMADA' && puedeIniciar()) {
             <p>{{ t.inicio.explicacion }}</p>
-            <button type="button" [disabled]="iniciando()" (click)="iniciarEjecucion()">
+            <button type="button" [disabled]="operacionPendiente()" (click)="iniciarEjecucion()">
               {{ iniciando() ? t.inicio.enviando : t.inicio.accion }}
             </button>
           }
-          <button type="button" [disabled]="iniciando()" (click)="actualizarDetalle()">
+          @if (puedeConsultarEvidencia()) {
+            <app-evidencia-y-cierre
+              [orden]="orden"
+              [puedeConsultar]="puedeConsultarEvidencia()"
+              [puedeSubir]="puedeSubirEvidencia()"
+              [puedeCerrar]="puedeCerrar()"
+              [bloqueada]="iniciando()"
+              (cerrada)="cierreConfirmado($event)"
+              (accesoDenegado)="denegarEvidencia($event)"
+              (actualizarOrden)="releerTrasEscritura($event)"
+            />
+          }
+          <button type="button" [disabled]="operacionPendiente()" (click)="actualizarDetalle()">
             {{ h.actualizarDetalle }}
           </button>
         }

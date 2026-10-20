@@ -1,6 +1,47 @@
 // DT-FE-12: los textos de la interfaz viven aquí para poder traducirla sin tocar las plantillas
 export const TEXTOS = {
   mantenimiento: {
+    evidencia: {
+      titulo: 'Fotografías de evidencia',
+      descripcion:
+        'Guarda las fotos de esta orden antes de cerrarla. Elegir una foto todavía no la guarda.',
+      cargando: 'Cargando evidencia…',
+      vacia: 'No hay fotografías guardadas de esta orden.',
+      guardadas: 'Fotografías guardadas:',
+      actualizar: 'Actualizar fotografías',
+      anterior: 'Fotos anteriores',
+      siguiente: 'Fotos siguientes',
+      paginacion: 'Páginas de fotografías de evidencia',
+      foto: 'Abrir fotografía de evidencia',
+      miniatura: 'Miniatura de la evidencia',
+      elegida: 'Fotografía preparada. Pulsa Guardar fotografía para subirla.',
+      guardar: 'Guardar fotografía',
+      guardando: 'Guardando fotografía…',
+      guardada: 'Fotografía guardada en esta orden.',
+      cerrar: 'Cerrar como ejecutada',
+      cerrando: 'Registrando ejecución…',
+      cierre: 'Registrar ejecución',
+      fecha: 'Fecha de ejecución',
+      responsable: 'Responsable de ejecución',
+      requisitos:
+        'Registra fecha, responsable (hasta 150 caracteres) y al menos una fotografía guardada.',
+      camposInvalidos:
+        'Revisa la fecha y el responsable: son obligatorios; el responsable admite hasta 150 caracteres.',
+      faltaFoto: 'Guarda al menos una fotografía de esta orden antes de cerrarla.',
+      confirmada: 'La orden quedó Ejecutada. Su evidencia sigue disponible para consulta.',
+      errorConsulta: 'No se pudo consultar la evidencia. Actualiza las fotografías.',
+      errorSubida:
+        'No se pudo confirmar la carga. Actualiza las fotografías o vuelve a guardar la misma foto para comprobarla sin duplicarla.',
+      errorCierre:
+        'No se pudo confirmar el cierre. Revisa el estado actualizado antes de intentar otra vez.',
+      conflicto:
+        'La orden cambió o el identificador de la foto ya está en uso. Revisa el estado actualizado.',
+      datosInvalidos:
+        'El servidor rechazó los datos. Revisa fecha, responsable y fotografías guardadas.',
+      archivoInvalido: 'La foto y su miniatura deben ser WebP o JPEG y cumplir el tamaño admitido.',
+      sinAcceso: 'La sesión o el permiso ya no permiten consultar la evidencia.',
+      incompatible: 'La evidencia recibida no corresponde a esta orden. Actualiza las fotografías.',
+    },
     inicio: {
       accion: 'Iniciar ejecución',
       enviando: 'Iniciando ejecución…',

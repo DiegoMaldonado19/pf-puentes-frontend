@@ -12,10 +12,12 @@ import {
   LOCALE_ID,
   output,
   signal,
+  viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { finalize } from 'rxjs';
 import { TEXTOS } from '../../shared/textos';
+import { EvidenciaYCierre } from './evidencia-y-cierre';
 import { MantenimientoService } from './mantenimiento.service';
 import { OrdenMantenimientoDTO, PaginaOrdenes } from './modelos';
 
@@ -30,7 +32,7 @@ interface EstadoConsulta<T> {
 /** Historial e inicio de ejecución; el host de P2 aporta permiso/sesión y P3 el puente seleccionado. */
 @Component({
   selector: 'app-consulta-ordenes',
-  imports: [DatePipe],
+  imports: [DatePipe, EvidenciaYCierre],
   providers: [{ provide: LOCALE_ID, useValue: 'es-GT' }],
   templateUrl: './consulta-ordenes.html',
   styleUrls: ['./bandeja-propuestas.css', './consulta-ordenes.css'],
@@ -41,6 +43,14 @@ export class ConsultaOrdenes {
   // Mantiene el modo de solo lectura si el host todavía no aporta este permiso de P2.
   readonly puedeIniciar = input(false);
   readonly iniciada = output<OrdenMantenimientoDTO>();
+  readonly puedeConsultarEvidencia = input(false);
+  readonly puedeSubirEvidencia = input(false);
+  readonly puedeCerrar = input(false);
+  readonly cerrada = output<OrdenMantenimientoDTO>();
+  private readonly evidencia = viewChild(EvidenciaYCierre);
+  readonly operacionPendiente = computed(
+    () => this.iniciando() || (this.evidencia()?.envioPendiente() ?? false),
+  );
   protected readonly iniciando = signal(false);
   /** El host puede bloquear también la selección externa del puente durante el envío. */
   readonly inicioPendiente = this.iniciando.asReadonly();
@@ -150,7 +160,7 @@ export class ConsultaOrdenes {
     if (
       !this.puedeConsultar() ||
       this.accesoDenegado() !== null ||
-      this.iniciando() ||
+      this.operacionPendiente() ||
       this.lista().cargando ||
       page < 0
     )
@@ -174,7 +184,7 @@ export class ConsultaOrdenes {
 
   protected seleccionar(orden: OrdenMantenimientoDTO) {
     if (
-      this.iniciando() ||
+      this.operacionPendiente() ||
       this.lista().cargando ||
       this.lista().error !== null ||
       this.accesoDenegado() !== null ||
@@ -190,7 +200,7 @@ export class ConsultaOrdenes {
     if (
       !this.puedeConsultar() ||
       this.accesoDenegado() !== null ||
-      this.iniciando() ||
+      this.operacionPendiente() ||
       this.detalle().cargando
     )
       return;
@@ -206,7 +216,7 @@ export class ConsultaOrdenes {
       !orden ||
       !contexto.permiso ||
       !this.puedeIniciar() ||
-      this.iniciando() ||
+      this.operacionPendiente() ||
       this.accesoDenegado() !== null ||
       this.lista().cargando ||
       this.detalle().cargando ||
@@ -260,6 +270,47 @@ export class ConsultaOrdenes {
           this.falloInicio(error instanceof HttpErrorResponse ? error.status : 500);
         },
       });
+  }
+
+  protected cierreConfirmado(resultado: OrdenMantenimientoDTO) {
+    const actual = this.detalle().datos;
+    if (
+      !this.puedeConsultar() ||
+      !this.puedeCerrar() ||
+      !actual ||
+      this.accesoDenegado() !== null ||
+      resultado.id !== actual.id ||
+      resultado.puente_id !== this.puenteId() ||
+      resultado.estado !== 'EJECUTADA'
+    )
+      return;
+    this.detalle.set({ datos: resultado, cargando: false, error: null });
+    this.lista.update((lista) => ({
+      ...lista,
+      datos: lista.datos
+        ? {
+            ...lista.datos,
+            content: lista.datos.content.map((fila) =>
+              fila.id === resultado.id ? resultado : fila,
+            ),
+          }
+        : null,
+    }));
+    this.avisoInicio.set({ mensaje: this.t.evidencia.confirmada, error: false });
+    this.cerrada.emit(resultado);
+  }
+
+  protected denegarEvidencia(status: number) {
+    if (status === 401 || status === 403) this.accesoDenegado.set(status);
+  }
+
+  protected releerTrasEscritura(operacion: 'foto' | 'cierre') {
+    // Puede invocarse desde el POST aún en curso: solo dispara lecturas, nunca otra escritura.
+    this.avisoInicio.set({
+      mensaje: operacion === 'foto' ? this.t.evidencia.errorSubida : this.t.evidencia.errorCierre,
+      error: true,
+    });
+    this.solicitud.update((actual) => ({ ...actual, intento: actual.intento + 1 }));
   }
 
   private falloInicio(status: number) {

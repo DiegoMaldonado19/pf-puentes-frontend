@@ -1,5 +1,8 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { By } from '@angular/platform-browser';
+import { CapturaFoto } from '../../shared/captura-foto/captura-foto';
+import { EvidenciaYCierre } from './evidencia-y-cierre';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TEXTOS } from '../../shared/textos';
 import { ConsultaOrdenes } from './consulta-ordenes';
@@ -510,5 +513,113 @@ describe('ConsultaOrdenes', () => {
     const post = http.expectOne(rutaInicio);
     fixture.destroy();
     expect(post.cancelled).toBe(true);
+  });
+  function abrirConEvidencia(estado: EstadoOrden = 'EN_EJECUCION') {
+    fixture.componentRef.setInput('puedeConsultarEvidencia', true);
+    fixture.componentRef.setInput('puedeSubirEvidencia', true);
+    fixture.componentRef.setInput('puedeCerrar', true);
+    const actual = { ...orden, estado };
+    cargar([actual]);
+    abrir();
+    http.expectOne(rutaDetalle()).flush(actual);
+    fixture.detectChanges();
+    http.expectOne(`${rutaDetalle()}/evidencias?page=0&size=20`).flush({
+      puente_id: puente,
+      orden_id: orden.id,
+      content: [],
+      page: 0,
+      size: 20,
+      total_elements: 0,
+      total_pages: 0,
+    });
+    fixture.detectChanges();
+    return actual;
+  }
+
+  it('inserta evidencia únicamente con permiso explícito, conservando el host de solo lectura', () => {
+    cargar();
+    abrir();
+    http.expectOne(rutaDetalle()).flush(orden);
+    fixture.detectChanges();
+    expect(fixture.debugElement.query(By.directive(EvidenciaYCierre))).toBeNull();
+    http.expectNone((req) => req.url.endsWith('/evidencias'));
+  });
+
+  it('cierre confirmado actualiza fila y detalle desde el servidor y conserva consulta de evidencia', () => {
+    const actual = abrirConEvidencia();
+    const recibida = vi.fn();
+    fixture.componentInstance.cerrada.subscribe(recibida);
+    const hijo = fixture.debugElement.query(By.directive(EvidenciaYCierre))
+      .componentInstance as EvidenciaYCierre;
+    const resultado: OrdenMantenimientoDTO = {
+      ...actual,
+      estado: 'EJECUTADA',
+      fecha_ejecucion: '2026-10-20',
+      responsable: 'Cuadrilla de prueba',
+    };
+    hijo.cerrada.emit(resultado);
+    fixture.detectChanges();
+    expect(recibida).toHaveBeenCalledWith(resultado);
+    expect(texto()).toContain(TEXTOS.mantenimiento.evidencia.confirmada);
+    expect(texto()).toContain('Cuadrilla de prueba');
+    http.expectOne(`${rutaDetalle()}/evidencias?page=0&size=20`).flush({
+      puente_id: puente,
+      orden_id: orden.id,
+      content: [],
+      page: 0,
+      size: 20,
+      total_elements: 0,
+      total_pages: 0,
+    });
+    fixture.detectChanges();
+    expect(fixture.debugElement.query(By.directive(CapturaFoto))).toBeNull();
+  });
+
+  it.each([401, 403])('un error %s de evidencia retira también listado y detalle', (status) => {
+    abrirConEvidencia();
+    const hijo = fixture.debugElement.query(By.directive(EvidenciaYCierre))
+      .componentInstance as EvidenciaYCierre;
+    hijo.accesoDenegado.emit(status);
+    fixture.detectChanges();
+    expect((fixture.nativeElement as HTMLElement).querySelector('table')).toBeNull();
+    expect(fixture.debugElement.query(By.directive(EvidenciaYCierre))).toBeNull();
+  });
+
+  it('una carga pendiente bloquea selección, inicio y recargas del contenedor', () => {
+    fixture.componentRef.setInput('puedeIniciar', true);
+    abrirConEvidencia('PROGRAMADA');
+    const captura = fixture.debugElement.query(By.directive(CapturaFoto))
+      .componentInstance as CapturaFoto;
+    captura.capturada.emit({
+      archivo: new Blob(['foto'], { type: 'image/jpeg' }),
+      miniatura: new Blob(['mini'], { type: 'image/jpeg' }),
+      latitud: null,
+      longitud: null,
+      capturada_en: '2026-10-20T12:00:00Z',
+    });
+    fixture.detectChanges();
+    boton(TEXTOS.mantenimiento.evidencia.guardar).click();
+    fixture.detectChanges();
+    expect(fixture.componentInstance.operacionPendiente()).toBe(true);
+    expect(boton(TEXTOS.mantenimiento.inicio.accion).disabled).toBe(true);
+    expect(boton(h.ver).disabled).toBe(true);
+    expect(boton(h.actualizar).disabled).toBe(true);
+    const req = http.expectOne(`${rutaDetalle()}/evidencias`);
+    req.flush({}, { status: 422, statusText: 'Invalid' });
+    fixture.detectChanges();
+    expect(fixture.componentInstance.operacionPendiente()).toBe(false);
+    http.expectNone((req) => req.url.endsWith('/inicio-ejecucion'));
+  });
+
+  it('un resultado incierto del hijo recarga el historial sin repetir escrituras', () => {
+    abrirConEvidencia();
+    const hijo = fixture.debugElement.query(By.directive(EvidenciaYCierre))
+      .componentInstance as EvidenciaYCierre;
+    hijo.actualizarOrden.emit('cierre');
+    fixture.detectChanges();
+    http.expectOne(ruta()).flush(pagina([{ ...orden, estado: 'EJECUTADA' }]));
+    fixture.detectChanges();
+    expect(fixture.debugElement.query(By.directive(EvidenciaYCierre))).toBeNull();
+    http.expectNone((req) => req.method !== 'GET');
   });
 });
