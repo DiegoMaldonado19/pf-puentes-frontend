@@ -118,4 +118,15 @@ describe('MantenimientoService', () => {
     peticion.flush(aceptada);
     expect(await respuesta).toEqual(aceptada);
   });
+  it('envía inicio de ejecución por el POST real sin cuerpo ni estado de destino arbitrario', async () => {
+    const respuesta = firstValueFrom(servicio.iniciarEjecucion(puente, id));
+    const peticion = http.expectOne(
+      `/api/v1/puentes/${puente}/ordenes-mantenimiento/${id}/inicio-ejecucion`,
+    );
+    expect(peticion.request.method).toBe('POST');
+    expect(peticion.request.body).toBeNull();
+    const iniciada = { ...aceptada, estado: 'EN_EJECUCION' as const };
+    peticion.flush(iniciada);
+    expect(await respuesta).toEqual(iniciada);
+  });
 });

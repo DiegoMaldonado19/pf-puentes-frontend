@@ -1,7 +1,20 @@
 import { DatePipe, registerLocaleData } from '@angular/common';
 import localeEsGt from '@angular/common/locales/es-GT';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, computed, effect, inject, input, linkedSignal, LOCALE_ID } from '@angular/core';
+import {
+  Component,
+  computed,
+  DestroyRef,
+  effect,
+  inject,
+  input,
+  linkedSignal,
+  LOCALE_ID,
+  output,
+  signal,
+} from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { finalize } from 'rxjs';
 import { TEXTOS } from '../../shared/textos';
 import { MantenimientoService } from './mantenimiento.service';
 import { OrdenMantenimientoDTO, PaginaOrdenes } from './modelos';
@@ -14,7 +27,7 @@ interface EstadoConsulta<T> {
   error: number | null;
 }
 
-/** Lectura del historial; el host de P2 aporta permiso/sesión y P3 el puente seleccionado. */
+/** Historial e inicio de ejecución; el host de P2 aporta permiso/sesión y P3 el puente seleccionado. */
 @Component({
   selector: 'app-consulta-ordenes',
   imports: [DatePipe],
@@ -25,6 +38,13 @@ interface EstadoConsulta<T> {
 export class ConsultaOrdenes {
   readonly puenteId = input.required<string>();
   readonly puedeConsultar = input.required<boolean>();
+  // Mantiene el modo de solo lectura si el host todavía no aporta este permiso de P2.
+  readonly puedeIniciar = input(false);
+  readonly iniciada = output<OrdenMantenimientoDTO>();
+  protected readonly iniciando = signal(false);
+  /** El host puede bloquear también la selección externa del puente durante el envío. */
+  readonly inicioPendiente = this.iniciando.asReadonly();
+  private readonly destruccion = inject(DestroyRef);
   protected readonly t = TEXTOS.mantenimiento;
   protected readonly h = this.t.historial;
   private readonly servicio = inject(MantenimientoService);
@@ -32,6 +52,10 @@ export class ConsultaOrdenes {
     puente: this.puenteId(),
     permiso: this.puedeConsultar(),
   }));
+  protected readonly avisoInicio = linkedSignal({
+    source: this.contexto,
+    computation: (): { mensaje: string; error: boolean } | null => null,
+  });
   protected readonly accesoDenegado = linkedSignal({
     source: this.contexto,
     computation: (): number | null => null,
@@ -126,12 +150,14 @@ export class ConsultaOrdenes {
     if (
       !this.puedeConsultar() ||
       this.accesoDenegado() !== null ||
+      this.iniciando() ||
       this.lista().cargando ||
       page < 0
     )
       return;
     const pagina = this.lista().datos;
     if (pagina && page > 0 && page >= pagina.total_pages) return;
+    this.avisoInicio.set(null);
     this.solicitud.update((actual) => ({
       page,
       size: pagina?.size ?? actual.size,
@@ -148,6 +174,7 @@ export class ConsultaOrdenes {
 
   protected seleccionar(orden: OrdenMantenimientoDTO) {
     if (
+      this.iniciando() ||
       this.lista().cargando ||
       this.lista().error !== null ||
       this.accesoDenegado() !== null ||
@@ -155,14 +182,103 @@ export class ConsultaOrdenes {
     )
       return;
     if (!this.lista().datos?.content.includes(orden)) return;
+    this.avisoInicio.set(null);
     this.seleccion.set({ id: orden.id, intento: 0 });
   }
 
   protected actualizarDetalle() {
-    if (!this.puedeConsultar() || this.accesoDenegado() !== null || this.detalle().cargando) return;
+    if (
+      !this.puedeConsultar() ||
+      this.accesoDenegado() !== null ||
+      this.iniciando() ||
+      this.detalle().cargando
+    )
+      return;
     this.seleccion.update((actual) =>
       actual ? { id: actual.id, intento: actual.intento + 1 } : null,
     );
+  }
+
+  protected iniciarEjecucion() {
+    const orden = this.detalle().datos;
+    const contexto = this.contexto();
+    if (
+      !orden ||
+      !contexto.permiso ||
+      !this.puedeIniciar() ||
+      this.iniciando() ||
+      this.accesoDenegado() !== null ||
+      this.lista().cargando ||
+      this.detalle().cargando ||
+      orden.estado !== 'PROGRAMADA' ||
+      orden.puente_id !== contexto.puente ||
+      this.seleccion()?.id !== orden.id
+    )
+      return;
+    this.avisoInicio.set(null);
+    this.iniciando.set(true);
+    this.servicio
+      .iniciarEjecucion(orden.puente_id, orden.id)
+      .pipe(
+        takeUntilDestroyed(this.destruccion),
+        finalize(() => this.iniciando.set(false)),
+      )
+      .subscribe({
+        next: (resultado) => {
+          if (
+            this.contexto() !== contexto ||
+            !this.puedeConsultar() ||
+            this.seleccion()?.id !== orden.id
+          )
+            return;
+          if (
+            resultado.id !== orden.id ||
+            resultado.puente_id !== orden.puente_id ||
+            resultado.estado !== 'EN_EJECUCION'
+          ) {
+            this.falloInicio(500);
+            return;
+          }
+          // El POST confirmado es la fuente del nuevo estado, sin actualización optimista.
+          this.detalle.set({ datos: resultado, cargando: false, error: null });
+          this.lista.update((actual) => ({
+            ...actual,
+            datos: actual.datos
+              ? {
+                  ...actual.datos,
+                  content: actual.datos.content.map((fila) =>
+                    fila.id === resultado.id ? resultado : fila,
+                  ),
+                }
+              : null,
+          }));
+          this.avisoInicio.set({ mensaje: this.t.inicio.confirmada, error: false });
+          this.iniciada.emit(resultado);
+        },
+        error: (error: unknown) => {
+          if (this.contexto() !== contexto || !this.puedeConsultar()) return;
+          this.falloInicio(error instanceof HttpErrorResponse ? error.status : 500);
+        },
+      });
+  }
+
+  private falloInicio(status: number) {
+    if (status === 401 || status === 403) {
+      this.accesoDenegado.set(status);
+      this.avisoInicio.set(null);
+      return;
+    }
+    const mensaje =
+      status === 409
+        ? this.t.inicio.conflicto
+        : status === 404
+          ? this.t.inicio.noEncontrada
+          : status === 400 || status === 422
+            ? this.t.inicio.datosInvalidos
+            : this.t.inicio.resultadoDesconocido;
+    this.avisoInicio.set({ mensaje, error: true });
+    // Solo se vuelve a leer: nunca se reintenta automáticamente el POST.
+    this.solicitud.update((actual) => ({ ...actual, intento: actual.intento + 1 }));
   }
 
   protected fechaCivil(valor: string | null): string {

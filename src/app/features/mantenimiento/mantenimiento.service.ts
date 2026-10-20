@@ -28,6 +28,13 @@ export class MantenimientoService {
     );
   }
 
+  iniciarEjecucion(puenteId: string, ordenId: string): Observable<OrdenMantenimientoDTO> {
+    return this.http.post<OrdenMantenimientoDTO>(
+      `/api/v1/puentes/${encodeURIComponent(puenteId)}/ordenes-mantenimiento/${encodeURIComponent(ordenId)}/inicio-ejecucion`,
+      null,
+    );
+  }
+
   aceptar(puenteId: string, ordenId: string): Observable<OrdenMantenimientoDTO> {
     return this.http.post<OrdenMantenimientoDTO>(
       `/api/v1/puentes/${encodeURIComponent(puenteId)}/ordenes-mantenimiento/${encodeURIComponent(ordenId)}/aceptacion`,

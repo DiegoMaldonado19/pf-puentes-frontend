@@ -1,6 +1,18 @@
 // DT-FE-12: los textos de la interfaz viven aquí para poder traducirla sin tocar las plantillas
 export const TEXTOS = {
   mantenimiento: {
+    inicio: {
+      accion: 'Iniciar ejecución',
+      enviando: 'Iniciando ejecución…',
+      explicacion: 'Registra que la intervención programada comenzó.',
+      confirmada: 'La orden está En ejecución.',
+      conflicto: 'La orden cambió de estado. Revisa el listado actualizado antes de continuar.',
+      noEncontrada: 'La orden no está disponible en este puente. Revisa el listado actualizado.',
+      datosInvalidos:
+        'No se pudo iniciar la ejecución con los datos actuales. Revisa el origen de la orden.',
+      resultadoDesconocido:
+        'No se pudo confirmar el inicio. Revisa el estado actualizado antes de volver a intentar.',
+    },
     historial: {
       titulo: 'Historial de órdenes de mantenimiento',
       descripcion:

@@ -320,4 +320,195 @@ describe('ConsultaOrdenes', () => {
     fixture.detectChanges();
     expect(texto()).toContain(orden.descripcion);
   });
+  function cargarProgramada(permiso = true) {
+    const programada: OrdenMantenimientoDTO = { ...orden, estado: 'PROGRAMADA', motivo: null };
+    fixture.componentRef.setInput('puedeIniciar', permiso);
+    cargar([programada]);
+    abrir();
+    http.expectOne(rutaDetalle()).flush(programada);
+    fixture.detectChanges();
+    return programada;
+  }
+  const rutaInicio = `/api/v1/puentes/${puente}/ordenes-mantenimiento/${orden.id}/inicio-ejecucion`;
+  const inicio = TEXTOS.mantenimiento.inicio;
+
+  it('mantiene la consulta sin acción si el host no concede permiso de inicio', () => {
+    cargarProgramada(false);
+    expect(texto()).not.toContain(inicio.accion);
+    http.expectNone(rutaInicio);
+  });
+
+  it.each<EstadoOrden>(['PROPUESTA', 'EN_EJECUCION', 'EJECUTADA', 'DESCARTADA', 'CANCELADA'])(
+    'no ofrece inicio desde %s aunque el actor tenga permiso',
+    (estado) => {
+      fixture.componentRef.setInput('puedeIniciar', true);
+      const registro = { ...orden, estado };
+      cargar([registro]);
+      abrir();
+      http.expectOne(rutaDetalle()).flush(registro);
+      fixture.detectChanges();
+      expect(texto()).not.toContain(inicio.accion);
+      http.expectNone(rutaInicio);
+    },
+  );
+
+  it('inicia una sola vez, bloquea navegación y actualiza lista/detalle con la respuesta confirmada', () => {
+    const programada = cargarProgramada();
+    const eventos: OrdenMantenimientoDTO[] = [];
+    fixture.componentInstance.iniciada.subscribe((dto) => eventos.push(dto));
+    const accion = boton(inicio.accion);
+    accion.click();
+    accion.click();
+    fixture.detectChanges();
+    const peticiones = http.match(rutaInicio);
+    expect(peticiones).toHaveLength(1);
+    expect(peticiones[0].request.method).toBe('POST');
+    expect(peticiones[0].request.body).toBeNull();
+    expect(boton(inicio.enviando).disabled).toBe(true);
+    expect(boton(h.ver).disabled).toBe(true);
+    expect(boton(h.actualizar).disabled).toBe(true);
+    expect(boton(h.actualizarDetalle).disabled).toBe(true);
+    expect(texto()).not.toContain(inicio.confirmada);
+    const resultado: OrdenMantenimientoDTO = {
+      ...programada,
+      estado: 'EN_EJECUCION',
+      actualizado_en: '2026-10-20T16:00:00Z',
+    };
+    peticiones[0].flush(resultado);
+    fixture.detectChanges();
+    expect(eventos).toEqual([resultado]);
+    expect(texto()).toContain(inicio.confirmada);
+    expect((fixture.nativeElement as HTMLElement).querySelector('tbody')?.textContent).toContain(
+      'En ejecución',
+    );
+    expect((fixture.nativeElement as HTMLElement).querySelector('.detalle')?.textContent).toContain(
+      'En ejecución',
+    );
+    expect(texto()).not.toContain(inicio.accion);
+    http.expectNone(rutaInicio);
+  });
+
+  it.each([401, 403])(
+    'un inicio rechazado con %s retira lista y detalle sin volver a enviar',
+    (status) => {
+      cargarProgramada();
+      boton(inicio.accion).click();
+      fixture.detectChanges();
+      http.expectOne(rutaInicio).flush({ status }, { status, statusText: 'Error' });
+      fixture.detectChanges();
+      expect(texto()).not.toContain(orden.descripcion);
+      expect(texto()).not.toContain(inicio.confirmada);
+      expect(texto()).toContain(status === 401 ? h.sinSesion : h.sinPermiso);
+      expect((fixture.nativeElement as HTMLElement).querySelector('button')).toBeNull();
+      http.expectNone(ruta());
+      http.expectNone(rutaInicio);
+    },
+  );
+
+  it.each([409, 404, 422, 500])(
+    'un inicio con error %s obliga a releer y nunca reintenta el POST',
+    (status) => {
+      const programada = cargarProgramada();
+      boton(inicio.accion).click();
+      fixture.detectChanges();
+      http.expectOne(rutaInicio).flush({ status }, { status, statusText: 'Error' });
+      fixture.detectChanges();
+      expect(texto()).not.toContain(inicio.confirmada);
+      expect(texto()).not.toContain(inicio.accion);
+      const esperada =
+        status === 409
+          ? inicio.conflicto
+          : status === 404
+            ? inicio.noEncontrada
+            : status === 422
+              ? inicio.datosInvalidos
+              : inicio.resultadoDesconocido;
+      expect(texto()).toContain(esperada);
+      http.expectOne(ruta()).flush(pagina(status === 404 ? [] : [programada]));
+      fixture.detectChanges();
+      expect(texto()).not.toContain(inicio.accion);
+      http.expectNone(rutaInicio);
+    },
+  );
+
+  it('ante fallo de conexión relee el estado sin simular éxito ni repetir el inicio', () => {
+    cargarProgramada();
+    boton(inicio.accion).click();
+    fixture.detectChanges();
+    http.expectOne(rutaInicio).error(new ProgressEvent('error'));
+    fixture.detectChanges();
+    expect(texto()).toContain(inicio.resultadoDesconocido);
+    http.expectOne(ruta()).flush(pagina([{ ...orden, estado: 'EN_EJECUCION' }]));
+    fixture.detectChanges();
+    expect(texto()).not.toContain(inicio.confirmada);
+    expect(texto()).not.toContain(inicio.accion);
+    http.expectNone(rutaInicio);
+  });
+
+  it('no aplica la respuesta de inicio a otro puente seleccionado mientras se enviaba', () => {
+    const programada = cargarProgramada();
+    const eventos: OrdenMantenimientoDTO[] = [];
+    fixture.componentInstance.iniciada.subscribe((dto) => eventos.push(dto));
+    boton(inicio.accion).click();
+    fixture.detectChanges();
+    const post = http.expectOne(rutaInicio);
+    fixture.componentRef.setInput('puenteId', otro);
+    fixture.detectChanges();
+    http.expectOne(ruta(otro)).flush(pagina([], otro));
+    fixture.detectChanges();
+    post.flush({ ...programada, estado: 'EN_EJECUCION' });
+    fixture.detectChanges();
+    expect(texto()).toContain(h.vacia);
+    expect(texto()).not.toContain(orden.descripcion);
+    expect(texto()).not.toContain(inicio.confirmada);
+    expect(eventos).toEqual([]);
+  });
+
+  it('no vuelve a mostrar datos privados si se pierde acceso mientras el inicio está pendiente', () => {
+    const programada = cargarProgramada();
+    boton(inicio.accion).click();
+    fixture.detectChanges();
+    const post = http.expectOne(rutaInicio);
+    fixture.componentRef.setInput('puedeConsultar', false);
+    fixture.detectChanges();
+    post.flush({ ...programada, estado: 'EN_EJECUCION' });
+    fixture.detectChanges();
+    expect(texto()).not.toContain(orden.descripcion);
+    expect(texto()).not.toContain(inicio.confirmada);
+    expect(texto()).toContain(h.sinPermiso);
+  });
+
+  it('no concede acciones nuevas si se retira el permiso de inicio durante la respuesta', () => {
+    const programada = cargarProgramada();
+    boton(inicio.accion).click();
+    fixture.detectChanges();
+    const post = http.expectOne(rutaInicio);
+    fixture.componentRef.setInput('puedeIniciar', false);
+    fixture.detectChanges();
+    post.flush({ ...programada, estado: 'EN_EJECUCION' });
+    fixture.detectChanges();
+    expect(texto()).toContain(inicio.confirmada);
+    expect(texto()).not.toContain(inicio.accion);
+  });
+
+  it('rechaza una respuesta de inicio que no identifica la orden solicitada', () => {
+    const programada = cargarProgramada();
+    boton(inicio.accion).click();
+    fixture.detectChanges();
+    http.expectOne(rutaInicio).flush({ ...programada, puente_id: otro, estado: 'EN_EJECUCION' });
+    fixture.detectChanges();
+    expect(texto()).not.toContain(inicio.confirmada);
+    expect(texto()).toContain(inicio.resultadoDesconocido);
+    http.expectOne(ruta()).flush(pagina([programada]));
+    fixture.detectChanges();
+  });
+
+  it('desuscribe la petición de inicio al destruirse sin suponer un rollback del servidor', () => {
+    cargarProgramada();
+    boton(inicio.accion).click();
+    fixture.detectChanges();
+    const post = http.expectOne(rutaInicio);
+    fixture.destroy();
+    expect(post.cancelled).toBe(true);
+  });
 });
