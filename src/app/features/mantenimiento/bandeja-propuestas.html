@@ -1,0 +1,93 @@
+<section class="bandeja" [attr.aria-busy]="cargando()">
+  <h1>{{ b.titulo }}</h1>
+  <p>{{ b.descripcion }}</p>
+  @if (confirmada()) {
+    <p role="status">{{ t.confirmada }}</p>
+  }
+  @if (cargando()) {
+    <p role="status">{{ b.cargando }}</p>
+  } @else if (error()) {
+    <p role="alert">{{ error() }}</p>
+    @if (codigoError() !== 401 && codigoError() !== 403) {
+      <button type="button" (click)="consultar()">{{ b.actualizar }}</button>
+    }
+  } @else {
+    @if (esperandoActualizacion()) {
+      <p role="status">{{ b.esperando }}</p>
+    } @else if (paginaValida(); as datos) {
+      @if (datos.content.length) {
+        <div class="tabla" role="region" [attr.aria-label]="b.tabla" tabindex="0">
+          <table>
+            <caption>
+              {{
+                b.tabla
+              }}
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">{{ b.intervencion }}</th>
+                <th scope="col">{{ t.tipo }}</th>
+                <th scope="col">{{ t.vigente }}</th>
+                <th scope="col">{{ b.revision }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (orden of datos.content; track orden.id) {
+                <tr>
+                  <th scope="row">{{ orden.descripcion }}</th>
+                  <td>{{ t.tipos[orden.tipo] }}</td>
+                  <td>{{ t.prioridades[orden.prioridad] }}</td>
+                  <td>
+                    <button
+                      type="button"
+                      [disabled]="enviando()"
+                      [attr.aria-pressed]="seleccionada()?.id === orden.id"
+                      (click)="seleccionar(orden)"
+                    >
+                      {{ seleccionada()?.id === orden.id ? b.seleccionada : b.revisar }}
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      } @else {
+        <p role="status">{{ datos.total_elements ? b.paginaVacia : b.vacia }}</p>
+      }
+      <nav [attr.aria-label]="b.paginacion">
+        <button
+          type="button"
+          [disabled]="enviando() || datos.page === 0"
+          (click)="consultar(datos.page - 1)"
+        >
+          {{ b.anterior }}
+        </button>
+        @if (datos.total_pages && datos.page < datos.total_pages) {
+          <span>{{ b.pagina }} {{ datos.page + 1 }} {{ b.de }} {{ datos.total_pages }}</span>
+        }
+        <button
+          type="button"
+          [disabled]="enviando() || datos.page + 1 >= datos.total_pages"
+          (click)="consultar(datos.page + 1)"
+        >
+          {{ b.siguiente }}
+        </button>
+        <button type="button" [disabled]="enviando()" (click)="consultar(0)">
+          {{ b.actualizar }}
+        </button>
+      </nav>
+    } @else {
+      <p>{{ b.inicial }}</p>
+      <button type="button" (click)="consultar(0)">{{ b.cargar }}</button>
+    }
+    @if (seleccionada(); as orden) {
+      <app-aceptacion-propuesta
+        [orden]="orden"
+        [puedeAceptar]="puedeAceptar()"
+        (aceptada)="confirmar($event)"
+        (actualizacionRequerida)="actualizar($event)"
+      />
+    }
+  }
+</section>

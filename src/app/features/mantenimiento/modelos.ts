@@ -28,3 +28,20 @@ export interface ReferenciaOrden {
   readonly puente_id: string;
   readonly id: string;
 }
+
+/** Entrada paginada de la bandeja; todavía no representa una ruta GET habilitada. */
+export interface PaginaPropuestas {
+  /** El contenedor conserva el puente consultado, también cuando la página llega vacía. */
+  readonly puente_id: string;
+  readonly content: readonly OrdenMantenimientoDTO[];
+  readonly page: number;
+  readonly size: number;
+  readonly total_elements: number;
+  readonly total_pages: number;
+}
+
+export interface ConsultaPropuestas {
+  readonly puente_id: string;
+  readonly page: number;
+  readonly size: number;
+}

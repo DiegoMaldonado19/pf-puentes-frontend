@@ -27,6 +27,8 @@ export class AceptacionPropuesta {
 
   protected readonly t = TEXTOS.mantenimiento;
   protected readonly enviando = signal(false);
+  /** El contenedor puede impedir navegación durante una escritura, sin modificar este estado. */
+  readonly envioPendiente = this.enviando.asReadonly();
   private readonly servicio = inject(MantenimientoService);
   private readonly destruccion = inject(DestroyRef);
   private readonly intento = signal<IntentoAceptacion | null>(null);

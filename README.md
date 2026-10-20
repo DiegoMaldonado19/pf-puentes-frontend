@@ -4,16 +4,16 @@ SPA en Angular del Sistema de Gestión de Puentes (SGP). No usa SSR: en dev, sta
 
 ## Estado (19/10/2026)
 
-| Parte                     | Qué hay                                                                                                                                                                                                                 | Responsable      |
-| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------- |
-| `shared/captura-foto/`    | `<app-captura-foto>`: comprime la foto, genera la miniatura y registra ubicación y hora (contrato 9)                                                                                                                    | P1               |
-| `shared/estado-puente/`   | `<app-estado-puente>`: Bueno/Regular/Malo/Sin evaluar con texto y color; integración con P3 pendiente ([ADR 0011](docs/adr/0011-componente-compartido-de-estado-del-puente.md))                                         | P8               |
-| PWA                       | Manifiesto, íconos de Angular y service worker; la lógica offline es de `offline/`                                                                                                                                      | P1 (base) y P6   |
-| Infraestructura           | nginx con TLS en los tres entornos, encabezados de seguridad y URL firmadas en `/archivos/`                                                                                                                             | P1               |
-| `offline/`                | Base de persistencia y cola con harness de prueba ([documentación](docs/base-offline.md))                                                                                                                               | P6               |
-| `features/admin/pesos/`   | Cliente HTTP y vista de consulta de juegos/pesos, con paginación; ruta y sesión P2 pendientes ([ADR 0012](docs/adr/0012-cliente-http-de-consulta-de-pesos.md), [ADR 0013](docs/adr/0013-vista-de-consulta-de-pesos.md)) | P8               |
-| `features/mantenimiento/` | Cliente HTTP y componente de revisión/aceptación de propuestas contra el POST real; selección, sesión y ruta protegida pendientes ([ADR 0014](docs/adr/0014-aceptacion-de-propuestas-de-mantenimiento.md))              | P8               |
-| `core/`, rutas            | `core/` aún no existe; rutas vacías y `app.html` sigue siendo el de Angular                                                                                                                                             | Cada responsable |
+| Parte                     | Qué hay                                                                                                                                                                                                                                                                                              | Responsable      |
+| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------- |
+| `shared/captura-foto/`    | `<app-captura-foto>`: comprime la foto, genera la miniatura y registra ubicación y hora (contrato 9)                                                                                                                                                                                                 | P1               |
+| `shared/estado-puente/`   | `<app-estado-puente>`: Bueno/Regular/Malo/Sin evaluar con texto y color; integración con P3 pendiente ([ADR 0011](docs/adr/0011-componente-compartido-de-estado-del-puente.md))                                                                                                                      | P8               |
+| PWA                       | Manifiesto, íconos de Angular y service worker; la lógica offline es de `offline/`                                                                                                                                                                                                                   | P1 (base) y P6   |
+| Infraestructura           | nginx con TLS en los tres entornos, encabezados de seguridad y URL firmadas en `/archivos/`                                                                                                                                                                                                          | P1               |
+| `offline/`                | Base de persistencia y cola con harness de prueba ([documentación](docs/base-offline.md))                                                                                                                                                                                                            | P6               |
+| `features/admin/pesos/`   | Cliente HTTP y vista de consulta de juegos/pesos, con paginación; ruta y sesión P2 pendientes ([ADR 0012](docs/adr/0012-cliente-http-de-consulta-de-pesos.md), [ADR 0013](docs/adr/0013-vista-de-consulta-de-pesos.md))                                                                              | P8               |
+| `features/mantenimiento/` | Cliente HTTP, componente de revisión/aceptación contra el POST real y bandeja controlada por página/selección; selección, sesión y ruta protegida pendientes ([ADR 0014](docs/adr/0014-aceptacion-de-propuestas-de-mantenimiento.md), [ADR 0015](docs/adr/0015-bandeja-controlada-de-propuestas.md)) | P8               |
+| `core/`, rutas            | `core/` aún no existe; rutas vacías y `app.html` sigue siendo el de Angular                                                                                                                                                                                                                          | Cada responsable |
 
 ### Integración de la aceptación de propuestas (P8)
 
@@ -25,6 +25,14 @@ SPA en Angular del Sistema de Gestión de Puentes (SGP). No usa SSR: en dev, sta
 La acción usa `MantenimientoService` y el POST real de aceptación, sin cuerpo. Presenta el resumen y conserva fecha/prioridades; no calcula IC, sugiere prioridades ni repite escrituras automáticamente. Cada recarga debe entregar un DTO nuevo; cancelar una petición al salir no revierte una aceptación ya confirmada en servidor.
 
 Aún no aparece en `localhost:4200`: falta el contenedor/bandeja y su ruta diferida con sesión, interceptores y guardias de P2. No se añade un acceso público ni datos de demostración a la aplicación. Las pruebas DOM/HTTP permiten verificar la pieza; el recorrido autenticado queda pendiente. Ver [ADR 0014](docs/adr/0014-aceptacion-de-propuestas-de-mantenimiento.md).
+
+### Bandeja de propuestas preparada para integrar (P8)
+
+`<app-bandeja-propuestas>` recibe `puenteId`, `pagina: PaginaPropuestas | null`, `puedeAceptar` y, opcionalmente, `cargando`/`codigoError`. La página es estado de vista con `puente_id` de origen y los campos paginados; no corresponde todavía a un GET habilitado. El contenedor debe conservar ese puente incluso si la respuesta está vacía y entregar una nueva referencia por respuesta.
+
+`consultaSolicitada` indica qué puente/página/tamaño consultar; `aceptada` devuelve el DTO confirmado. La bandeja reutiliza la aceptación y pide recarga tras éxito/conflicto, vuelve a la página anterior si acepta la última fila y oculta datos obsoletos mientras espera. Bloquea navegación durante una aceptación. Ver [ADR 0015](docs/adr/0015-bandeja-controlada-de-propuestas.md).
+
+La lectura HTTP espera confirmación de lectores por el grupo; no se inventó una URL/proveedor de lectura ni se añadieron datos ficticios. Falta conectar GET, cliente/contenedor y acceso P2 antes de registrar una ruta diferida. Esta pieza aún no aparece en la página inicial de Angular.
 
 ## Desarrollo local
 
