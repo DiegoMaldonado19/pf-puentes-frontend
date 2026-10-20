@@ -1,5 +1,44 @@
 // DT-FE-12: los textos de la interfaz viven aquí para poder traducirla sin tocar las plantillas
 export const TEXTOS = {
+  mantenimiento: {
+    titulo: 'Revisar propuesta de mantenimiento',
+    tipo: 'Tipo de intervención',
+    estado: 'Estado',
+    sugerida: 'Prioridad sugerida',
+    vigente: 'Prioridad vigente',
+    justificacion: 'Justificación de prioridad',
+    fecha: 'Fecha programada',
+    sinFecha: 'Sin fecha programada',
+    sinSugerencia: 'Sin prioridad sugerida',
+    aceptar: 'Aceptar propuesta',
+    enviando: 'Aceptando propuesta…',
+    otroEnvio: 'Esperando otra aceptación…',
+    explicacion:
+      'Aceptar pasa la orden a Programada y conserva su fecha, si ya tiene una registrada.',
+    confirmada: 'Propuesta aceptada. La orden está Programada.',
+    sinSesion: 'Tu sesión no está disponible. Inicia sesión y actualiza la orden.',
+    sinPermiso: 'No tienes permiso para aceptar esta propuesta.',
+    noEncontrada: 'La orden no está disponible en este puente. Actualiza el listado.',
+    conflicto: 'La orden ya cambió de estado. Actualiza sus datos antes de continuar.',
+    datosInvalidos: 'No se pudo aceptar la propuesta con los datos actuales. Actualiza la orden.',
+    resultadoDesconocido:
+      'No se pudo confirmar el resultado. Consulta el estado actualizado antes de volver a aceptar.',
+    tipos: {
+      RUTINARIO: 'Rutinario',
+      PREVENTIVO: 'Preventivo',
+      CORRECTIVO: 'Correctivo',
+      EMERGENCIA: 'De emergencia',
+    },
+    estados: {
+      PROPUESTA: 'Propuesta',
+      PROGRAMADA: 'Programada',
+      EN_EJECUCION: 'En ejecución',
+      EJECUTADA: 'Ejecutada',
+      DESCARTADA: 'Descartada',
+      CANCELADA: 'Cancelada',
+    },
+    prioridades: { ALTA: 'Alta', MEDIA: 'Media', BAJA: 'Baja' },
+  },
   pesos: {
     titulo: 'Pesos del índice de condición',
     descripcion: 'Consulta los juegos de pesos de la versión seleccionada del formulario.',
