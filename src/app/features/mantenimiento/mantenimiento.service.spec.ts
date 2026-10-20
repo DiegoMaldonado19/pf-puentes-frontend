@@ -1,0 +1,94 @@
+import { HttpErrorResponse, provideHttpClient, withInterceptors } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { TestBed } from '@angular/core/testing';
+import { firstValueFrom } from 'rxjs';
+import { MantenimientoService } from './mantenimiento.service';
+import { OrdenMantenimientoDTO } from './modelos';
+
+describe('MantenimientoService', () => {
+  const puente = '019a0025-0000-7000-8000-000000000001';
+  const id = '019a0025-0000-7000-8000-000000000010';
+  const ruta = `/api/v1/puentes/${puente}/ordenes-mantenimiento/${id}/aceptacion`;
+  const aceptada: OrdenMantenimientoDTO = {
+    id,
+    puente_id: puente,
+    inspeccion_id: null,
+    tipo: 'CORRECTIVO',
+    estado: 'PROGRAMADA',
+    descripcion: 'Intervención ficticia solo para prueba',
+    elemento_ref: null,
+    prioridad_sugerida: 'MEDIA',
+    prioridad: 'ALTA',
+    justificacion_prioridad: 'Justificación de prueba',
+    fecha_programada: '2026-10-25',
+    fecha_ejecucion: null,
+    responsable: null,
+    motivo: null,
+    creado_en: '2026-10-19T12:00:00Z',
+    actualizado_en: '2026-10-19T13:00:00Z',
+  };
+  let servicio: MantenimientoService;
+  let http: HttpTestingController;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [provideHttpClient(), provideHttpClientTesting()],
+    });
+    servicio = TestBed.inject(MantenimientoService);
+    http = TestBed.inject(HttpTestingController);
+  });
+
+  afterEach(() => http.verify());
+
+  it('envía un solo POST sin cuerpo y conserva el DTO real snake_case y sus nulls', async () => {
+    const respuesta = firstValueFrom(servicio.aceptar(puente, id));
+    const peticion = http.expectOne(ruta);
+    expect(peticion.request.method).toBe('POST');
+    expect(peticion.request.body).toBeNull();
+    expect(peticion.request.headers.has('Authorization')).toBe(false);
+    peticion.flush(aceptada);
+    expect(await respuesta).toEqual(aceptada);
+  });
+
+  it.each([400, 401, 403, 404, 409, 422, 500])(
+    'propaga Problem Details %s sin reintentar la aceptación',
+    async (status) => {
+      const respuesta = firstValueFrom(servicio.aceptar(puente, id));
+      const rechazo = expect(respuesta).rejects.toMatchObject({ status, error: { status } });
+      http
+        .expectOne(ruta)
+        .flush({ status, detail: 'Fallo de prueba' }, { status, statusText: 'Error' });
+      await rechazo;
+      http.expectNone(ruta);
+    },
+  );
+
+  it('conserva el fallo de transporte sin simular una aceptación ni reintentar', async () => {
+    const respuesta = firstValueFrom(servicio.aceptar(puente, id));
+    const rechazo = expect(respuesta).rejects.toBeInstanceOf(HttpErrorResponse);
+    http.expectOne(ruta).error(new ProgressEvent('error'));
+    await rechazo;
+    http.expectNone(ruta);
+  });
+
+  it('utiliza los interceptores globales sin administrar tokens propios', async () => {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        provideHttpClient(
+          withInterceptors([
+            (req, next) => next(req.clone({ setHeaders: { 'X-Prueba-P8': 'interceptado' } })),
+          ]),
+        ),
+        provideHttpClientTesting(),
+      ],
+    });
+    servicio = TestBed.inject(MantenimientoService);
+    http = TestBed.inject(HttpTestingController);
+    const respuesta = firstValueFrom(servicio.aceptar(puente, id));
+    const peticion = http.expectOne(ruta);
+    expect(peticion.request.headers.get('X-Prueba-P8')).toBe('interceptado');
+    peticion.flush(aceptada);
+    await respuesta;
+  });
+});
