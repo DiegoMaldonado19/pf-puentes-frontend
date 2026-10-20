@@ -29,7 +29,7 @@ export interface ReferenciaOrden {
   readonly id: string;
 }
 
-/** Entrada paginada de la bandeja; todavía no representa una ruta GET habilitada. */
+/** Contrato del GET de propuestas; conserva el puente también en páginas vacías. */
 export interface PaginaPropuestas {
   /** El contenedor conserva el puente consultado, también cuando la página llega vacía. */
   readonly puente_id: string;

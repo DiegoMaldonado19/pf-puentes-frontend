@@ -1,12 +1,19 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { OrdenMantenimientoDTO } from './modelos';
+import { OrdenMantenimientoDTO, PaginaPropuestas } from './modelos';
 
 /** La sesión la aporta la cadena HTTP global de P2; no administra tokens ni simula órdenes. */
 @Injectable({ providedIn: 'root' })
 export class MantenimientoService {
   private readonly http = inject(HttpClient);
+
+  listarPropuestas(puenteId: string, page = 0, size = 20): Observable<PaginaPropuestas> {
+    return this.http.get<PaginaPropuestas>(
+      `/api/v1/puentes/${encodeURIComponent(puenteId)}/ordenes-mantenimiento/propuestas`,
+      { params: { page, size } },
+    );
+  }
 
   aceptar(puenteId: string, ordenId: string): Observable<OrdenMantenimientoDTO> {
     return this.http.post<OrdenMantenimientoDTO>(
