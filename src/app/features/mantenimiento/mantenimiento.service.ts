@@ -11,12 +11,24 @@ import {
   OrdenMantenimientoDTO,
   PaginaOrdenes,
   PaginaPropuestas,
+  SeguimientoRutinarioDTO,
 } from './modelos';
 
 /** La sesión la aporta la cadena HTTP global de P2; no administra tokens ni simula órdenes. */
 @Injectable({ providedIn: 'root' })
 export class MantenimientoService {
   private readonly http = inject(HttpClient);
+
+  consultarRutinarioAnual(
+    puenteId: string,
+    page = 0,
+    size = 20,
+  ): Observable<SeguimientoRutinarioDTO> {
+    return this.http.get<SeguimientoRutinarioDTO>(
+      `/api/v1/puentes/${encodeURIComponent(puenteId)}/ordenes-mantenimiento/rutinario-anual`,
+      { params: { page, size } },
+    );
+  }
 
   listarOrdenes(puenteId: string, page = 0, size = 20): Observable<PaginaOrdenes> {
     return this.http.get<PaginaOrdenes>(

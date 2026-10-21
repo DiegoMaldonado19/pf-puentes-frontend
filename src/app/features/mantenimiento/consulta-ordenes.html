@@ -7,6 +7,16 @@
   @if (!puedeConsultar() || accesoDenegado() !== null) {
     <p role="alert">{{ mensaje(accesoDenegado() ?? 403) }}</p>
   } @else {
+    @if (mostrarSeguimientoRutinario()) {
+      <app-seguimiento-rutinario
+        [puenteId]="puenteId()"
+        [puedeConsultar]="puedeConsultar()"
+        [bloqueada]="operacionPendiente()"
+        [actualizacion]="versionSeguimiento()"
+        (ordenSeleccionada)="seleccionarRutina($event)"
+        (accesoDenegado)="denegarEvidencia($event)"
+      />
+    }
     @if (lista().cargando) {
       <p role="status">{{ h.cargando }}</p>
     } @else if (lista().error !== null) {
