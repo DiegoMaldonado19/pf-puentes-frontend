@@ -85,3 +85,8 @@ export interface AjustarPrioridad {
   readonly prioridad: PrioridadOrden;
   readonly justificacion: string;
 }
+
+/** Fecha civil obligatoria; no modifica el estado ni los datos de cierre. */
+export interface ProgramarFechaOrden {
+  readonly fecha_programada: string;
+}
