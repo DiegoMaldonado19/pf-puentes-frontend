@@ -1,0 +1,175 @@
+<section class="bandeja" [attr.aria-busy]="lista().cargando || operacionPendiente()">
+  <h1>{{ h.titulo }}</h1>
+  <p>{{ h.descripcion }}</p>
+  @if (avisoInicio(); as aviso) {
+    <p [attr.role]="aviso.error ? 'alert' : 'status'">{{ aviso.mensaje }}</p>
+  }
+  @if (!puedeConsultar() || accesoDenegado() !== null) {
+    <p role="alert">{{ mensaje(accesoDenegado() ?? 403) }}</p>
+  } @else {
+    @if (lista().cargando) {
+      <p role="status">{{ h.cargando }}</p>
+    } @else if (lista().error !== null) {
+      <p role="alert">{{ mensaje(lista().error!) }}</p>
+      <button type="button" (click)="consultar()">{{ h.actualizar }}</button>
+    } @else if (lista().datos; as pagina) {
+      @if (pagina.content.length) {
+        <div class="tabla" role="region" [attr.aria-label]="h.tabla" tabindex="0">
+          <table>
+            <caption>
+              {{
+                h.tabla
+              }}
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">{{ h.intervencion }}</th>
+                <th scope="col">{{ t.tipo }}</th>
+                <th scope="col">{{ t.estado }}</th>
+                <th scope="col">{{ t.vigente }}</th>
+                <th scope="col">{{ h.consulta }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (orden of pagina.content; track orden.id) {
+                <tr>
+                  <th scope="row">{{ orden.descripcion }}</th>
+                  <td>{{ t.tipos[orden.tipo] }}</td>
+                  <td>{{ t.estados[orden.estado] }}</td>
+                  <td>{{ t.prioridades[orden.prioridad] }}</td>
+                  <td>
+                    <button
+                      type="button"
+                      [attr.aria-pressed]="seleccion()?.id === orden.id"
+                      [disabled]="operacionPendiente()"
+                      (click)="seleccionar(orden)"
+                    >
+                      {{ h.ver }}
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      } @else {
+        <p role="status">{{ pagina.total_elements ? h.paginaVacia : h.vacia }}</p>
+      }
+      <nav [attr.aria-label]="h.paginacion">
+        <button
+          type="button"
+          [disabled]="operacionPendiente() || pagina.page === 0"
+          (click)="anterior()"
+        >
+          {{ h.anterior }}
+        </button>
+        @if (pagina.total_pages && pagina.page < pagina.total_pages) {
+          <span>{{ h.pagina }} {{ pagina.page + 1 }} {{ h.de }} {{ pagina.total_pages }}</span>
+        }
+        <button
+          type="button"
+          [disabled]="operacionPendiente() || pagina.page + 1 >= pagina.total_pages"
+          (click)="consultar(pagina.page + 1)"
+        >
+          {{ h.siguiente }}
+        </button>
+        <button type="button" [disabled]="operacionPendiente()" (click)="consultar(0)">
+          {{ h.actualizar }}
+        </button>
+      </nav>
+    }
+    @if (seleccion()) {
+      <section
+        class="detalle"
+        aria-live="polite"
+        [attr.aria-label]="h.detalle"
+        [attr.aria-busy]="detalle().cargando || operacionPendiente()"
+      >
+        <h2>{{ h.detalle }}</h2>
+        @if (detalle().cargando) {
+          <p role="status">{{ h.cargandoDetalle }}</p>
+        } @else if (detalle().error !== null) {
+          <p role="alert">{{ mensaje(detalle().error!, true) }}</p>
+          <button type="button" [disabled]="operacionPendiente()" (click)="actualizarDetalle()">
+            {{ h.actualizarDetalle }}
+          </button>
+        } @else if (detalle().datos; as orden) {
+          <p>{{ orden.descripcion }}</p>
+          <dl>
+            <dt>{{ t.tipo }}</dt>
+            <dd>{{ t.tipos[orden.tipo] }}</dd>
+            <dt>{{ t.estado }}</dt>
+            <dd>{{ t.estados[orden.estado] }}</dd>
+            <dt>{{ h.origen }}</dt>
+            <dd>{{ orden.inspeccion_id ?? h.sinInspeccion }}</dd>
+            <dt>{{ h.elemento }}</dt>
+            <dd>{{ orden.elemento_ref ?? h.sinDato }}</dd>
+            <dt>{{ t.sugerida }}</dt>
+            <dd>
+              {{
+                orden.prioridad_sugerida ? t.prioridades[orden.prioridad_sugerida] : t.sinSugerencia
+              }}
+            </dd>
+            <dt>{{ t.vigente }}</dt>
+            <dd>{{ t.prioridades[orden.prioridad] }}</dd>
+            <dt>{{ t.justificacion }}</dt>
+            <dd>{{ orden.justificacion_prioridad ?? h.sinDato }}</dd>
+            <dt>{{ t.fecha }}</dt>
+            <dd>{{ fechaCivil(orden.fecha_programada) }}</dd>
+            <dt>{{ h.ejecucion }}</dt>
+            <dd>{{ fechaCivil(orden.fecha_ejecucion) }}</dd>
+            <dt>{{ h.responsable }}</dt>
+            <dd>{{ orden.responsable ?? h.sinDato }}</dd>
+            <dt>{{ h.motivo }}</dt>
+            <dd>{{ orden.motivo ?? h.sinDato }}</dd>
+            <dt>{{ h.creada }}</dt>
+            <dd>{{ orden.creado_en | date: 'dd/MM/yyyy HH:mm' : '-0600' }}</dd>
+            <dt>{{ h.actualizada }}</dt>
+            <dd>{{ orden.actualizado_en | date: 'dd/MM/yyyy HH:mm' : '-0600' }}</dd>
+          </dl>
+          @if (orden.estado === 'PROGRAMADA' && puedeIniciar()) {
+            <p>{{ t.inicio.explicacion }}</p>
+            <button type="button" [disabled]="operacionPendiente()" (click)="iniciarEjecucion()">
+              {{ iniciando() ? t.inicio.enviando : t.inicio.accion }}
+            </button>
+          }
+          @if (orden.estado === 'PROPUESTA' && puedeDescartar()) {
+            <app-descarte-propuesta
+              [orden]="orden"
+              [puedeConsultar]="puedeConsultar()"
+              [puedeDescartar]="puedeDescartar()"
+              [bloqueada]="otraOperacionPendiente()"
+              (descartada)="descarteConfirmado($event)"
+              (actualizacionRequerida)="falloDescarte($event)"
+            />
+          }
+          @if (puedeAjustarPrioridad()) {
+            <app-ajuste-prioridad-orden
+              [orden]="orden"
+              [puedeConsultar]="puedeConsultar()"
+              [puedeAjustar]="puedeAjustarPrioridad()"
+              [bloqueada]="bloqueoDePrioridad()"
+              (ajustada)="ajusteConfirmado($event)"
+              (actualizacionRequerida)="falloAjustePrioridad($event)"
+            />
+          }
+          @if (puedeConsultarEvidencia()) {
+            <app-evidencia-y-cierre
+              [orden]="orden"
+              [puedeConsultar]="puedeConsultarEvidencia()"
+              [puedeSubir]="puedeSubirEvidencia()"
+              [puedeCerrar]="puedeCerrar()"
+              [bloqueada]="iniciando() || descartando() || ajustando()"
+              (cerrada)="cierreConfirmado($event)"
+              (accesoDenegado)="denegarEvidencia($event)"
+              (actualizarOrden)="releerTrasEscritura($event)"
+            />
+          }
+          <button type="button" [disabled]="operacionPendiente()" (click)="actualizarDetalle()">
+            {{ h.actualizarDetalle }}
+          </button>
+        }
+      </section>
+    }
+  }
+</section>

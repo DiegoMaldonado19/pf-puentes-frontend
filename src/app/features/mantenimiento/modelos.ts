@@ -29,8 +29,8 @@ export interface ReferenciaOrden {
   readonly id: string;
 }
 
-/** Entrada paginada de la bandeja; todavía no representa una ruta GET habilitada. */
-export interface PaginaPropuestas {
+/** Contrato de página de órdenes; conserva el puente también en páginas vacías. */
+export interface PaginaOrdenes {
   /** El contenedor conserva el puente consultado, también cuando la página llega vacía. */
   readonly puente_id: string;
   readonly content: readonly OrdenMantenimientoDTO[];
@@ -40,8 +40,48 @@ export interface PaginaPropuestas {
   readonly total_pages: number;
 }
 
+/** El GET de propuestas usa la misma estructura, con filtro PROPUESTA en el servidor. */
+export type PaginaPropuestas = PaginaOrdenes;
+
 export interface ConsultaPropuestas {
   readonly puente_id: string;
   readonly page: number;
   readonly size: number;
+}
+
+/** Contrato de fotos de P1; las URL firmadas son temporales. */
+export interface EvidenciaDTO {
+  readonly id: string;
+  readonly tipo: 'JPEG' | 'WEBP';
+  readonly elemento_ref: string | null;
+  readonly latitud: number | null;
+  readonly longitud: number | null;
+  readonly capturada_en: string | null;
+  readonly tamano: number;
+  readonly url: string | null;
+  readonly url_miniatura: string | null;
+}
+export interface PaginaEvidencias {
+  readonly puente_id: string;
+  readonly orden_id: string;
+  readonly content: readonly EvidenciaDTO[];
+  readonly page: number;
+  readonly size: number;
+  readonly total_elements: number;
+  readonly total_pages: number;
+}
+export interface CierreOrden {
+  readonly fecha_ejecucion: string;
+  readonly responsable: string;
+}
+
+/** RN-MTO-09: motivo escrito, sin cambiar un estado arbitrario desde el cliente. */
+export interface DescartarOrden {
+  readonly motivo: string;
+}
+
+/** Ajuste manual; la prioridad sugerida se conserva. */
+export interface AjustarPrioridad {
+  readonly prioridad: PrioridadOrden;
+  readonly justificacion: string;
 }

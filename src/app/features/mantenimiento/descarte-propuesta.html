@@ -1,0 +1,26 @@
+@if (puedeConsultar() && puedeDescartar() && orden().estado === 'PROPUESTA') {
+  <section class="descarte" [attr.aria-label]="t.titulo" [attr.aria-busy]="enviando()">
+    <h3>{{ t.titulo }}</h3>
+    @if (error()) {
+      <p role="alert">{{ error() }}</p>
+    }
+    @if (!denegado()) {
+      <p>{{ t.explicacion }}</p>
+      <form (submit)="$event.preventDefault(); descartar()">
+        <label>
+          {{ t.motivo }}
+          <textarea
+            rows="3"
+            [formControl]="motivo"
+            required
+            [readonly]="enviando() || bloqueada()"
+            [attr.aria-invalid]="motivo.invalid && motivo.touched"
+          ></textarea>
+        </label>
+        <button type="submit" [disabled]="enviando() || bloqueada()">
+          {{ enviando() ? t.enviando : t.accion }}
+        </button>
+      </form>
+    }
+  </section>
+}
