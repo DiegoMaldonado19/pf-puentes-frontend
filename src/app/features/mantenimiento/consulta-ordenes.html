@@ -143,6 +143,16 @@
               (actualizacionRequerida)="falloDescarte($event)"
             />
           }
+          @if (puedeProgramar() && orden.estado === 'PROGRAMADA') {
+            <app-programacion-orden
+              [orden]="orden"
+              [puedeConsultar]="puedeConsultar()"
+              [puedeProgramar]="puedeProgramar()"
+              [bloqueada]="bloqueoDeProgramacion()"
+              (programada)="programacionConfirmada($event)"
+              (actualizacionRequerida)="falloProgramacion($event)"
+            />
+          }
           @if (puedeAjustarPrioridad()) {
             <app-ajuste-prioridad-orden
               [orden]="orden"
@@ -159,7 +169,7 @@
               [puedeConsultar]="puedeConsultarEvidencia()"
               [puedeSubir]="puedeSubirEvidencia()"
               [puedeCerrar]="puedeCerrar()"
-              [bloqueada]="iniciando() || descartando() || ajustando()"
+              [bloqueada]="iniciando() || descartando() || ajustando() || programando()"
               (cerrada)="cierreConfirmado($event)"
               (accesoDenegado)="denegarEvidencia($event)"
               (actualizarOrden)="releerTrasEscritura($event)"

@@ -191,4 +191,15 @@ describe('MantenimientoService', () => {
     req.flush({ ...aceptada, prioridad: 'BAJA', justificacion_prioridad: datos.justificacion });
     expect((await respuesta).prioridad).toBe('BAJA');
   });
+  it('programa con PATCH y fecha civil, sin estado ni datos de cierre, escapando identificadores', async () => {
+    const datos = { fecha_programada: '2026-11-02' };
+    const respuesta = firstValueFrom(servicio.programarFecha('puente/otro', 'orden?otra', datos));
+    const req = http.expectOne(
+      '/api/v1/puentes/puente%2Fotro/ordenes-mantenimiento/orden%3Fotra/fecha-programada',
+    );
+    expect(req.request.method).toBe('PATCH');
+    expect(req.request.body).toEqual(datos);
+    req.flush({ ...aceptada, ...datos });
+    expect((await respuesta).fecha_programada).toBe(datos.fecha_programada);
+  });
 });

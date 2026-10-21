@@ -3,6 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { By } from '@angular/platform-browser';
 import { CapturaFoto } from '../../shared/captura-foto/captura-foto';
 import { AjustePrioridadOrden } from './ajuste-prioridad-orden';
+import { ProgramacionOrden } from './programacion-orden';
 import { DescartePropuesta } from './descarte-propuesta';
 import { EvidenciaYCierre } from './evidencia-y-cierre';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
@@ -776,4 +777,86 @@ describe('ConsultaOrdenes', () => {
     expect(fixture.debugElement.query(By.directive(AjustePrioridadOrden))).toBeNull();
     http.expectNone((r) => r.method === 'PATCH');
   });
+  function abrirParaProgramacion(habilitado = true) {
+    fixture.componentRef.setInput('puedeProgramar', habilitado);
+    const actual = { ...orden, estado: 'PROGRAMADA' as const, motivo: null };
+    cargar([actual, segunda]);
+    abrir();
+    http.expectOne(rutaDetalle()).flush(actual);
+    fixture.detectChanges();
+    return actual;
+  }
+  function enviarProgramacion() {
+    const panel = (fixture.nativeElement as HTMLElement).querySelector('app-programacion-orden')!;
+    const campo = panel.querySelector('input')!;
+    campo.value = '2026-11-02';
+    campo.dispatchEvent(new Event('input'));
+    panel.querySelector('form')!.dispatchEvent(new Event('submit', { cancelable: true }));
+    fixture.detectChanges();
+  }
+  it('el permiso de lectura no concede programación de fecha', () => {
+    abrirParaProgramacion(false);
+    expect(fixture.debugElement.query(By.directive(ProgramacionOrden))).toBeNull();
+    http.expectNone((r) => r.method !== 'GET');
+  });
+  it('programación confirmada actualiza fecha en listado y detalle sin iniciar ejecución', () => {
+    fixture.componentRef.setInput('puedeIniciar', true);
+    fixture.componentRef.setInput('puedeAjustarPrioridad', true);
+    const actual = abrirParaProgramacion();
+    const programada = vi.fn();
+    fixture.componentInstance.fechaProgramada.subscribe(programada);
+    enviarProgramacion();
+    expect(fixture.componentInstance.operacionPendiente()).toBe(true);
+    expect(boton(TEXTOS.mantenimiento.inicio.accion).disabled).toBe(true);
+    expect(boton(TEXTOS.mantenimiento.ajustePrioridad.accion).disabled).toBe(true);
+    expect(boton(h.ver).disabled).toBe(true);
+    expect(boton(h.actualizar).disabled).toBe(true);
+    const resultado = { ...actual, fecha_programada: '2026-11-02' };
+    http.expectOne(`${rutaDetalle()}/fecha-programada`).flush(resultado);
+    fixture.detectChanges();
+    expect(programada).toHaveBeenCalledExactlyOnceWith(resultado);
+    expect(texto()).toContain(TEXTOS.mantenimiento.programacion.confirmada);
+    expect(texto()).toContain('02/11/2026');
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector<HTMLInputElement>(
+        'app-programacion-orden input',
+      )?.value,
+    ).toBe('2026-11-02');
+    expect(fixture.componentInstance.operacionPendiente()).toBe(false);
+    http.expectNone((r) => r.method !== 'GET');
+  });
+  it('un ajuste en curso impide programar la fecha y viceversa', () => {
+    fixture.componentRef.setInput('puedeAjustarPrioridad', true);
+    const actual = abrirParaProgramacion();
+    enviarAjuste();
+    expect(boton(TEXTOS.mantenimiento.programacion.accion).disabled).toBe(true);
+    http
+      .expectOne(`${rutaDetalle()}/prioridad`)
+      .flush({ ...actual, prioridad: 'BAJA', justificacion_prioridad: 'Urgencia revisada' });
+    fixture.detectChanges();
+    expect(boton(TEXTOS.mantenimiento.programacion.accion).disabled).toBe(false);
+  });
+  it.each([401, 403])('acceso rechazado %s al programar retira listado y detalle', (status) => {
+    abrirParaProgramacion();
+    enviarProgramacion();
+    http.expectOne(`${rutaDetalle()}/fecha-programada`).flush({}, { status, statusText: 'Denied' });
+    fixture.detectChanges();
+    expect((fixture.nativeElement as HTMLElement).querySelector('table')).toBeNull();
+    expect(fixture.debugElement.query(By.directive(ProgramacionOrden))).toBeNull();
+  });
+  it.each([404, 409, 500])(
+    'fallo de programación %s exige relectura sin repetir escritura',
+    (status) => {
+      abrirParaProgramacion();
+      enviarProgramacion();
+      http
+        .expectOne(`${rutaDetalle()}/fecha-programada`)
+        .flush({}, { status, statusText: 'Error' });
+      fixture.detectChanges();
+      http.expectOne(ruta()).flush(pagina([orden]));
+      fixture.detectChanges();
+      expect(fixture.debugElement.query(By.directive(ProgramacionOrden))).toBeNull();
+      http.expectNone((r) => r.method === 'PATCH');
+    },
+  );
 });
