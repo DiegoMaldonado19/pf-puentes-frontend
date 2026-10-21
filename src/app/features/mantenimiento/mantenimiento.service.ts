@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import {
   CierreOrden,
   AjustarPrioridad,
+  ProgramarFechaOrden,
   DescartarOrden,
   EvidenciaDTO,
   PaginaEvidencias,
@@ -74,6 +75,17 @@ export class MantenimientoService {
   ): Observable<OrdenMantenimientoDTO> {
     return this.http.post<OrdenMantenimientoDTO>(
       `${this.rutaOrden(puenteId, ordenId)}/descarte`,
+      datos,
+    );
+  }
+
+  programarFecha(
+    puenteId: string,
+    ordenId: string,
+    datos: ProgramarFechaOrden,
+  ): Observable<OrdenMantenimientoDTO> {
+    return this.http.patch<OrdenMantenimientoDTO>(
+      `${this.rutaOrden(puenteId, ordenId)}/fecha-programada`,
       datos,
     );
   }

@@ -18,6 +18,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { finalize } from 'rxjs';
 import { TEXTOS } from '../../shared/textos';
 import { AjustePrioridadOrden } from './ajuste-prioridad-orden';
+import { ProgramacionOrden } from './programacion-orden';
 import { DescartePropuesta } from './descarte-propuesta';
 import { EvidenciaYCierre } from './evidencia-y-cierre';
 import { MantenimientoService } from './mantenimiento.service';
@@ -34,7 +35,7 @@ interface EstadoConsulta<T> {
 /** Historial e inicio de ejecución; el host de P2 aporta permiso/sesión y P3 el puente seleccionado. */
 @Component({
   selector: 'app-consulta-ordenes',
-  imports: [DatePipe, EvidenciaYCierre, DescartePropuesta, AjustePrioridadOrden],
+  imports: [DatePipe, EvidenciaYCierre, DescartePropuesta, AjustePrioridadOrden, ProgramacionOrden],
   providers: [{ provide: LOCALE_ID, useValue: 'es-GT' }],
   templateUrl: './consulta-ordenes.html',
   styleUrls: ['./bandeja-propuestas.css', './consulta-ordenes.css'],
@@ -53,16 +54,35 @@ export class ConsultaOrdenes {
   readonly descartada = output<OrdenMantenimientoDTO>();
   readonly puedeAjustarPrioridad = input(false);
   readonly prioridadAjustada = output<OrdenMantenimientoDTO>();
+  readonly puedeProgramar = input(false);
+  readonly fechaProgramada = output<OrdenMantenimientoDTO>();
+  private readonly programacion = viewChild(ProgramacionOrden);
+  protected readonly programando = computed(() => this.programacion()?.envioPendiente() ?? false);
+  protected readonly bloqueoDeProgramacion = computed(
+    () =>
+      this.iniciando() ||
+      this.ajustando() ||
+      this.descartando() ||
+      (this.evidencia()?.envioPendiente() ?? false),
+  );
   private readonly ajuste = viewChild(AjustePrioridadOrden);
   protected readonly ajustando = computed(() => this.ajuste()?.envioPendiente() ?? false);
   private readonly descarte = viewChild(DescartePropuesta);
   protected readonly descartando = computed(() => this.descarte()?.envioPendiente() ?? false);
   private readonly evidencia = viewChild(EvidenciaYCierre);
   protected readonly otraOperacionPendiente = computed(
-    () => this.iniciando() || this.ajustando() || (this.evidencia()?.envioPendiente() ?? false),
+    () =>
+      this.iniciando() ||
+      this.programando() ||
+      this.ajustando() ||
+      (this.evidencia()?.envioPendiente() ?? false),
   );
   protected readonly bloqueoDePrioridad = computed(
-    () => this.iniciando() || this.descartando() || (this.evidencia()?.envioPendiente() ?? false),
+    () =>
+      this.iniciando() ||
+      this.programando() ||
+      this.descartando() ||
+      (this.evidencia()?.envioPendiente() ?? false),
   );
   readonly operacionPendiente = computed(() => this.otraOperacionPendiente() || this.descartando());
   protected readonly iniciando = signal(false);
@@ -403,6 +423,54 @@ export class ConsultaOrdenes {
           : status === 404
             ? this.t.ajustePrioridad.noEncontrada
             : this.t.ajustePrioridad.resultadoDesconocido,
+      error: true,
+    });
+    this.solicitud.update((actual) => ({ ...actual, intento: actual.intento + 1 }));
+  }
+
+  protected programacionConfirmada(resultado: OrdenMantenimientoDTO) {
+    const actual = this.detalle().datos;
+    if (
+      !this.puedeConsultar() ||
+      !this.puedeProgramar() ||
+      this.accesoDenegado() !== null ||
+      !actual ||
+      resultado.id !== actual.id ||
+      resultado.puente_id !== this.puenteId() ||
+      actual.estado !== 'PROGRAMADA' ||
+      resultado.estado !== 'PROGRAMADA' ||
+      !resultado.fecha_programada
+    )
+      return;
+    this.detalle.set({ datos: resultado, cargando: false, error: null });
+    this.lista.update((lista) => ({
+      ...lista,
+      datos: lista.datos
+        ? {
+            ...lista.datos,
+            content: lista.datos.content.map((fila) =>
+              fila.id === resultado.id ? resultado : fila,
+            ),
+          }
+        : null,
+    }));
+    this.avisoInicio.set({ mensaje: this.t.programacion.confirmada, error: false });
+    this.fechaProgramada.emit(resultado);
+  }
+
+  protected falloProgramacion(status: number) {
+    if (status === 401 || status === 403) {
+      this.accesoDenegado.set(status);
+      this.avisoInicio.set(null);
+      return;
+    }
+    this.avisoInicio.set({
+      mensaje:
+        status === 409
+          ? this.t.programacion.conflicto
+          : status === 404
+            ? this.t.programacion.noEncontrada
+            : this.t.programacion.resultadoDesconocido,
       error: true,
     });
     this.solicitud.update((actual) => ({ ...actual, intento: actual.intento + 1 }));

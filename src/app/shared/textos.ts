@@ -1,6 +1,25 @@
 // DT-FE-12: los textos de la interfaz viven aquí para poder traducirla sin tocar las plantillas
 export const TEXTOS = {
   mantenimiento: {
+    programacion: {
+      titulo: 'Programar fecha de intervención',
+      explicacion:
+        'Registra o cambia la fecha de esta intervención aceptada. La orden conserva el estado Programada hasta que se inicie su ejecución.',
+      fecha: 'Fecha programada',
+      fechaRequerida: 'Selecciona una fecha válida para la intervención.',
+      sinCambio: 'La orden ya tiene esa fecha programada.',
+      accion: 'Guardar fecha programada',
+      enviando: 'Guardando fecha…',
+      confirmada: 'La fecha programada quedó guardada.',
+      sinSesion: 'Tu sesión no está disponible. Inicia sesión y vuelve a consultar la orden.',
+      sinPermiso: 'No tienes permiso para programar esta orden.',
+      noEncontrada: 'La orden no está disponible en este puente. Revisa el listado actualizado.',
+      conflicto: 'La orden ya no está Programada. Revisa su estado actualizado antes de continuar.',
+      datosInvalidos:
+        'No se pudo guardar la fecha. Revisa los datos o actualiza el detalle de la orden.',
+      resultadoDesconocido:
+        'No se pudo confirmar la programación. Revisa la fecha actualizada antes de intentar otra vez.',
+    },
     ajustePrioridad: {
       titulo: 'Ajustar prioridad',
       explicacion:

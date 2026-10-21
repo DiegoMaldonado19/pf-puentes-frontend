@@ -1,0 +1,30 @@
+@if (puedeConsultar() && puedeProgramar() && editable()) {
+  <section class="programacion" [attr.aria-label]="t.titulo" [attr.aria-busy]="enviando()">
+    <h3>{{ t.titulo }}</h3>
+    @if (error()) {
+      <p role="alert">{{ error() }}</p>
+    }
+    @if (!denegado()) {
+      <p>{{ t.explicacion }}</p>
+      <form [formGroup]="formulario" (ngSubmit)="programar()">
+        <fieldset [disabled]="enviando() || bloqueada()">
+          <label
+            >{{ t.fecha }}
+            <input
+              type="date"
+              formControlName="fecha_programada"
+              required
+              [attr.aria-invalid]="
+                formulario.controls.fecha_programada.invalid &&
+                formulario.controls.fecha_programada.touched
+              "
+            />
+          </label>
+          <button type="submit" [disabled]="enviando() || bloqueada()">
+            {{ enviando() ? t.enviando : t.accion }}
+          </button>
+        </fieldset>
+      </form>
+    }
+  </section>
+}
