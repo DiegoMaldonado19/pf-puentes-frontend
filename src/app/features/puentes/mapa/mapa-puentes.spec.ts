@@ -53,6 +53,7 @@ describe('MapaPuentes', () => {
     expect(mapa.marcadores).toHaveLength(101);
     const ultimo = mapa.marcadores[100];
     expect(ultimo.posicion).toEqual([-91.518, 14.8347]);
+    expect(mapa.marcadores.every((m) => m.enMapa)).toBe(true);
     expect(ultimo.elemento?.getAttribute('aria-label')).toBe('Último (GT-09-0901-0001): Malo');
     expect(ultimo.elemento?.textContent).toBe('M');
     expect(ultimo.popup?.contenido?.textContent).toContain('Estado: Malo');

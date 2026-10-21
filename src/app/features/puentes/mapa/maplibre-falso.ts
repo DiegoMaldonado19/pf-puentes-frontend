@@ -62,6 +62,7 @@ export class MarcadorFalso {
   readonly elemento?: HTMLElement;
   posicion?: [number, number];
   popup?: PopupFalso;
+  enMapa = false;
   constructor(opciones?: { element?: HTMLElement }) {
     this.elemento = opciones?.element;
   }
@@ -74,9 +75,11 @@ export class MarcadorFalso {
     return this;
   }
   addTo() {
+    this.enMapa = true;
     return this;
   }
   remove() {
+    this.enMapa = false;
     return this;
   }
 }

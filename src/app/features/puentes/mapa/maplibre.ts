@@ -10,16 +10,45 @@ export type MapLibre = typeof import('maplibre-gl');
  * /maplibre/ para que se cargue desde el mismo origen (CSP worker-src 'self').
  */
 export async function importarMapLibre(): Promise<MapLibre> {
-  if (!document.querySelector('link[data-maplibre]')) {
-    const hoja = document.createElement('link');
-    hoja.rel = 'stylesheet';
-    hoja.href = 'maplibre.css';
-    hoja.dataset['maplibre'] = '';
-    document.head.append(hoja);
-  }
-  const maplibre = await import('maplibre-gl');
-  maplibre.setWorkerUrl(new URL('maplibre/maplibre-gl-worker.mjs', document.baseURI).href);
+  const worker = new URL('maplibre/maplibre-gl-worker.mjs', document.baseURI).href;
+  const [maplibre] = await Promise.all([
+    import('maplibre-gl'),
+    cargarHojaMapLibre(),
+    verificarWorker(worker),
+  ]);
+  maplibre.setWorkerUrl(worker);
   return maplibre;
+}
+
+let hoja: Promise<void> | undefined;
+
+/**
+ * Sin maplibre.css los marcadores quedan con position: static, fuera del lienzo y sin verse: se
+ * espera a la hoja y, si no carga, el mapa falla con un mensaje en vez de dibujarse a medias.
+ */
+export function cargarHojaMapLibre(): Promise<void> {
+  hoja ??= new Promise<void>((cargada, fallida) => {
+    const enlace = document.createElement('link');
+    enlace.rel = 'stylesheet';
+    enlace.href = 'maplibre.css';
+    enlace.dataset['maplibre'] = '';
+    enlace.addEventListener('load', () => cargada());
+    enlace.addEventListener('error', () => {
+      enlace.remove();
+      hoja = undefined; // la próxima pantalla con mapa lo vuelve a intentar
+      fallida(new Error('No se pudo cargar maplibre.css'));
+    });
+    document.head.append(enlace);
+  });
+  return hoja;
+}
+
+/** Un worker que no llega como JavaScript deja el mapa sin teselas ni marcadores. */
+export async function verificarWorker(url: string): Promise<void> {
+  const respuesta = await fetch(url, { method: 'HEAD' });
+  if (!respuesta.ok || !/javascript/.test(respuesta.headers.get('content-type') ?? '')) {
+    throw new Error(`El worker de MapLibre no está disponible en ${url} (${respuesta.status})`);
+  }
 }
 
 /** Se sustituye en las pruebas: jsdom no tiene WebGL. */
