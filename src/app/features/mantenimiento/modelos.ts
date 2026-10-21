@@ -79,3 +79,9 @@ export interface CierreOrden {
 export interface DescartarOrden {
   readonly motivo: string;
 }
+
+/** Ajuste manual; la prioridad sugerida se conserva. */
+export interface AjustarPrioridad {
+  readonly prioridad: PrioridadOrden;
+  readonly justificacion: string;
+}

@@ -210,3 +210,9 @@ La respuesta confirmada actualiza fila/detalle. Durante el envío se bloquean ac
 `ConsultaOrdenes` añade `[puedeDescartar]` (false por defecto) y `(descartada)`. Con permiso real Catedrático/Admin, una PROPUESTA ofrece formulario de motivo y confirmación; consume el POST `/descarte`. Solo el DTO confirmado actualiza fila y detalle; la orden permanece en el historial. El envío se incluye en `operacionPendiente()` para bloquear navegación local/otras operaciones. Los rechazos de acceso retiran datos y los resultados inciertos fuerzan relectura sin repetir POST. [ADR 0020](docs/adr/0020-descarte-de-propuestas-desde-el-detalle.md).
 
 Tras el merge de P3 ya existen `/puentes`, mapa y ficha pública con el componente de estado de P8. Mantenimiento todavía requiere conectarse a ese inventario y a la sesión/interceptores/guardias P2; el puerto `ROL_PUENTES` vale null por defecto. Verificación actual: 280 unitarios y controles aprobados, incluidos los de P3 recibidos.
+
+### Ajustar prioridad desde el detalle (P8)
+
+`ConsultaOrdenes` añade `[puedeAjustarPrioridad]` (false por defecto) y `(prioridadAjustada)`. El host aporta el permiso real de sesión Catedrático/Admin. La acción se ofrece en PROPUESTA/PROGRAMADA/EN_EJECUCION según decisión del usuario; terminales conservan prioridad. El selector exige valor distinto y justificación, consume PATCH y actualiza fila/detalle solo desde el DTO confirmado. Se conserva sugerida y no se modifica el cálculo/pesos del IC.
+
+El envío se agrega a `operacionPendiente()` para bloquear selección y otras acciones. Acceso denegado retira datos; conflictos/resultados inciertos se reconcilian por GET, sin repetir escrituras. Siguen pendientes acceso P2 y conexión de P8 con el inventario real P3. [ADR 0021](docs/adr/0021-ajuste-manual-de-prioridad-en-el-detalle.md). Verificación actual: 325 unitarios y controles aprobados.

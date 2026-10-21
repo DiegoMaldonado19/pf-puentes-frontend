@@ -1,6 +1,27 @@
 // DT-FE-12: los textos de la interfaz viven aquí para poder traducirla sin tocar las plantillas
 export const TEXTOS = {
   mantenimiento: {
+    ajustePrioridad: {
+      titulo: 'Ajustar prioridad',
+      explicacion:
+        'Selecciona la nueva urgencia de atención y justifica el cambio. La prioridad sugerida y los pesos del índice de condición se conservan.',
+      prioridad: 'Nueva prioridad',
+      justificacion: 'Justificación del cambio',
+      justificacionRequerida: 'Escribe por qué debe cambiar la prioridad.',
+      sinCambio: 'Selecciona una prioridad distinta de la vigente para registrar un cambio.',
+      accion: 'Guardar prioridad',
+      enviando: 'Guardando prioridad…',
+      confirmada: 'La prioridad y su justificación quedaron guardadas.',
+      sinSesion: 'Tu sesión no está disponible. Inicia sesión y vuelve a consultar la orden.',
+      sinPermiso: 'No tienes permiso para ajustar la prioridad de esta orden.',
+      noEncontrada: 'La orden no está disponible en este puente. Revisa el listado actualizado.',
+      conflicto:
+        'La orden ya está terminada. Revisa el estado actualizado; su prioridad se conserva en el historial.',
+      datosInvalidos:
+        'No se pudo ajustar con los datos actuales. Revisa la prioridad y la justificación, o actualiza el detalle.',
+      resultadoDesconocido:
+        'No se pudo confirmar el ajuste. Revisa la prioridad actualizada antes de intentar otra vez.',
+    },
     descarte: {
       titulo: 'Descartar propuesta',
       explicacion:

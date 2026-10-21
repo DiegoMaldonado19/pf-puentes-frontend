@@ -180,4 +180,15 @@ describe('MantenimientoService', () => {
     req.flush({ ...aceptada, estado: 'DESCARTADA', motivo: datos.motivo });
     expect((await respuesta).estado).toBe('DESCARTADA');
   });
+  it('ajusta por PATCH enviando solo prioridad/justificación y escapando identificadores', async () => {
+    const datos = { prioridad: 'BAJA' as const, justificacion: 'Urgencia revisada' };
+    const respuesta = firstValueFrom(servicio.ajustarPrioridad('puente/otro', 'orden?otra', datos));
+    const req = http.expectOne(
+      '/api/v1/puentes/puente%2Fotro/ordenes-mantenimiento/orden%3Fotra/prioridad',
+    );
+    expect(req.request.method).toBe('PATCH');
+    expect(req.request.body).toEqual(datos);
+    req.flush({ ...aceptada, prioridad: 'BAJA', justificacion_prioridad: datos.justificacion });
+    expect((await respuesta).prioridad).toBe('BAJA');
+  });
 });

@@ -1,0 +1,38 @@
+@if (puedeConsultar() && puedeAjustar() && editable()) {
+  <section class="ajuste" [attr.aria-label]="t.titulo" [attr.aria-busy]="enviando()">
+    <h3>{{ t.titulo }}</h3>
+    @if (error()) {
+      <p role="alert">{{ error() }}</p>
+    }
+    @if (!denegado()) {
+      <p>{{ t.explicacion }}</p>
+      <form [formGroup]="formulario" (ngSubmit)="ajustar()">
+        <fieldset [disabled]="enviando() || bloqueada()">
+          <label
+            >{{ t.prioridad }}
+            <select formControlName="prioridad" required>
+              @for (opcion of opciones; track opcion) {
+                <option [value]="opcion">{{ prioridades[opcion] }}</option>
+              }
+            </select>
+          </label>
+          <label
+            >{{ t.justificacion }}
+            <textarea
+              rows="3"
+              formControlName="justificacion"
+              required
+              [attr.aria-invalid]="
+                formulario.controls.justificacion.invalid &&
+                formulario.controls.justificacion.touched
+              "
+            ></textarea>
+          </label>
+          <button type="submit" [disabled]="enviando() || bloqueada()">
+            {{ enviando() ? t.enviando : t.accion }}
+          </button>
+        </fieldset>
+      </form>
+    }
+  </section>
+}

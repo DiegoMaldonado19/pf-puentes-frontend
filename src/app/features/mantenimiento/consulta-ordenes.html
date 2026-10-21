@@ -143,13 +143,23 @@
               (actualizacionRequerida)="falloDescarte($event)"
             />
           }
+          @if (puedeAjustarPrioridad()) {
+            <app-ajuste-prioridad-orden
+              [orden]="orden"
+              [puedeConsultar]="puedeConsultar()"
+              [puedeAjustar]="puedeAjustarPrioridad()"
+              [bloqueada]="bloqueoDePrioridad()"
+              (ajustada)="ajusteConfirmado($event)"
+              (actualizacionRequerida)="falloAjustePrioridad($event)"
+            />
+          }
           @if (puedeConsultarEvidencia()) {
             <app-evidencia-y-cierre
               [orden]="orden"
               [puedeConsultar]="puedeConsultarEvidencia()"
               [puedeSubir]="puedeSubirEvidencia()"
               [puedeCerrar]="puedeCerrar()"
-              [bloqueada]="iniciando() || descartando()"
+              [bloqueada]="iniciando() || descartando() || ajustando()"
               (cerrada)="cierreConfirmado($event)"
               (accesoDenegado)="denegarEvidencia($event)"
               (actualizarOrden)="releerTrasEscritura($event)"

@@ -3,6 +3,7 @@ import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import {
   CierreOrden,
+  AjustarPrioridad,
   DescartarOrden,
   EvidenciaDTO,
   PaginaEvidencias,
@@ -73,6 +74,17 @@ export class MantenimientoService {
   ): Observable<OrdenMantenimientoDTO> {
     return this.http.post<OrdenMantenimientoDTO>(
       `${this.rutaOrden(puenteId, ordenId)}/descarte`,
+      datos,
+    );
+  }
+
+  ajustarPrioridad(
+    puenteId: string,
+    ordenId: string,
+    datos: AjustarPrioridad,
+  ): Observable<OrdenMantenimientoDTO> {
+    return this.http.patch<OrdenMantenimientoDTO>(
+      `${this.rutaOrden(puenteId, ordenId)}/prioridad`,
       datos,
     );
   }

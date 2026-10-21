@@ -2,6 +2,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { By } from '@angular/platform-browser';
 import { CapturaFoto } from '../../shared/captura-foto/captura-foto';
+import { AjustePrioridadOrden } from './ajuste-prioridad-orden';
 import { DescartePropuesta } from './descarte-propuesta';
 import { EvidenciaYCierre } from './evidencia-y-cierre';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
@@ -692,4 +693,87 @@ describe('ConsultaOrdenes', () => {
       http.expectNone((req) => req.method === 'POST');
     },
   );
+  function abrirParaAjuste(estado: EstadoOrden = 'PROGRAMADA', habilitado = true) {
+    fixture.componentRef.setInput('puedeAjustarPrioridad', habilitado);
+    const actual = { ...orden, estado, motivo: null };
+    cargar([actual, segunda]);
+    abrir();
+    http.expectOne(rutaDetalle()).flush(actual);
+    fixture.detectChanges();
+    return actual;
+  }
+  function enviarAjuste() {
+    const panel = (fixture.nativeElement as HTMLElement).querySelector(
+      'app-ajuste-prioridad-orden',
+    )!;
+    const selector = panel.querySelector('select')!;
+    selector.value = 'BAJA';
+    selector.dispatchEvent(new Event('change'));
+    const campo = panel.querySelector('textarea')!;
+    campo.value = 'Urgencia revisada';
+    campo.dispatchEvent(new Event('input'));
+    panel.querySelector('form')!.dispatchEvent(new Event('submit', { cancelable: true }));
+    fixture.detectChanges();
+  }
+
+  it('lectura no concede ajuste de prioridad', () => {
+    abrirParaAjuste('PROGRAMADA', false);
+    expect(fixture.debugElement.query(By.directive(AjustePrioridadOrden))).toBeNull();
+    http.expectNone((r) => r.method !== 'GET');
+  });
+
+  it('confirma ajuste desde el servidor y bloquea inicio, selección y recargas durante PATCH', () => {
+    fixture.componentRef.setInput('puedeIniciar', true);
+    const actual = abrirParaAjuste();
+    const ajustada = vi.fn();
+    fixture.componentInstance.prioridadAjustada.subscribe(ajustada);
+    enviarAjuste();
+    expect(fixture.componentInstance.operacionPendiente()).toBe(true);
+    expect(boton(TEXTOS.mantenimiento.inicio.accion).disabled).toBe(true);
+    expect(boton(h.ver).disabled).toBe(true);
+    expect(boton(h.actualizar).disabled).toBe(true);
+    const resultado = {
+      ...actual,
+      prioridad: 'BAJA',
+      justificacion_prioridad: 'Urgencia revisada',
+    };
+    http.expectOne(`${rutaDetalle()}/prioridad`).flush(resultado);
+    fixture.detectChanges();
+    expect(ajustada).toHaveBeenCalledExactlyOnceWith(resultado);
+    expect(texto()).toContain(TEXTOS.mantenimiento.ajustePrioridad.confirmada);
+    expect(texto()).toContain('Urgencia revisada');
+    expect(fixture.componentInstance.operacionPendiente()).toBe(false);
+  });
+
+  it('un ajuste pendiente también bloquea descarte de la propuesta', () => {
+    fixture.componentRef.setInput('puedeDescartar', true);
+    const actual = abrirParaAjuste('PROPUESTA');
+    enviarAjuste();
+    expect(boton(TEXTOS.mantenimiento.descarte.accion).disabled).toBe(true);
+    http
+      .expectOne(`${rutaDetalle()}/prioridad`)
+      .flush({ ...actual, prioridad: 'BAJA', justificacion_prioridad: 'Urgencia revisada' });
+    fixture.detectChanges();
+    expect(boton(TEXTOS.mantenimiento.descarte.accion).disabled).toBe(false);
+  });
+
+  it.each([401, 403])('rechazo de acceso al ajustar %s retira historial y detalle', (status) => {
+    abrirParaAjuste();
+    enviarAjuste();
+    http.expectOne(`${rutaDetalle()}/prioridad`).flush({}, { status, statusText: 'Denied' });
+    fixture.detectChanges();
+    expect((fixture.nativeElement as HTMLElement).querySelector('table')).toBeNull();
+    expect(fixture.debugElement.query(By.directive(AjustePrioridadOrden))).toBeNull();
+  });
+
+  it.each([404, 409, 500])('fallo de ajuste %s exige relectura y no repite PATCH', (status) => {
+    abrirParaAjuste();
+    enviarAjuste();
+    http.expectOne(`${rutaDetalle()}/prioridad`).flush({}, { status, statusText: 'Error' });
+    fixture.detectChanges();
+    http.expectOne(ruta()).flush(pagina([orden]));
+    fixture.detectChanges();
+    expect(fixture.debugElement.query(By.directive(AjustePrioridadOrden))).toBeNull();
+    http.expectNone((r) => r.method === 'PATCH');
+  });
 });

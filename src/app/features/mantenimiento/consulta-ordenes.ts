@@ -17,6 +17,7 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { finalize } from 'rxjs';
 import { TEXTOS } from '../../shared/textos';
+import { AjustePrioridadOrden } from './ajuste-prioridad-orden';
 import { DescartePropuesta } from './descarte-propuesta';
 import { EvidenciaYCierre } from './evidencia-y-cierre';
 import { MantenimientoService } from './mantenimiento.service';
@@ -33,7 +34,7 @@ interface EstadoConsulta<T> {
 /** Historial e inicio de ejecución; el host de P2 aporta permiso/sesión y P3 el puente seleccionado. */
 @Component({
   selector: 'app-consulta-ordenes',
-  imports: [DatePipe, EvidenciaYCierre, DescartePropuesta],
+  imports: [DatePipe, EvidenciaYCierre, DescartePropuesta, AjustePrioridadOrden],
   providers: [{ provide: LOCALE_ID, useValue: 'es-GT' }],
   templateUrl: './consulta-ordenes.html',
   styleUrls: ['./bandeja-propuestas.css', './consulta-ordenes.css'],
@@ -50,11 +51,18 @@ export class ConsultaOrdenes {
   readonly cerrada = output<OrdenMantenimientoDTO>();
   readonly puedeDescartar = input(false);
   readonly descartada = output<OrdenMantenimientoDTO>();
+  readonly puedeAjustarPrioridad = input(false);
+  readonly prioridadAjustada = output<OrdenMantenimientoDTO>();
+  private readonly ajuste = viewChild(AjustePrioridadOrden);
+  protected readonly ajustando = computed(() => this.ajuste()?.envioPendiente() ?? false);
   private readonly descarte = viewChild(DescartePropuesta);
   protected readonly descartando = computed(() => this.descarte()?.envioPendiente() ?? false);
   private readonly evidencia = viewChild(EvidenciaYCierre);
   protected readonly otraOperacionPendiente = computed(
-    () => this.iniciando() || (this.evidencia()?.envioPendiente() ?? false),
+    () => this.iniciando() || this.ajustando() || (this.evidencia()?.envioPendiente() ?? false),
+  );
+  protected readonly bloqueoDePrioridad = computed(
+    () => this.iniciando() || this.descartando() || (this.evidencia()?.envioPendiente() ?? false),
   );
   readonly operacionPendiente = computed(() => this.otraOperacionPendiente() || this.descartando());
   protected readonly iniciando = signal(false);
@@ -349,6 +357,52 @@ export class ConsultaOrdenes {
           : status === 404
             ? this.t.descarte.noEncontrada
             : this.t.descarte.resultadoDesconocido,
+      error: true,
+    });
+    this.solicitud.update((actual) => ({ ...actual, intento: actual.intento + 1 }));
+  }
+
+  protected ajusteConfirmado(resultado: OrdenMantenimientoDTO) {
+    const actual = this.detalle().datos;
+    if (
+      !this.puedeConsultar() ||
+      !this.puedeAjustarPrioridad() ||
+      this.accesoDenegado() !== null ||
+      !actual ||
+      resultado.id !== actual.id ||
+      resultado.puente_id !== this.puenteId() ||
+      !['PROPUESTA', 'PROGRAMADA', 'EN_EJECUCION'].includes(resultado.estado)
+    )
+      return;
+    this.detalle.set({ datos: resultado, cargando: false, error: null });
+    this.lista.update((lista) => ({
+      ...lista,
+      datos: lista.datos
+        ? {
+            ...lista.datos,
+            content: lista.datos.content.map((fila) =>
+              fila.id === resultado.id ? resultado : fila,
+            ),
+          }
+        : null,
+    }));
+    this.avisoInicio.set({ mensaje: this.t.ajustePrioridad.confirmada, error: false });
+    this.prioridadAjustada.emit(resultado);
+  }
+
+  protected falloAjustePrioridad(status: number) {
+    if (status === 401 || status === 403) {
+      this.accesoDenegado.set(status);
+      this.avisoInicio.set(null);
+      return;
+    }
+    this.avisoInicio.set({
+      mensaje:
+        status === 409
+          ? this.t.ajustePrioridad.conflicto
+          : status === 404
+            ? this.t.ajustePrioridad.noEncontrada
+            : this.t.ajustePrioridad.resultadoDesconocido,
       error: true,
     });
     this.solicitud.update((actual) => ({ ...actual, intento: actual.intento + 1 }));
