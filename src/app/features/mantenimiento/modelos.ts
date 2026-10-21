@@ -90,3 +90,17 @@ export interface AjustarPrioridad {
 export interface ProgramarFechaOrden {
   readonly fecha_programada: string;
 }
+
+/** Evaluación civil del servidor; los indicadores pueden coincidir y no deben sumarse. */
+export interface SeguimientoRutinarioDTO {
+  readonly puente_id: string;
+  readonly fecha_evaluacion: string;
+  readonly fecha_referencia: string;
+  readonly origen_referencia: 'REGISTRO_PUENTE' | 'EJECUCION_RUTINARIA';
+  readonly fecha_limite: string;
+  readonly programadas_en_plazo: number;
+  readonly sin_fecha: number;
+  readonly fechas_pasadas: number;
+  readonly posteriores_al_limite: number;
+  readonly ordenes: PaginaOrdenes;
+}

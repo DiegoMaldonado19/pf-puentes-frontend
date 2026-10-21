@@ -1,5 +1,13 @@
 # pf-puentes-frontend
 
+### Seguimiento rutinario anual (P8, 21/10/2026)
+
+`SeguimientoRutinario` consume el GET real y presenta referencia/límite, conteos globales y página de órdenes abiertas. `ConsultaOrdenes` lo incorpora mediante `[mostrarSeguimientoRutinario]="true"`, como opción del host que usa su permiso Catedrático/Admin. Seleccionar abre el detalle real; guardar fecha, iniciar o cerrar recarga el resumen, conservando permisos/estados existentes.
+
+La programación no acredita ejecución ni una fecha pasada implica incumplimiento anual automático. Los indicadores de pasada y posterior al límite pueden coincidir; la UI lo explica. Fechas civiles, paginación, bloqueos y errores respetan el contrato. No se crean propuestas/jobs ni se habilita ruta pública. Acceso P2/conexión privada P3 pendientes. [ADR 0023](docs/adr/0023-seguimiento-rutinario-anual.md).
+
+Verificación: **387 unitarios aprobados**, 21 nuevos entre panel/cliente/host. Pasan lint, Prettier, compilación estricta y build (~90.73 kB iniciales, MapLibre diferido). No acredita CI remoto ni recorrido autenticado completo.
+
 SPA en Angular del Sistema de Gestión de Puentes (SGP). No usa SSR: en dev, stage y prod la sirve nginx ([ADR 0001](docs/adr/0001-spa-sin-ssr-servida-por-nginx.md)).
 
 ## Estado (21/10/2026)
