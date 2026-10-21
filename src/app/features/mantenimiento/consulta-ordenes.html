@@ -133,13 +133,23 @@
               {{ iniciando() ? t.inicio.enviando : t.inicio.accion }}
             </button>
           }
+          @if (orden.estado === 'PROPUESTA' && puedeDescartar()) {
+            <app-descarte-propuesta
+              [orden]="orden"
+              [puedeConsultar]="puedeConsultar()"
+              [puedeDescartar]="puedeDescartar()"
+              [bloqueada]="otraOperacionPendiente()"
+              (descartada)="descarteConfirmado($event)"
+              (actualizacionRequerida)="falloDescarte($event)"
+            />
+          }
           @if (puedeConsultarEvidencia()) {
             <app-evidencia-y-cierre
               [orden]="orden"
               [puedeConsultar]="puedeConsultarEvidencia()"
               [puedeSubir]="puedeSubirEvidencia()"
               [puedeCerrar]="puedeCerrar()"
-              [bloqueada]="iniciando()"
+              [bloqueada]="iniciando() || descartando()"
               (cerrada)="cierreConfirmado($event)"
               (accesoDenegado)="denegarEvidencia($event)"
               (actualizarOrden)="releerTrasEscritura($event)"

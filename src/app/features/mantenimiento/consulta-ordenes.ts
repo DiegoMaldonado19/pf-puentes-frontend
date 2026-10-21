@@ -17,6 +17,7 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { finalize } from 'rxjs';
 import { TEXTOS } from '../../shared/textos';
+import { DescartePropuesta } from './descarte-propuesta';
 import { EvidenciaYCierre } from './evidencia-y-cierre';
 import { MantenimientoService } from './mantenimiento.service';
 import { OrdenMantenimientoDTO, PaginaOrdenes } from './modelos';
@@ -32,7 +33,7 @@ interface EstadoConsulta<T> {
 /** Historial e inicio de ejecución; el host de P2 aporta permiso/sesión y P3 el puente seleccionado. */
 @Component({
   selector: 'app-consulta-ordenes',
-  imports: [DatePipe, EvidenciaYCierre],
+  imports: [DatePipe, EvidenciaYCierre, DescartePropuesta],
   providers: [{ provide: LOCALE_ID, useValue: 'es-GT' }],
   templateUrl: './consulta-ordenes.html',
   styleUrls: ['./bandeja-propuestas.css', './consulta-ordenes.css'],
@@ -47,10 +48,15 @@ export class ConsultaOrdenes {
   readonly puedeSubirEvidencia = input(false);
   readonly puedeCerrar = input(false);
   readonly cerrada = output<OrdenMantenimientoDTO>();
+  readonly puedeDescartar = input(false);
+  readonly descartada = output<OrdenMantenimientoDTO>();
+  private readonly descarte = viewChild(DescartePropuesta);
+  protected readonly descartando = computed(() => this.descarte()?.envioPendiente() ?? false);
   private readonly evidencia = viewChild(EvidenciaYCierre);
-  readonly operacionPendiente = computed(
+  protected readonly otraOperacionPendiente = computed(
     () => this.iniciando() || (this.evidencia()?.envioPendiente() ?? false),
   );
+  readonly operacionPendiente = computed(() => this.otraOperacionPendiente() || this.descartando());
   protected readonly iniciando = signal(false);
   /** El host puede bloquear también la selección externa del puente durante el envío. */
   readonly inicioPendiente = this.iniciando.asReadonly();
@@ -298,6 +304,54 @@ export class ConsultaOrdenes {
     }));
     this.avisoInicio.set({ mensaje: this.t.evidencia.confirmada, error: false });
     this.cerrada.emit(resultado);
+  }
+
+  protected descarteConfirmado(resultado: OrdenMantenimientoDTO) {
+    const actual = this.detalle().datos;
+    if (
+      !this.puedeConsultar() ||
+      !this.puedeDescartar() ||
+      this.accesoDenegado() !== null ||
+      !actual ||
+      actual.estado !== 'PROPUESTA' ||
+      resultado.id !== actual.id ||
+      resultado.puente_id !== this.puenteId() ||
+      resultado.estado !== 'DESCARTADA' ||
+      !resultado.motivo?.trim()
+    )
+      return;
+    this.detalle.set({ datos: resultado, cargando: false, error: null });
+    this.lista.update((lista) => ({
+      ...lista,
+      datos: lista.datos
+        ? {
+            ...lista.datos,
+            content: lista.datos.content.map((fila) =>
+              fila.id === resultado.id ? resultado : fila,
+            ),
+          }
+        : null,
+    }));
+    this.avisoInicio.set({ mensaje: this.t.descarte.confirmada, error: false });
+    this.descartada.emit(resultado);
+  }
+
+  protected falloDescarte(status: number) {
+    if (status === 401 || status === 403) {
+      this.accesoDenegado.set(status);
+      this.avisoInicio.set(null);
+      return;
+    }
+    this.avisoInicio.set({
+      mensaje:
+        status === 409
+          ? this.t.descarte.conflicto
+          : status === 404
+            ? this.t.descarte.noEncontrada
+            : this.t.descarte.resultadoDesconocido,
+      error: true,
+    });
+    this.solicitud.update((actual) => ({ ...actual, intento: actual.intento + 1 }));
   }
 
   protected denegarEvidencia(status: number) {

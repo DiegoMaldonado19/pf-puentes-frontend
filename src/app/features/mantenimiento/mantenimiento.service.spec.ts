@@ -169,4 +169,15 @@ describe('MantenimientoService', () => {
     req.flush({ ...aceptada, estado: 'EJECUTADA', ...datos });
     expect((await respuesta).estado).toBe('EJECUTADA');
   });
+  it('envía descarte con motivo al endpoint real escapando los identificadores', async () => {
+    const datos = { motivo: 'Intervención duplicada' };
+    const respuesta = firstValueFrom(servicio.descartar('puente/otro', 'orden?otra', datos));
+    const req = http.expectOne(
+      '/api/v1/puentes/puente%2Fotro/ordenes-mantenimiento/orden%3Fotra/descarte',
+    );
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual(datos);
+    req.flush({ ...aceptada, estado: 'DESCARTADA', motivo: datos.motivo });
+    expect((await respuesta).estado).toBe('DESCARTADA');
+  });
 });

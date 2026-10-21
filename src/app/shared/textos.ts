@@ -1,6 +1,25 @@
 // DT-FE-12: los textos de la interfaz viven aquí para poder traducirla sin tocar las plantillas
 export const TEXTOS = {
   mantenimiento: {
+    descarte: {
+      titulo: 'Descartar propuesta',
+      explicacion:
+        'Registra por qué no se realizará esta intervención. La orden y su motivo se conservarán en el historial.',
+      motivo: 'Motivo del descarte',
+      motivoRequerido: 'Escribe un motivo para descartar la propuesta.',
+      accion: 'Confirmar descarte',
+      enviando: 'Descartando propuesta…',
+      confirmada: 'La propuesta quedó Descartada. Su motivo se conserva en el historial.',
+      datosInvalidos:
+        'No se pudo descartar con los datos actuales. Revisa el motivo y actualiza el detalle de la orden.',
+      conflicto: 'La propuesta cambió de estado. Revisa el listado actualizado antes de decidir.',
+      noEncontrada:
+        'La propuesta no está disponible en este puente. Revisa el listado actualizado.',
+      sinSesion: 'Tu sesión no está disponible. Inicia sesión y vuelve a consultar la orden.',
+      sinPermiso: 'No tienes permiso para descartar esta propuesta.',
+      resultadoDesconocido:
+        'No se pudo confirmar el descarte. Revisa el estado actualizado antes de intentar otra vez.',
+    },
     evidencia: {
       titulo: 'Fotografías de evidencia',
       descripcion:

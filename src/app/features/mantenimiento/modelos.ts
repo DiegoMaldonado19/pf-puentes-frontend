@@ -74,3 +74,8 @@ export interface CierreOrden {
   readonly fecha_ejecucion: string;
   readonly responsable: string;
 }
+
+/** RN-MTO-09: motivo escrito, sin cambiar un estado arbitrario desde el cliente. */
+export interface DescartarOrden {
+  readonly motivo: string;
+}

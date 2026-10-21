@@ -3,6 +3,7 @@ import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import {
   CierreOrden,
+  DescartarOrden,
   EvidenciaDTO,
   PaginaEvidencias,
   OrdenMantenimientoDTO,
@@ -61,6 +62,17 @@ export class MantenimientoService {
   cerrar(puenteId: string, ordenId: string, datos: CierreOrden): Observable<OrdenMantenimientoDTO> {
     return this.http.post<OrdenMantenimientoDTO>(
       `${this.rutaOrden(puenteId, ordenId)}/cierre`,
+      datos,
+    );
+  }
+
+  descartar(
+    puenteId: string,
+    ordenId: string,
+    datos: DescartarOrden,
+  ): Observable<OrdenMantenimientoDTO> {
+    return this.http.post<OrdenMantenimientoDTO>(
+      `${this.rutaOrden(puenteId, ordenId)}/descarte`,
       datos,
     );
   }

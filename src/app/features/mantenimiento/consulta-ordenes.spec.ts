@@ -2,6 +2,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { By } from '@angular/platform-browser';
 import { CapturaFoto } from '../../shared/captura-foto/captura-foto';
+import { DescartePropuesta } from './descarte-propuesta';
 import { EvidenciaYCierre } from './evidencia-y-cierre';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TEXTOS } from '../../shared/textos';
@@ -622,4 +623,73 @@ describe('ConsultaOrdenes', () => {
     expect(fixture.debugElement.query(By.directive(EvidenciaYCierre))).toBeNull();
     http.expectNone((req) => req.method !== 'GET');
   });
+  function abrirParaDescarte(habilitado = true, estado: EstadoOrden = 'PROPUESTA') {
+    fixture.componentRef.setInput('puedeDescartar', habilitado);
+    const actual = { ...orden, estado, motivo: null };
+    cargar([actual, segunda]);
+    abrir();
+    http.expectOne(rutaDetalle()).flush(actual);
+    fixture.detectChanges();
+    return actual;
+  }
+  function enviarDescarte(motivo = 'Intervención duplicada') {
+    const campo = (fixture.nativeElement as HTMLElement).querySelector(
+      'app-descarte-propuesta textarea',
+    ) as HTMLTextAreaElement;
+    campo.value = motivo;
+    campo.dispatchEvent(new Event('input'));
+    (fixture.nativeElement as HTMLElement)
+      .querySelector('app-descarte-propuesta form')!
+      .dispatchEvent(new Event('submit', { cancelable: true }));
+    fixture.detectChanges();
+  }
+
+  it('no habilita descarte con el permiso de lectura por sí solo', () => {
+    abrirParaDescarte(false);
+    expect(fixture.debugElement.query(By.directive(DescartePropuesta))).toBeNull();
+    http.expectNone((req) => req.method !== 'GET');
+  });
+
+  it('descarte confirmado actualiza historial y detalle conservando el motivo y emite al host', () => {
+    const actual = abrirParaDescarte();
+    const motivo = 'Intervención duplicada';
+    const descartada = vi.fn();
+    fixture.componentInstance.descartada.subscribe(descartada);
+    enviarDescarte(motivo);
+    expect(fixture.componentInstance.operacionPendiente()).toBe(true);
+    expect(boton(h.ver).disabled).toBe(true);
+    expect(boton(h.actualizar).disabled).toBe(true);
+    const resultado = { ...actual, estado: 'DESCARTADA', motivo };
+    http.expectOne(`${rutaDetalle()}/descarte`).flush(resultado);
+    fixture.detectChanges();
+    expect(descartada).toHaveBeenCalledExactlyOnceWith(resultado);
+    expect(texto()).toContain(TEXTOS.mantenimiento.descarte.confirmada);
+    expect(texto()).toContain(motivo);
+    expect(fixture.debugElement.query(By.directive(DescartePropuesta))).toBeNull();
+    expect(fixture.componentInstance.operacionPendiente()).toBe(false);
+    http.expectNone((req) => req.method !== 'GET');
+  });
+
+  it.each([401, 403])('descarte rechazado por acceso %s retira historial y detalle', (status) => {
+    abrirParaDescarte();
+    enviarDescarte();
+    http.expectOne(`${rutaDetalle()}/descarte`).flush({}, { status, statusText: 'Denied' });
+    fixture.detectChanges();
+    expect((fixture.nativeElement as HTMLElement).querySelector('table')).toBeNull();
+    expect(fixture.debugElement.query(By.directive(DescartePropuesta))).toBeNull();
+  });
+
+  it.each([404, 409, 500])(
+    'fallo de descarte %s fuerza relectura sin repetir el POST',
+    (status) => {
+      abrirParaDescarte();
+      enviarDescarte();
+      http.expectOne(`${rutaDetalle()}/descarte`).flush({}, { status, statusText: 'Error' });
+      fixture.detectChanges();
+      http.expectOne(ruta()).flush(pagina([{ ...orden, estado: 'PROGRAMADA' }]));
+      fixture.detectChanges();
+      expect(fixture.debugElement.query(By.directive(DescartePropuesta))).toBeNull();
+      http.expectNone((req) => req.method === 'POST');
+    },
+  );
 });
