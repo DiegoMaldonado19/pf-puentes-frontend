@@ -65,7 +65,8 @@ describe('FormularioPuente', () => {
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
-        provideRouter([]),
+        // Al guardar, el formulario navega a la ficha: sin esta ruta la navegación queda rechazada
+        provideRouter([{ path: 'puentes/:id', children: [] }]),
         { provide: CARGADOR_MAPLIBRE, useValue: () => Promise.resolve(mapa.modulo()) },
       ],
     });
