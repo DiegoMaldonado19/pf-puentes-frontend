@@ -2,18 +2,18 @@
 
 SPA en Angular del Sistema de Gestión de Puentes (SGP). No usa SSR: en dev, stage y prod la sirve nginx ([ADR 0001](docs/adr/0001-spa-sin-ssr-servida-por-nginx.md)).
 
-## Estado (19/10/2026)
+## Estado (20/10/2026)
 
-| Parte                     | Qué hay                                                                                                                                                                                                                                                                                              | Responsable      |
-| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------- |
-| `shared/captura-foto/`    | `<app-captura-foto>`: comprime la foto, genera la miniatura y registra ubicación y hora (contrato 9)                                                                                                                                                                                                 | P1               |
-| `shared/estado-puente/`   | `<app-estado-puente>`: Bueno/Regular/Malo/Sin evaluar con texto y color; integración con P3 pendiente ([ADR 0011](docs/adr/0011-componente-compartido-de-estado-del-puente.md))                                                                                                                      | P8               |
-| PWA                       | Manifiesto, íconos de Angular y service worker; la lógica offline es de `offline/`                                                                                                                                                                                                                   | P1 (base) y P6   |
-| Infraestructura           | nginx con TLS en los tres entornos, encabezados de seguridad y URL firmadas en `/archivos/`                                                                                                                                                                                                          | P1               |
-| `offline/`                | Base de persistencia y cola con harness de prueba ([documentación](docs/base-offline.md))                                                                                                                                                                                                            | P6               |
-| `features/admin/pesos/`   | Cliente HTTP y vista de consulta de juegos/pesos, con paginación; ruta y sesión P2 pendientes ([ADR 0012](docs/adr/0012-cliente-http-de-consulta-de-pesos.md), [ADR 0013](docs/adr/0013-vista-de-consulta-de-pesos.md))                                                                              | P8               |
-| `features/mantenimiento/` | Cliente HTTP, componente de revisión/aceptación contra el POST real y bandeja controlada por página/selección; selección, sesión y ruta protegida pendientes ([ADR 0014](docs/adr/0014-aceptacion-de-propuestas-de-mantenimiento.md), [ADR 0015](docs/adr/0015-bandeja-controlada-de-propuestas.md)) | P8               |
-| `core/`, rutas            | `core/` aún no existe; rutas vacías y `app.html` sigue siendo el de Angular                                                                                                                                                                                                                          | Cada responsable |
+| Parte                     | Qué hay                                                                                                                                                                                                                                                                                                                                                                         | Responsable      |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------- |
+| `shared/captura-foto/`    | `<app-captura-foto>`: comprime la foto, genera la miniatura y registra ubicación y hora (contrato 9)                                                                                                                                                                                                                                                                            | P1               |
+| `shared/estado-puente/`   | `<app-estado-puente>`: Bueno/Regular/Malo/Sin evaluar con texto y color; integración con P3 pendiente ([ADR 0011](docs/adr/0011-componente-compartido-de-estado-del-puente.md))                                                                                                                                                                                                 | P8               |
+| PWA                       | Manifiesto, íconos de Angular y service worker; la lógica offline es de `offline/`                                                                                                                                                                                                                                                                                              | P1 (base) y P6   |
+| Infraestructura           | nginx con TLS en los tres entornos, encabezados de seguridad y URL firmadas en `/archivos/`                                                                                                                                                                                                                                                                                     | P1               |
+| `offline/`                | Base de persistencia y cola con harness de prueba ([documentación](docs/base-offline.md))                                                                                                                                                                                                                                                                                       | P6               |
+| `features/admin/pesos/`   | Cliente HTTP y vista de consulta de juegos/pesos, con paginación; ruta y sesión P2 pendientes ([ADR 0012](docs/adr/0012-cliente-http-de-consulta-de-pesos.md), [ADR 0013](docs/adr/0013-vista-de-consulta-de-pesos.md))                                                                                                                                                         | P8               |
+| `features/mantenimiento/` | Cliente HTTP, componente de revisión/aceptación contra el POST real y bandeja controlada por página/selección; contenedores HTTP de propuestas e historial/detalle con inicio de ejecución opcional; sesión y ruta protegida pendientes ([ADR 0014](docs/adr/0014-aceptacion-de-propuestas-de-mantenimiento.md), [ADR 0015](docs/adr/0015-bandeja-controlada-de-propuestas.md)) | P8               |
+| `core/`, rutas            | `core/` aún no existe; rutas vacías y `app.html` sigue siendo el de Angular                                                                                                                                                                                                                                                                                                     | Cada responsable |
 
 ### Integración de la aceptación de propuestas (P8)
 
@@ -24,11 +24,11 @@ SPA en Angular del Sistema de Gestión de Puentes (SGP). No usa SSR: en dev, sta
 
 La acción usa `MantenimientoService` y el POST real de aceptación, sin cuerpo. Presenta el resumen y conserva fecha/prioridades; no calcula IC, sugiere prioridades ni repite escrituras automáticamente. Cada recarga debe entregar un DTO nuevo; cancelar una petición al salir no revierte una aceptación ya confirmada en servidor.
 
-Aún no aparece en `localhost:4200`: falta el contenedor/bandeja y su ruta diferida con sesión, interceptores y guardias de P2. No se añade un acceso público ni datos de demostración a la aplicación. Las pruebas DOM/HTTP permiten verificar la pieza; el recorrido autenticado queda pendiente. Ver [ADR 0014](docs/adr/0014-aceptacion-de-propuestas-de-mantenimiento.md).
+Aún no aparece en `localhost:4200`: falta su ruta diferida con selección real de puente, sesión, interceptores y guardias de P2. No se añade un acceso público ni datos de demostración a la aplicación. Las pruebas DOM/HTTP permiten verificar la pieza; el recorrido autenticado queda pendiente. Ver [ADR 0014](docs/adr/0014-aceptacion-de-propuestas-de-mantenimiento.md).
 
 ### Bandeja de propuestas preparada para integrar (P8)
 
-`<app-bandeja-propuestas>` recibe `puenteId`, `pagina: PaginaPropuestas | null`, `puedeAceptar` y, opcionalmente, `cargando`/`codigoError`. La página es estado de vista con `puente_id` de origen y los campos paginados; no corresponde todavía a un GET habilitado. El contenedor debe conservar ese puente incluso si la respuesta está vacía y entregar una nueva referencia por respuesta.
+`<app-bandeja-propuestas>` recibe `puenteId`, `pagina: PaginaPropuestas | null`, `puedeAceptar` y, opcionalmente, `cargando`/`codigoError`. La página corresponde al GET de propuestas habilitado y conserva `puente_id` de origen junto con los campos paginados. El contenedor debe conservar ese puente incluso si la respuesta está vacía y entregar una nueva referencia por respuesta.
 
 `consultaSolicitada` indica qué puente/página/tamaño consultar; `aceptada` devuelve el DTO confirmado. La bandeja reutiliza la aceptación y pide recarga tras éxito/conflicto, vuelve a la página anterior si acepta la última fila y oculta datos obsoletos mientras espera. Bloquea navegación durante una aceptación. Ver [ADR 0015](docs/adr/0015-bandeja-controlada-de-propuestas.md).
 
@@ -182,3 +182,37 @@ Para `ng add`, cambia el último comando por `npx ng add <paquete> --skip-confir
 | `docker/login-action`        | v4.6.0  |
 | `docker/setup-buildx-action` | v4.4.1  |
 | `docker/build-push-action`   | v7.4.0  |
+
+### Contenedor conectado a la API (P8)
+
+`<app-consulta-propuestas [puenteId]="idReal" [puedeConsultar]="permisoLectura" [puedeAceptar]="permisoAceptacion" (aceptada)="actualizarResumen($event)" />` carga la bandeja mediante el GET real, pagina y recarga tras aceptar. El host de P2 debe proporcionar los permisos de la sesión (lectura y aceptación: Catedrático/Admin), el ID real seleccionado y los interceptores globales. Backend verifica los roles; estos inputs no conceden acceso por sí solos. Cambiar de puente o perder permiso cancela la lectura y retira datos. No hay ruta pública, sesión paralela ni datos ficticios en producción. Ver [ADR 0016](docs/adr/0016-conexion-http-de-la-bandeja-de-propuestas.md).
+
+### Historial y detalle de órdenes (P8)
+
+`<app-consulta-ordenes [puenteId]="idReal" [puedeConsultar]="permisoLectura" />` carga el historial paginado desde la API y consulta el detalle real al seleccionar una orden. Conserva todos los estados, prioridades, origen, fechas y motivos. Por defecto funciona en modo consulta. Puede habilitar inicio de ejecución mediante el permiso explícito descrito debajo. El permiso debe proceder de P2 (lectores confirmados: Catedrático/Admin); el servidor lo comprueba.
+
+Cancela lecturas al cambiar de contexto y retira listado/detalle ante errores de acceso. Sigue pendiente abrirla mediante sesión/interceptores/guardias, ruta diferida y selección real del puente. No aparece todavía desde la página inicial ni agrega datos ficticios en producción. Ver [ADR 0017](docs/adr/0017-consulta-http-del-historial-de-ordenes.md).
+
+### Iniciar ejecución desde el detalle (P8)
+
+`<app-consulta-ordenes [puenteId]="idReal" [puedeConsultar]="permisoLectura" [puedeIniciar]="permisoInicio" (iniciada)="actualizarResumen($event)" />` ofrece iniciar solo en PROGRAMADA. `permisoInicio` debe derivarse de la sesión de P2 (Catedrático/Admin confirmado); por defecto es false. Backend valida autorización y estado en cada POST. El host puede consultar `inicioPendiente()` para bloquear también su selector externo de puente.
+
+La respuesta confirmada actualiza fila/detalle. Durante el envío se bloquean acciones locales/doble clic; conflictos o resultados inciertos fuerzan relectura, sin repetir escrituras automáticamente. El componente conserva textos en español y controles accesibles. Siguen pendientes sesión/interceptores/guardias y ruta/selección de puente reales; no aparece aún desde la página inicial. Ver [ADR 0018](docs/adr/0018-inicio-de-ejecucion-desde-el-detalle.md). Verificación: 158 unitarios y controles aprobados.
+
+### Evidencia y cierre desde el detalle (P8)
+
+`ConsultaOrdenes` integra captura P1, carga multipart real, galería paginada y formulario de fecha/responsable para cerrar EN_EJECUCION. El host habilita `[puedeConsultarEvidencia]`, `[puedeSubirEvidencia]` y `[puedeCerrar]` desde la sesión (Catedrático/Admin confirmados); por defecto son false. La carga admite PROGRAMADA/EN_EJECUCION; después del cierre se conserva consulta. Elegir una foto no basta: debe guardarse y el servidor cuenta las fotos de esa orden.
+
+`(cerrada)` entrega el DTO confirmado, que también actualiza fila/detalle. `operacionPendiente()` incluye inicio/carga/cierre para bloquear el selector externo de puente. Errores de acceso retiran también historial/detalle; resultados inciertos se reconcilian sin repetir POST automáticamente. Las URL firmadas se renuevan consultando las fotos. No se añaden sesión ni rutas públicas; sigue pendiente la integración protegida con P2 y el puente real de P3. [ADR 0019](docs/adr/0019-evidencia-y-cierre-desde-el-detalle.md). Verificación actual: 186 unitarios y controles aprobados.
+
+### Descartar propuestas desde el historial (P8)
+
+`ConsultaOrdenes` añade `[puedeDescartar]` (false por defecto) y `(descartada)`. Con permiso real Catedrático/Admin, una PROPUESTA ofrece formulario de motivo y confirmación; consume el POST `/descarte`. Solo el DTO confirmado actualiza fila y detalle; la orden permanece en el historial. El envío se incluye en `operacionPendiente()` para bloquear navegación local/otras operaciones. Los rechazos de acceso retiran datos y los resultados inciertos fuerzan relectura sin repetir POST. [ADR 0020](docs/adr/0020-descarte-de-propuestas-desde-el-detalle.md).
+
+Tras el merge de P3 ya existen `/puentes`, mapa y ficha pública con el componente de estado de P8. Mantenimiento todavía requiere conectarse a ese inventario y a la sesión/interceptores/guardias P2; el puerto `ROL_PUENTES` vale null por defecto. Verificación actual: 280 unitarios y controles aprobados, incluidos los de P3 recibidos.
+
+### Ajustar prioridad desde el detalle (P8)
+
+`ConsultaOrdenes` añade `[puedeAjustarPrioridad]` (false por defecto) y `(prioridadAjustada)`. El host aporta el permiso real de sesión Catedrático/Admin. La acción se ofrece en PROPUESTA/PROGRAMADA/EN_EJECUCION según decisión del usuario; terminales conservan prioridad. El selector exige valor distinto y justificación, consume PATCH y actualiza fila/detalle solo desde el DTO confirmado. Se conserva sugerida y no se modifica el cálculo/pesos del IC.
+
+El envío se agrega a `operacionPendiente()` para bloquear selección y otras acciones. Acceso denegado retira datos; conflictos/resultados inciertos se reconcilian por GET, sin repetir escrituras. Siguen pendientes acceso P2 y conexión de P8 con el inventario real P3. [ADR 0021](docs/adr/0021-ajuste-manual-de-prioridad-en-el-detalle.md). Verificación actual: 325 unitarios y controles aprobados.

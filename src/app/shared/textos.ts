@@ -1,6 +1,138 @@
 // DT-FE-12: los textos de la interfaz viven aquí para poder traducirla sin tocar las plantillas
 export const TEXTOS = {
   mantenimiento: {
+    ajustePrioridad: {
+      titulo: 'Ajustar prioridad',
+      explicacion:
+        'Selecciona la nueva urgencia de atención y justifica el cambio. La prioridad sugerida y los pesos del índice de condición se conservan.',
+      prioridad: 'Nueva prioridad',
+      justificacion: 'Justificación del cambio',
+      justificacionRequerida: 'Escribe por qué debe cambiar la prioridad.',
+      sinCambio: 'Selecciona una prioridad distinta de la vigente para registrar un cambio.',
+      accion: 'Guardar prioridad',
+      enviando: 'Guardando prioridad…',
+      confirmada: 'La prioridad y su justificación quedaron guardadas.',
+      sinSesion: 'Tu sesión no está disponible. Inicia sesión y vuelve a consultar la orden.',
+      sinPermiso: 'No tienes permiso para ajustar la prioridad de esta orden.',
+      noEncontrada: 'La orden no está disponible en este puente. Revisa el listado actualizado.',
+      conflicto:
+        'La orden ya está terminada. Revisa el estado actualizado; su prioridad se conserva en el historial.',
+      datosInvalidos:
+        'No se pudo ajustar con los datos actuales. Revisa la prioridad y la justificación, o actualiza el detalle.',
+      resultadoDesconocido:
+        'No se pudo confirmar el ajuste. Revisa la prioridad actualizada antes de intentar otra vez.',
+    },
+    descarte: {
+      titulo: 'Descartar propuesta',
+      explicacion:
+        'Registra por qué no se realizará esta intervención. La orden y su motivo se conservarán en el historial.',
+      motivo: 'Motivo del descarte',
+      motivoRequerido: 'Escribe un motivo para descartar la propuesta.',
+      accion: 'Confirmar descarte',
+      enviando: 'Descartando propuesta…',
+      confirmada: 'La propuesta quedó Descartada. Su motivo se conserva en el historial.',
+      datosInvalidos:
+        'No se pudo descartar con los datos actuales. Revisa el motivo y actualiza el detalle de la orden.',
+      conflicto: 'La propuesta cambió de estado. Revisa el listado actualizado antes de decidir.',
+      noEncontrada:
+        'La propuesta no está disponible en este puente. Revisa el listado actualizado.',
+      sinSesion: 'Tu sesión no está disponible. Inicia sesión y vuelve a consultar la orden.',
+      sinPermiso: 'No tienes permiso para descartar esta propuesta.',
+      resultadoDesconocido:
+        'No se pudo confirmar el descarte. Revisa el estado actualizado antes de intentar otra vez.',
+    },
+    evidencia: {
+      titulo: 'Fotografías de evidencia',
+      descripcion:
+        'Guarda las fotos de esta orden antes de cerrarla. Elegir una foto todavía no la guarda.',
+      cargando: 'Cargando evidencia…',
+      vacia: 'No hay fotografías guardadas de esta orden.',
+      guardadas: 'Fotografías guardadas:',
+      actualizar: 'Actualizar fotografías',
+      anterior: 'Fotos anteriores',
+      siguiente: 'Fotos siguientes',
+      paginacion: 'Páginas de fotografías de evidencia',
+      foto: 'Abrir fotografía de evidencia',
+      miniatura: 'Miniatura de la evidencia',
+      elegida: 'Fotografía preparada. Pulsa Guardar fotografía para subirla.',
+      guardar: 'Guardar fotografía',
+      guardando: 'Guardando fotografía…',
+      guardada: 'Fotografía guardada en esta orden.',
+      cerrar: 'Cerrar como ejecutada',
+      cerrando: 'Registrando ejecución…',
+      cierre: 'Registrar ejecución',
+      fecha: 'Fecha de ejecución',
+      responsable: 'Responsable de ejecución',
+      requisitos:
+        'Registra fecha, responsable (hasta 150 caracteres) y al menos una fotografía guardada.',
+      camposInvalidos:
+        'Revisa la fecha y el responsable: son obligatorios; el responsable admite hasta 150 caracteres.',
+      faltaFoto: 'Guarda al menos una fotografía de esta orden antes de cerrarla.',
+      confirmada: 'La orden quedó Ejecutada. Su evidencia sigue disponible para consulta.',
+      errorConsulta: 'No se pudo consultar la evidencia. Actualiza las fotografías.',
+      errorSubida:
+        'No se pudo confirmar la carga. Actualiza las fotografías o vuelve a guardar la misma foto para comprobarla sin duplicarla.',
+      errorCierre:
+        'No se pudo confirmar el cierre. Revisa el estado actualizado antes de intentar otra vez.',
+      conflicto:
+        'La orden cambió o el identificador de la foto ya está en uso. Revisa el estado actualizado.',
+      datosInvalidos:
+        'El servidor rechazó los datos. Revisa fecha, responsable y fotografías guardadas.',
+      archivoInvalido: 'La foto y su miniatura deben ser WebP o JPEG y cumplir el tamaño admitido.',
+      sinAcceso: 'La sesión o el permiso ya no permiten consultar la evidencia.',
+      incompatible: 'La evidencia recibida no corresponde a esta orden. Actualiza las fotografías.',
+    },
+    inicio: {
+      accion: 'Iniciar ejecución',
+      enviando: 'Iniciando ejecución…',
+      explicacion: 'Registra que la intervención programada comenzó.',
+      confirmada: 'La orden está En ejecución.',
+      conflicto: 'La orden cambió de estado. Revisa el listado actualizado antes de continuar.',
+      noEncontrada: 'La orden no está disponible en este puente. Revisa el listado actualizado.',
+      datosInvalidos:
+        'No se pudo iniciar la ejecución con los datos actuales. Revisa el origen de la orden.',
+      resultadoDesconocido:
+        'No se pudo confirmar el inicio. Revisa el estado actualizado antes de volver a intentar.',
+    },
+    historial: {
+      titulo: 'Historial de órdenes de mantenimiento',
+      descripcion:
+        'Consulta las intervenciones del puente seleccionado, incluidas las finalizadas.',
+      tabla: 'Órdenes del puente',
+      detalle: 'Detalle de la orden',
+      ver: 'Ver detalle',
+      vacia: 'Este puente no tiene órdenes de mantenimiento registradas.',
+      paginaVacia: 'No hay órdenes en esta página. Actualiza el listado.',
+      cargando: 'Cargando órdenes…',
+      cargandoDetalle: 'Cargando detalle de la orden…',
+      actualizar: 'Actualizar listado',
+      actualizarDetalle: 'Actualizar detalle',
+      anterior: 'Anterior',
+      siguiente: 'Siguiente',
+      pagina: 'Página',
+      de: 'de',
+      paginacion: 'Páginas del historial de órdenes',
+      intervencion: 'Intervención',
+      consulta: 'Consulta',
+      origen: 'Inspección de origen',
+      sinInspeccion: 'Sin inspección de origen',
+      elemento: 'Referencia del elemento',
+      ejecucion: 'Fecha de ejecución',
+      responsable: 'Responsable de ejecución',
+      motivo: 'Motivo de descarte o cancelación',
+      creada: 'Registrada el',
+      actualizada: 'Actualizada el',
+      sinDato: 'Sin registrar',
+      sinSesion: 'Tu sesión no está disponible. Inicia sesión para consultar las órdenes.',
+      sinPermiso: 'No tienes permiso para consultar el historial de órdenes.',
+      noPuente: 'No se encontró el puente solicitado.',
+      noOrden: 'La orden ya no está disponible en este puente. Actualiza el listado.',
+      sinConexion: 'No se pudo conectar con el servidor. Comprueba tu conexión e intenta de nuevo.',
+      error: 'No se pudo consultar el historial. Intenta de nuevo.',
+      errorDetalle: 'No se pudo consultar el detalle de la orden. Intenta de nuevo.',
+      incompatibles:
+        'La respuesta no corresponde al puente o a la orden solicitados. Actualiza el listado.',
+    },
     bandeja: {
       titulo: 'Propuestas pendientes de mantenimiento',
       descripcion: 'Revisa las intervenciones propuestas para el puente seleccionado.',

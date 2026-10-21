@@ -1,0 +1,30 @@
+.detalle {
+  border: 1px solid #6b7280;
+  border-radius: 0.5rem;
+  padding: 1rem;
+}
+h2 {
+  font-size: 1.375rem;
+  font-weight: 700;
+}
+dl {
+  display: grid;
+  grid-template-columns: minmax(8rem, 1fr) minmax(0, 2fr);
+  gap: 0.5rem 1rem;
+  margin-block: 1rem;
+}
+dt {
+  font-weight: 600;
+}
+dd,
+.detalle p {
+  overflow-wrap: anywhere;
+}
+@media (max-width: 40rem) {
+  dl {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  dd {
+    margin-bottom: 0.5rem;
+  }
+}
