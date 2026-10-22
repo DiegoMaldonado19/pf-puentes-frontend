@@ -3,12 +3,15 @@ import { inject, Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
 import {
   AceptarInvitacionDTO,
+  CambiarContrasenaDTO,
   CuentaRegistradaDTO,
   InvitacionPublicaDTO,
+  PerfilDTO,
   RegistroDTO,
 } from '../../core/auth/modelos';
 
 const API_AUTH = '/api/v1/auth';
+const API_USUARIOS = '/api/v1/usuarios';
 
 @Injectable({ providedIn: 'root' })
 export class CuentaService {
@@ -49,6 +52,20 @@ export class CuentaService {
 
   restablecerContrasena(token: string, contrasena: string): Observable<void> {
     return this.vacio(`${API_AUTH}/restablecer-contrasena`, { token, contrasena });
+  }
+
+  perfil(): Observable<PerfilDTO> {
+    return this.http.get<PerfilDTO>(`${API_USUARIOS}/me`);
+  }
+
+  cambiarContrasena(actual: string, nueva: string): Observable<void> {
+    const cuerpo: CambiarContrasenaDTO = {
+      contrasena_actual: actual,
+      contrasena_nueva: nueva,
+    };
+    return this.http
+      .put(`${API_USUARIOS}/me/contrasena`, cuerpo, { observe: 'response' })
+      .pipe(map(() => undefined));
   }
 
   private vacio(url: string, cuerpo: object): Observable<void> {

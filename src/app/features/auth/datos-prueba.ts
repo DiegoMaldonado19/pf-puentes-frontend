@@ -6,10 +6,11 @@ import { of } from 'rxjs';
 import { authInterceptor } from '../../core/auth/auth.interceptor';
 import {
   CuentaRegistradaDTO,
+  EstadoUsuario,
   InvitacionPublicaDTO,
+  PerfilDTO,
   Rol,
   SesionDTO,
-  EstadoUsuario,
 } from '../../core/auth/modelos';
 import { erroresInterceptor } from '../../core/errores/errores.interceptor';
 
@@ -43,6 +44,16 @@ export function cuentaRegistrada(
   };
 }
 
+export function perfilDto(rol: Rol = 'ESTUDIANTE'): PerfilDTO {
+  return {
+    id: 'u1',
+    nombre: 'Ana Pérez',
+    correo: 'ana@correo.com',
+    rol,
+    estado: 'ACTIVO',
+  };
+}
+
 export function invitacionPublica(rol: Rol = 'CATEDRATICO'): InvitacionPublicaDTO {
   return {
     correo: 'invitada@correo.com',
@@ -70,6 +81,7 @@ export function proveedoresAuth(ruta?: ActivatedRoute) {
       { path: 'admin/usuarios', children: [] },
       { path: 'recuperar-contrasena', children: [] },
       { path: 'verificar-correo', children: [] },
+      { path: 'perfil', children: [] },
     ]),
     ...(ruta ? [{ provide: ActivatedRoute, useValue: ruta }] : []),
   ];

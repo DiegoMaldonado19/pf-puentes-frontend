@@ -53,10 +53,16 @@ export function validadorPoliticaContrasena(control: AbstractControl): Validatio
 }
 
 export function coincidenContrasenas(grupo: AbstractControl): ValidationErrors | null {
-  const contrasena = grupo.get('contrasena')?.value;
-  const confirmar = grupo.get('confirmar')?.value;
-  if (!contrasena || !confirmar) return null;
-  return contrasena === confirmar ? null : { confirmarDistinta: true };
+  return coincidenCon('contrasena')(grupo);
+}
+
+export function coincidenCon(campo: string) {
+  return (grupo: AbstractControl): ValidationErrors | null => {
+    const contrasena = grupo.get(campo)?.value;
+    const confirmar = grupo.get('confirmar')?.value;
+    if (!contrasena || !confirmar) return null;
+    return contrasena === confirmar ? null : { confirmarDistinta: true };
+  };
 }
 
 export function mensajeHttp(error: unknown): string {

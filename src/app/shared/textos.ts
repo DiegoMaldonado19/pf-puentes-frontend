@@ -531,6 +531,7 @@ export const TEXTOS = {
       confirmar: 'Confirmar contraseña',
       nombre: 'Nombre',
       rol: 'Rol',
+      estado: 'Estado',
       colegiado: 'Número de colegiado',
       contrasenaActual: 'Contraseña actual',
       contrasenaNueva: 'Contraseña nueva',
@@ -585,6 +586,7 @@ export const TEXTOS = {
     perfil: {
       titulo: 'Mi perfil',
       identificador: 'Identificador',
+      cargando: 'Cargando perfil…',
       cambiarContrasena: 'Cambiar contraseña',
       accion: 'Actualizar contraseña',
       enviando: 'Actualizando…',
