@@ -836,6 +836,53 @@ describe('ConsultaOrdenes', () => {
     fixture.detectChanges();
     expect(boton(TEXTOS.mantenimiento.programacion.accion).disabled).toBe(false);
   });
+  it('conserva el historial sin cargar seguimiento anual si el host no lo solicita', () => {
+    cargar();
+    http.expectNone((req) => req.url.endsWith('/rutinario-anual'));
+  });
+
+  it('abre el detalle de la rutina seleccionada y refresca el seguimiento tras programarla', () => {
+    fixture.componentRef.setInput('mostrarSeguimientoRutinario', true);
+    fixture.componentRef.setInput('puedeProgramar', true);
+    const actual = {
+      ...orden,
+      tipo: 'RUTINARIO' as const,
+      estado: 'PROGRAMADA' as const,
+      motivo: null,
+    };
+    const anual = {
+      puente_id: puente,
+      fecha_evaluacion: '2026-10-21',
+      fecha_referencia: '2026-01-01',
+      origen_referencia: 'EJECUCION_RUTINARIA',
+      fecha_limite: '2027-01-01',
+      programadas_en_plazo: 0,
+      sin_fecha: 1,
+      fechas_pasadas: 0,
+      posteriores_al_limite: 0,
+      ordenes: pagina([actual]),
+    };
+    const rutaAnual = `/api/v1/puentes/${puente}/ordenes-mantenimiento/rutinario-anual?page=0&size=20`;
+    cargar([actual]);
+    http.expectOne(rutaAnual).flush(anual);
+    fixture.detectChanges();
+    boton(TEXTOS.mantenimiento.rutinarioAnual.ver).click();
+    fixture.detectChanges();
+    http.expectOne(rutaDetalle()).flush(actual);
+    fixture.detectChanges();
+    enviarProgramacion();
+    expect(boton(TEXTOS.mantenimiento.rutinarioAnual.actualizar).disabled).toBe(true);
+    const guardada = { ...actual, fecha_programada: '2026-11-02' };
+    http.expectOne(`${rutaDetalle()}/fecha-programada`).flush(guardada);
+    fixture.detectChanges();
+    http
+      .expectOne(rutaAnual)
+      .flush({ ...anual, programadas_en_plazo: 1, sin_fecha: 0, ordenes: pagina([guardada]) });
+    fixture.detectChanges();
+    expect(texto()).toContain('02/11/2026');
+    expect(boton(TEXTOS.mantenimiento.rutinarioAnual.actualizar).disabled).toBe(false);
+  });
+
   it.each([401, 403])('acceso rechazado %s al programar retira listado y detalle', (status) => {
     abrirParaProgramacion();
     enviarProgramacion();

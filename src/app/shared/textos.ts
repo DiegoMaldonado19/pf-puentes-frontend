@@ -1,6 +1,42 @@
 // DT-FE-12: los textos de la interfaz viven aquí para poder traducirla sin tocar las plantillas
 export const TEXTOS = {
   mantenimiento: {
+    rutinarioAnual: {
+      titulo: 'Seguimiento rutinario anual',
+      evaluacion: 'Fecha de evaluación',
+      referencia: 'Fecha de referencia',
+      limite: 'Fecha límite anual',
+      origenes: {
+        REGISTRO_PUENTE: 'Registro del puente',
+        EJECUCION_RUTINARIA: 'Última ejecución rutinaria',
+      },
+      enPlazo: 'Órdenes con fecha entre la evaluación y el límite',
+      sinFecha: 'Sin fecha programada',
+      pasadas: 'Órdenes con fecha programada pasada',
+      posteriores: 'Órdenes con fecha posterior al límite anual',
+      explicacion:
+        'Una programación no acredita ejecución. Una fecha pasada y una fecha posterior al límite son indicadores independientes: una misma orden puede aparecer en ambos conteos.',
+      sinProgramacion:
+        'No hay rutinas abiertas programadas entre la fecha de evaluación y el límite anual.',
+      tabla: 'Órdenes rutinarias abiertas',
+      intervencion: 'Intervención',
+      estado: 'Estado',
+      fecha: 'Fecha programada',
+      consulta: 'Detalle',
+      ver: 'Ver rutina',
+      cargando: 'Consultando seguimiento anual…',
+      actualizar: 'Actualizar seguimiento anual',
+      paginacion: 'Páginas de rutinarias abiertas',
+      anterior: 'Rutinas anteriores',
+      siguiente: 'Rutinas siguientes',
+      sinOrdenes: 'No hay órdenes rutinarias programadas o en ejecución.',
+      paginaVacia: 'Esta página ya no tiene órdenes; vuelve a la primera página.',
+      sinSesion: 'Inicia sesión para consultar el seguimiento anual.',
+      sinPermiso: 'No tienes permiso para consultar el seguimiento anual.',
+      noPuente: 'El puente solicitado no está disponible.',
+      incompatible: 'La respuesta no corresponde a las rutinarias de este puente.',
+      error: 'No se pudo consultar el seguimiento anual. Puedes volver a intentarlo.',
+    },
     programacion: {
       titulo: 'Programar fecha de intervención',
       explicacion:

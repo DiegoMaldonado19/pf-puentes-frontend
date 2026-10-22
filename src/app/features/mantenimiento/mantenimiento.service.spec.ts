@@ -202,4 +202,15 @@ describe('MantenimientoService', () => {
     req.flush({ ...aceptada, ...datos });
     expect((await respuesta).fecha_programada).toBe(datos.fecha_programada);
   });
+
+  it('consulta seguimiento anual por GET con IDs codificados y paginación real', async () => {
+    const respuesta = firstValueFrom(servicio.consultarRutinarioAnual('puente/otro', 1, 5));
+    const req = http.expectOne(
+      '/api/v1/puentes/puente%2Fotro/ordenes-mantenimiento/rutinario-anual?page=1&size=5',
+    );
+    expect(req.request.method).toBe('GET');
+    expect(req.request.body).toBeNull();
+    req.flush({ puente_id: 'puente/otro', programadas_en_plazo: 0 });
+    expect((await respuesta).puente_id).toBe('puente/otro');
+  });
 });

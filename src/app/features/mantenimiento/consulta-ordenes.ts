@@ -19,6 +19,7 @@ import { finalize } from 'rxjs';
 import { TEXTOS } from '../../shared/textos';
 import { AjustePrioridadOrden } from './ajuste-prioridad-orden';
 import { ProgramacionOrden } from './programacion-orden';
+import { SeguimientoRutinario } from './seguimiento-rutinario';
 import { DescartePropuesta } from './descarte-propuesta';
 import { EvidenciaYCierre } from './evidencia-y-cierre';
 import { MantenimientoService } from './mantenimiento.service';
@@ -35,7 +36,14 @@ interface EstadoConsulta<T> {
 /** Historial e inicio de ejecución; el host de P2 aporta permiso/sesión y P3 el puente seleccionado. */
 @Component({
   selector: 'app-consulta-ordenes',
-  imports: [DatePipe, EvidenciaYCierre, DescartePropuesta, AjustePrioridadOrden, ProgramacionOrden],
+  imports: [
+    DatePipe,
+    EvidenciaYCierre,
+    DescartePropuesta,
+    AjustePrioridadOrden,
+    ProgramacionOrden,
+    SeguimientoRutinario,
+  ],
   providers: [{ provide: LOCALE_ID, useValue: 'es-GT' }],
   templateUrl: './consulta-ordenes.html',
   styleUrls: ['./bandeja-propuestas.css', './consulta-ordenes.css'],
@@ -43,6 +51,9 @@ interface EstadoConsulta<T> {
 export class ConsultaOrdenes {
   readonly puenteId = input.required<string>();
   readonly puedeConsultar = input.required<boolean>();
+  /** Opción de presentación del host; conserva el permiso de lectura del historial. */
+  readonly mostrarSeguimientoRutinario = input(false);
+  protected readonly versionSeguimiento = signal(0);
   // Mantiene el modo de solo lectura si el host todavía no aporta este permiso de P2.
   readonly puedeIniciar = input(false);
   readonly iniciada = output<OrdenMantenimientoDTO>();
@@ -298,6 +309,7 @@ export class ConsultaOrdenes {
           }));
           this.avisoInicio.set({ mensaje: this.t.inicio.confirmada, error: false });
           this.iniciada.emit(resultado);
+          this.versionSeguimiento.update((v) => v + 1);
         },
         error: (error: unknown) => {
           if (this.contexto() !== contexto || !this.puedeConsultar()) return;
@@ -332,6 +344,7 @@ export class ConsultaOrdenes {
     }));
     this.avisoInicio.set({ mensaje: this.t.evidencia.confirmada, error: false });
     this.cerrada.emit(resultado);
+    this.versionSeguimiento.update((v) => v + 1);
   }
 
   protected descarteConfirmado(resultado: OrdenMantenimientoDTO) {
@@ -456,6 +469,21 @@ export class ConsultaOrdenes {
     }));
     this.avisoInicio.set({ mensaje: this.t.programacion.confirmada, error: false });
     this.fechaProgramada.emit(resultado);
+    this.versionSeguimiento.update((v) => v + 1);
+  }
+
+  protected seleccionarRutina(orden: OrdenMantenimientoDTO) {
+    if (
+      !this.puedeConsultar() ||
+      this.accesoDenegado() !== null ||
+      this.operacionPendiente() ||
+      !this.mostrarSeguimientoRutinario() ||
+      orden.puente_id !== this.puenteId() ||
+      orden.tipo !== 'RUTINARIO' ||
+      !['PROGRAMADA', 'EN_EJECUCION'].includes(orden.estado)
+    )
+      return;
+    this.seleccion.set({ id: orden.id, intento: 0 });
   }
 
   protected falloProgramacion(status: number) {
