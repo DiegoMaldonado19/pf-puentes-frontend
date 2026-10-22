@@ -1,7 +1,7 @@
 import { Routes } from '@angular/router';
 import { TEXTOS } from '../../shared/textos';
 
-/** Rutas de administración de P2. No incluye pesos (P8). Las guardias se agregan en la fase 1. */
+/** Rutas de administración de P2. No incluye pesos (P8). La guardia de rol está en el padre. */
 export const RUTAS_ADMIN: Routes = [
   {
     path: 'invitaciones',

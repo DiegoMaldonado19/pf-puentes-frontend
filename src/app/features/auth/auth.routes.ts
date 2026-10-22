@@ -1,16 +1,19 @@
 import { Routes } from '@angular/router';
+import { visitanteGuard } from '../../core/auth/visitante.guard';
 import { TEXTOS } from '../../shared/textos';
 
-/** Rutas exactas de los correos del backend. Las guardias se agregan en la fase 1. */
+/** Rutas exactas de los correos del backend. Verificar, restablecer y aceptar siguen públicas. */
 export const RUTAS_AUTH: Routes = [
   {
     path: 'login',
     title: TEXTOS.auth.login.titulo,
+    canActivate: [visitanteGuard],
     loadComponent: () => import('./login').then((m) => m.Login),
   },
   {
     path: 'registro',
     title: TEXTOS.auth.registro.titulo,
+    canActivate: [visitanteGuard],
     loadComponent: () => import('./registro').then((m) => m.Registro),
   },
   {
@@ -21,6 +24,7 @@ export const RUTAS_AUTH: Routes = [
   {
     path: 'recuperar-contrasena',
     title: TEXTOS.auth.recuperar.titulo,
+    canActivate: [visitanteGuard],
     loadComponent: () => import('./recuperar-contrasena').then((m) => m.RecuperarContrasena),
   },
   {

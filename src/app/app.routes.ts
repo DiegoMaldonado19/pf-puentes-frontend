@@ -1,4 +1,6 @@
 import { Routes } from '@angular/router';
+import { rolGuard } from './core/auth/rol.guard';
+import { sesionGuard } from './core/auth/sesion.guard';
 import { TEXTOS } from './shared/textos';
 
 export const routes: Routes = [
@@ -11,10 +13,12 @@ export const routes: Routes = [
   {
     path: 'perfil',
     title: TEXTOS.auth.perfil.titulo,
+    canActivate: [sesionGuard],
     loadComponent: () => import('./features/perfil/perfil').then((m) => m.Perfil),
   },
   {
     path: 'admin',
+    canActivate: [rolGuard('ADMINISTRADOR')],
     loadChildren: () => import('./features/admin/admin.routes').then((m) => m.RUTAS_ADMIN),
   },
   {
