@@ -83,4 +83,29 @@ describe('CuentaService', () => {
     cambio.flush(null, { status: 204, statusText: 'No Content' });
     await restablecer;
   });
+
+  it('consulta el perfil propio y cambia la contraseña en /me, no en /usuarios/{id}', async () => {
+    const ficha = firstValueFrom(cuenta.perfil());
+    const get = http.expectOne('/api/v1/usuarios/me');
+    expect(get.request.method).toBe('GET');
+    get.flush({
+      id: 'u1',
+      nombre: 'Ana Pérez',
+      correo: 'ana@correo.com',
+      rol: 'ESTUDIANTE',
+      estado: 'ACTIVO',
+    });
+    expect((await ficha).id).toBe('u1');
+
+    const cambio = firstValueFrom(cuenta.cambiarContrasena('Puentes2026ok', 'Puentes2027ok'));
+    const put = http.expectOne('/api/v1/usuarios/me/contrasena');
+    expect(put.request.method).toBe('PUT');
+    expect(put.request.body).toEqual({
+      contrasena_actual: 'Puentes2026ok',
+      contrasena_nueva: 'Puentes2027ok',
+    });
+    expect(put.request.url).not.toContain('/usuarios/u1/');
+    put.flush(null, { status: 204, statusText: 'No Content' });
+    await cambio;
+  });
 });
