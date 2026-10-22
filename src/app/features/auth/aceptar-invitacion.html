@@ -1,0 +1,107 @@
+<section class="mx-auto max-w-md p-4" aria-labelledby="titulo-invitacion">
+  <h1 id="titulo-invitacion" class="text-2xl font-bold">{{ t.titulo }}</h1>
+
+  @if (consultando()) {
+    <p role="status" class="mt-3">{{ t.enviando }}</p>
+  }
+
+  @if (error()) {
+    <p role="alert" [class]="claseAlerta">{{ error() }}</p>
+  }
+
+  @if (cuentaActiva()) {
+    <div role="status" [class]="claseHecho">
+      <p>{{ t.activa }}</p>
+      <a routerLink="/login" [class]="claseEnlace">{{ irALogin }}</a>
+    </div>
+  }
+
+  @if (cuentaPendiente()) {
+    <p role="status" [class]="claseHecho">{{ t.pendienteColegiado }}</p>
+  }
+
+  @if (invitacion(); as inv) {
+    @if (!cuentaActiva() && !cuentaPendiente()) {
+      <dl class="mt-3 grid grid-cols-[auto_1fr] gap-x-4 rounded bg-slate-100 p-3">
+        <dt class="font-medium">{{ campos.correo }}</dt>
+        <dd>{{ inv.correo }}</dd>
+        <dt class="font-medium">{{ campos.rol }}</dt>
+        <dd>{{ roles[inv.rol] }}</dd>
+        <dt class="font-medium">{{ t.expira }}</dt>
+        <dd>{{ inv.expira_en | date: 'dd/MM/yyyy' : '-0600' }}</dd>
+      </dl>
+
+      <form class="mt-4 grid gap-4" [formGroup]="form" (ngSubmit)="enviar()" novalidate>
+        <div class="flex flex-col">
+          <label for="nombre" class="font-medium">{{ campos.nombre }}</label>
+          <input
+            id="nombre"
+            type="text"
+            formControlName="nombre"
+            autocomplete="name"
+            maxlength="150"
+            [class]="claseCampo"
+            [attr.aria-invalid]="campoInvalido('nombre')"
+            [attr.aria-describedby]="campoInvalido('nombre') ? 'error-nombre' : null"
+          />
+          @if (campoInvalido('nombre')) {
+            <p id="error-nombre" class="text-sm text-red-800">{{ mensaje('nombre') }}</p>
+          }
+        </div>
+        <div class="flex flex-col">
+          <label for="contrasena" class="font-medium">{{ campos.contrasena }}</label>
+          <input
+            id="contrasena"
+            type="password"
+            formControlName="contrasena"
+            autocomplete="new-password"
+            [class]="claseCampo"
+            [attr.aria-invalid]="campoInvalido('contrasena')"
+            [attr.aria-describedby]="campoInvalido('contrasena') ? 'error-contrasena' : null"
+          />
+          @if (campoInvalido('contrasena')) {
+            <p id="error-contrasena" class="text-sm text-red-800">{{ mensaje('contrasena') }}</p>
+          }
+        </div>
+        <div class="flex flex-col">
+          <label for="confirmar" class="font-medium">{{ campos.confirmar }}</label>
+          <input
+            id="confirmar"
+            type="password"
+            formControlName="confirmar"
+            autocomplete="new-password"
+            [class]="claseCampo"
+            [attr.aria-invalid]="campoInvalido('confirmar')"
+            [attr.aria-describedby]="campoInvalido('confirmar') ? 'error-confirmar' : null"
+          />
+          @if (campoInvalido('confirmar')) {
+            <p id="error-confirmar" class="text-sm text-red-800">{{ mensaje('confirmar') }}</p>
+          }
+        </div>
+        @if (esProfesional()) {
+          <div class="flex flex-col">
+            <label for="numero_colegiado" class="font-medium">{{ campos.colegiado }}</label>
+            <input
+              id="numero_colegiado"
+              type="text"
+              formControlName="numero_colegiado"
+              maxlength="20"
+              autocomplete="off"
+              [class]="claseCampo"
+              [attr.aria-invalid]="campoInvalido('numero_colegiado')"
+              [attr.aria-describedby]="campoInvalido('numero_colegiado') ? 'error-colegiado' : null"
+            />
+            @if (campoInvalido('numero_colegiado')) {
+              <p id="error-colegiado" class="text-sm text-red-800">
+                {{ mensaje('numero_colegiado') }}
+              </p>
+            }
+          </div>
+        }
+        <button type="submit" [class]="claseBoton" [disabled]="enviando()">
+          {{ enviando() ? t.enviando : t.accion }}
+        </button>
+      </form>
+    }
+  }
+</section>

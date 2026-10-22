@@ -1,0 +1,49 @@
+<section class="mx-auto max-w-md p-4" aria-labelledby="titulo-login">
+  <h1 id="titulo-login" class="text-2xl font-bold">{{ t.titulo }}</h1>
+
+  @if (error()) {
+    <p role="alert" [class]="claseAlerta">{{ error() }}</p>
+  }
+
+  <form class="mt-4 grid gap-4" [formGroup]="form" (ngSubmit)="enviar()" novalidate>
+    <div class="flex flex-col">
+      <label for="correo" class="font-medium">{{ campos.correo }}</label>
+      <input
+        id="correo"
+        type="email"
+        formControlName="correo"
+        autocomplete="email"
+        maxlength="254"
+        [class]="claseCampo"
+        [attr.aria-invalid]="campoInvalido('correo')"
+        [attr.aria-describedby]="campoInvalido('correo') ? 'error-correo' : null"
+      />
+      @if (campoInvalido('correo')) {
+        <p id="error-correo" class="text-sm text-red-800">{{ mensaje('correo') }}</p>
+      }
+    </div>
+    <div class="flex flex-col">
+      <label for="contrasena" class="font-medium">{{ campos.contrasena }}</label>
+      <input
+        id="contrasena"
+        type="password"
+        formControlName="contrasena"
+        autocomplete="current-password"
+        [class]="claseCampo"
+        [attr.aria-invalid]="campoInvalido('contrasena')"
+        [attr.aria-describedby]="campoInvalido('contrasena') ? 'error-contrasena' : null"
+      />
+      @if (campoInvalido('contrasena')) {
+        <p id="error-contrasena" class="text-sm text-red-800">{{ mensaje('contrasena') }}</p>
+      }
+    </div>
+    <button type="submit" [class]="claseBoton" [disabled]="enviando()">
+      {{ enviando() ? t.enviando : t.accion }}
+    </button>
+  </form>
+
+  <p class="mt-4 flex flex-col gap-2">
+    <a routerLink="/registro" [class]="claseEnlace">{{ t.crearCuenta }}</a>
+    <a routerLink="/recuperar-contrasena" [class]="claseEnlace">{{ t.olvidada }}</a>
+  </p>
+</section>

@@ -530,6 +530,7 @@ export const TEXTOS = {
       contrasena: 'Contraseña',
       confirmar: 'Confirmar contraseña',
       nombre: 'Nombre',
+      rol: 'Rol',
       colegiado: 'Número de colegiado',
       contrasenaActual: 'Contraseña actual',
       contrasenaNueva: 'Contraseña nueva',
@@ -551,6 +552,7 @@ export const TEXTOS = {
     },
     verificar: {
       titulo: 'Verificar correo',
+      enviando: 'Verificando…',
       hecho: 'Correo verificado. Cuando un catedrático te inscriba podrás iniciar sesión.',
       irALogin: 'Iniciar sesión',
       reenviar: 'Reenviar enlace',
@@ -568,6 +570,7 @@ export const TEXTOS = {
       accion: 'Guardar contraseña',
       enviando: 'Guardando…',
       hecho: 'Contraseña actualizada. Vuelve a iniciar sesión.',
+      faltaToken: 'Falta el enlace de recuperación.',
     },
     invitacion: {
       titulo: 'Aceptar invitación',
@@ -614,6 +617,8 @@ export const TEXTOS = {
       'rango-invalido': 'La fecha inicial no puede ser posterior a la final.',
       'demasiadas-solicitudes': 'Espera un momento antes de volver a intentarlo.',
       confirmarDistinta: 'La confirmación no coincide con la contraseña.',
+      obligatorio: 'Este campo es obligatorio.',
+      correoInvalido: 'El correo no es válido.',
       sinConexion: 'No se pudo conectar con el servidor. Compruebe su conexión e intente de nuevo.',
       inesperado: 'Ocurrió un error. Inténtalo de nuevo.',
       noEncontrado: 'No se encontró el recurso.',
