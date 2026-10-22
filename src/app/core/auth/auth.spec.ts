@@ -60,8 +60,16 @@ describe('AuthService', () => {
     expect(auth.accessToken()).toBe('tok-1');
     expect(auth.rol()).toBe('ADMINISTRADOR');
     expect(auth.autenticado()).toBe(true);
+    expect(auth.esGestorMantenimiento()).toBe(true);
     expect(TestBed.inject(ROL_PUENTES)()).toBe('ADMINISTRADOR');
     expect(setItem).not.toHaveBeenCalled();
+  });
+
+  it('no trata al estudiante como gestor de mantenimiento', async () => {
+    const respuesta = firstValueFrom(auth.iniciarSesion('ana@correo.com', 'Puentes2026ok'));
+    http.expectOne('/api/v1/auth/login').flush(sesion('ESTUDIANTE'));
+    await respuesta;
+    expect(auth.esGestorMantenimiento()).toBe(false);
   });
 
   it('al hidratar con 401 deja visitante y no navega a login', async () => {

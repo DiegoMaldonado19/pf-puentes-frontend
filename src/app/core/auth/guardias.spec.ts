@@ -36,6 +36,16 @@ describe('guardias de sesión y rol', () => {
           { path: 'perfil', component: Vacio, canActivate: [sesionGuard] },
           { path: 'admin/usuarios', component: Vacio, canActivate: [rolGuard('ADMINISTRADOR')] },
           { path: 'puentes', component: Vacio },
+          {
+            path: 'puentes/nuevo',
+            component: Vacio,
+            canActivate: [rolGuard('ADMINISTRADOR')],
+          },
+          {
+            path: 'puentes/solicitudes',
+            component: Vacio,
+            canActivate: [rolGuard('ADMINISTRADOR', 'CATEDRATICO')],
+          },
         ]),
       ],
     });
@@ -80,5 +90,23 @@ describe('guardias de sesión y rol', () => {
     await entrar('ADMINISTRADOR');
     await router.navigateByUrl('/login');
     expect(router.url).toBe('/admin/usuarios');
+  });
+
+  it('manda al estudiante que entra a /puentes/nuevo de vuelta al mapa', async () => {
+    await entrar('ESTUDIANTE');
+    await router.navigateByUrl('/puentes/nuevo');
+    expect(router.url).toBe('/puentes');
+  });
+
+  it('deja pasar al administrador a /puentes/nuevo', async () => {
+    await entrar('ADMINISTRADOR');
+    await router.navigateByUrl('/puentes/nuevo');
+    expect(router.url).toBe('/puentes/nuevo');
+  });
+
+  it('deja pasar al catedrático a /puentes/solicitudes', async () => {
+    await entrar('CATEDRATICO');
+    await router.navigateByUrl('/puentes/solicitudes');
+    expect(router.url).toBe('/puentes/solicitudes');
   });
 });
