@@ -14,6 +14,9 @@ export class AuthService {
   readonly usuario = signal<UsuarioSesionDTO | null>(null);
   readonly rol = computed<Rol | null>(() => this.usuario()?.rol ?? null);
   readonly autenticado = computed(() => this.accessToken() !== null && this.usuario() !== null);
+  readonly esGestorMantenimiento = computed(
+    () => this.rol() === 'ADMINISTRADOR' || this.rol() === 'CATEDRATICO',
+  );
   readonly listo = signal(false);
   private renovacion: Observable<SesionDTO | null> | null = null;
   private hidratacion: Observable<void> | null = null;
