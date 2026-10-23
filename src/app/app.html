@@ -8,7 +8,11 @@
     class="mx-auto flex max-w-6xl flex-wrap items-center gap-4 px-4 py-3"
     [attr.aria-label]="t.principal"
   >
-    <a routerLink="/" class="font-bold">{{ t.app }}</a>
+    <a
+      routerLink="/"
+      class="font-bold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+      >{{ t.app }}</a
+    >
     <a
       routerLink="/puentes"
       routerLinkActive="underline"
@@ -24,6 +28,70 @@
       class="hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
       >{{ t.mapa }}</a
     >
+    <div class="ml-auto flex flex-wrap items-center gap-4">
+      @if (auth.listo()) {
+        @if (auth.autenticado()) {
+          <p class="m-0">
+            <span class="font-medium">{{ auth.usuario()?.nombre }}</span>
+            @if (auth.rol(); as rol) {
+              <span class="text-slate-300"> · {{ roles[rol] }}</span>
+            }
+          </p>
+          <a
+            routerLink="/perfil"
+            routerLinkActive="underline"
+            ariaCurrentWhenActive="page"
+            class="hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+            >{{ n.perfil }}</a
+          >
+          @if (auth.rol() === 'ADMINISTRADOR') {
+            <a
+              routerLink="/admin/usuarios"
+              routerLinkActive="underline"
+              ariaCurrentWhenActive="page"
+              class="hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+              >{{ n.usuarios }}</a
+            >
+            <a
+              routerLink="/admin/invitaciones"
+              routerLinkActive="underline"
+              ariaCurrentWhenActive="page"
+              class="hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+              >{{ n.invitaciones }}</a
+            >
+            <a
+              routerLink="/admin/auditoria"
+              routerLinkActive="underline"
+              ariaCurrentWhenActive="page"
+              class="hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+              >{{ n.auditoria }}</a
+            >
+          }
+          <button
+            type="button"
+            class="cursor-pointer bg-transparent p-0 text-inherit hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+            (click)="salir()"
+          >
+            {{ n.cerrarSesion }}
+          </button>
+        } @else {
+          <a
+            routerLink="/login"
+            routerLinkActive="underline"
+            ariaCurrentWhenActive="page"
+            class="hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+            >{{ n.entrar }}</a
+          >
+          <a
+            routerLink="/registro"
+            routerLinkActive="underline"
+            ariaCurrentWhenActive="page"
+            class="hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+            >{{ n.registrarse }}</a
+          >
+        }
+      }
+    </div>
   </nav>
 </header>
 <main id="contenido" tabindex="-1">
