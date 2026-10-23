@@ -730,6 +730,8 @@ export const TEXTOS = {
   formulario: {
     motor: {
       sinDanosEnElemento: 'Sin daños en este elemento',
+      sinDanosEnGrupo: 'Sin daños en {grupo}',
+      sinDanosTodaSeccion: 'Sin daños en toda la sección',
       sinDanosAyuda: 'Asigna calificación 0 a todas las preguntas de daño de este grupo',
       modoLecturaAviso: 'Esta inspección fue capturada con la versión {codigo}. Vista de solo lectura.',
       guardandoBorrador: 'Guardando datos en borrador local…',
@@ -739,6 +741,12 @@ export const TEXTOS = {
       resumenSeccion: 'Resumen de la sección',
       obligatorio: 'Este campo es obligatorio',
       danoInvalido: 'La calificación debe estar entre 0 y 4',
+      agregarTramo: '+ Agregar Tramo',
+      eliminarTramo: 'Eliminar Tramo',
+      listadoTramos: 'Listado de Tramos (Claros del Puente)',
+      listadoTramosAyuda: 'Capture las dimensiones y tipología estructural de cada tramo del puente.',
+      anulacionCritica: 'Anulación Crítica',
+      anulacionCriticaAviso: 'Elemento crítico: Calificaciones de daño severo (3) o falla crítica (4) anulan el puente a condición Mala (RN-IC-04).',
       escalaDanos: {
         0: '0 - Sin daño',
         1: '1 - Incipiente',

@@ -38,9 +38,15 @@ Componente reutilizable en `src/app/features/formulario/motor-formulario/`:
 * Usado por **P5 (Inspecciones)** en modo `'edicion'` para levantar evaluaciones en campo.
 * Usado por **P7 (Revisión)**, **P9 (Foro)** e impresión en modo `'lectura'` para auditoría y visualización.
 
-### 2.2 Editor de Formularios del Administrador
-* Ruta: `/admin/formularios` (protegida por `canActivate: [rolGuard('ADMINISTRADOR')]` de P2).
-* Permite crear borradores, modificar secciones y publicar versiones con declaración de mapeo (`RN-FRM-06`).
+### 2.2 Vistas Administrativas del Formulario
+* **Navegación:** Enlace directo **Formularios** en la cabecera principal (`app.html`), visible exclusivamente para usuarios con rol `ADMINISTRADOR`.
+* **Listado de Versiones (`/admin/formularios`):** Visualización reactiva con `signal()` de versiones vigentes (`ACTIVA`), borradores (`BORRADOR`) y retiradas (`RETIRADA`). Incluye botón de publicación rápida de borradores.
+* **Editor de Esquemas (`/admin/formularios/nuevo` y `/admin/formularios/:id/editar`):**
+  * Editor JSON Schema en tiempo real con validación sintáctica.
+  * Precarga automática del formulario oficial activo (V1.0.0 con 8 secciones) al crear nuevas versiones.
+  * Botón directo de publicación inmutable con modal de mapeo (`RN-FRM-06`).
+  * Pestaña de **Vista Previa en Vivo** renderizada dinámicamente mediante `<app-motor-formulario>`.
+* **Modal de Publicación (`modal-publicar.ts`):** Confirmación de inmutabilidad y declaración de equivalencias JSON (`{"antiguo": "nuevo"}`) para comparabilidad histórica.
 
 ---
 
