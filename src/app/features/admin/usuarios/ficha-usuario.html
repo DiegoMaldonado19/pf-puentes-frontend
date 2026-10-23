@@ -54,10 +54,15 @@
           type="button"
           [class]="clasePeligro"
           [disabled]="propia() || enviando()"
+          [attr.title]="propia() ? t.bajaPropia : null"
+          [attr.aria-describedby]="propia() ? 'aviso-baja-propia' : null"
           (click)="abrirBaja()"
         >
           {{ t.baja }}
         </button>
+        @if (propia()) {
+          <p id="aviso-baja-propia" class="sr-only">{{ t.bajaPropia }}</p>
+        }
       }
       @if (cuenta.estado === 'INACTIVO') {
         <button type="button" [class]="claseBoton" [disabled]="enviando()" (click)="reactivar()">

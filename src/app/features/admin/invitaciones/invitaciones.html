@@ -45,7 +45,8 @@
     <label for="filtro-estado" class="font-medium">{{ t.estado }}</label>
     <select
       id="filtro-estado"
-      class="mt-1 max-w-xs rounded border border-slate-400 p-2"
+      class="mt-1 max-w-xs"
+      [class]="claseCampo"
       [value]="estado()"
       (change)="filtrarEstado($event)"
     >

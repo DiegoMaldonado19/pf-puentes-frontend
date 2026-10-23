@@ -675,6 +675,7 @@ export const TEXTOS = {
       si: 'Sí',
       no: 'No',
       baja: 'Dar de baja',
+      bajaPropia: 'No puedes dar de baja tu propia cuenta.',
       reactivar: 'Reactivar',
       aprobarColegiado: 'Aprobar colegiado',
       rechazarColegiado: 'Rechazar colegiado',

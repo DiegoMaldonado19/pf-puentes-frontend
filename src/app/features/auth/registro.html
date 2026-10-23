@@ -8,7 +8,12 @@
   @if (hecho()) {
     <div role="status" [class]="claseHecho">
       <p>{{ t.hecho }}</p>
-      <button type="button" class="mt-2 underline" [disabled]="reenviando()" (click)="reenviar()">
+      <button
+        type="button"
+        class="mt-2 underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700"
+        [disabled]="reenviando()"
+        (click)="reenviar()"
+      >
         {{ t.reenviar }}
       </button>
       @if (reenviado()) {

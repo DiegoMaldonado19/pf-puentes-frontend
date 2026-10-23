@@ -11,7 +11,8 @@ import { mensajeAdjuntado } from '../../core/errores/errores.interceptor';
 import { erroresDeCampo, mensajeDeProblema } from '../../core/errores/problema';
 import { TEXTOS } from '../../shared/textos';
 
-export const CLASE_CAMPO = 'rounded border border-slate-400 p-2';
+export const CLASE_CAMPO =
+  'rounded border border-slate-400 p-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700';
 export const CLASE_BOTON =
   'rounded bg-blue-700 px-3 py-2 font-medium text-white hover:bg-blue-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-900 disabled:opacity-60';
 export const CLASE_ENLACE =

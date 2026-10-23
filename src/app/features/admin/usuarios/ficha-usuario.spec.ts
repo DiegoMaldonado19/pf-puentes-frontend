@@ -46,6 +46,8 @@ describe('FichaUsuario', () => {
     );
     expect(baja).toBeTruthy();
     expect(baja?.disabled).toBe(true);
+    expect(baja?.getAttribute('title')).toBe(TEXTOS.admin.usuarios.bajaPropia);
+    expect(html.textContent).toContain(TEXTOS.admin.usuarios.bajaPropia);
   });
 
   it('oculta colegiado si no es profesional pendiente con número', async () => {

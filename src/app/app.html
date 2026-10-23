@@ -8,7 +8,11 @@
     class="mx-auto flex max-w-6xl flex-wrap items-center gap-4 px-4 py-3"
     [attr.aria-label]="t.principal"
   >
-    <a routerLink="/" class="font-bold">{{ t.app }}</a>
+    <a
+      routerLink="/"
+      class="font-bold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+      >{{ t.app }}</a
+    >
     <a
       routerLink="/puentes"
       routerLinkActive="underline"
