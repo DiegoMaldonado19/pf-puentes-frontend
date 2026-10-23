@@ -84,6 +84,7 @@ describe('App', () => {
       '/admin/usuarios',
       '/admin/invitaciones',
       '/admin/auditoria',
+      '/admin/formularios',
     ]);
   });
 

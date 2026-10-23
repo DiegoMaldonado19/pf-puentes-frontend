@@ -120,7 +120,7 @@
       </div>
     } @else if (resultado.value(); as datos) {
       @if (datos.contenido.length === 0) {
-        <p role="status" class="rounded bg-slate-100 p-4">
+        <p role="status" class="rounded bg-slate-100 p-4 text-slate-800 font-medium">
           {{ hayFiltros() ? t.listado.sinCoincidencias : t.listado.vacio }}
         </p>
       } @else {

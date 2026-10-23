@@ -1,3 +1,28 @@
 /* You can add global styles to this file, and also import other style files */
 
 @import 'tailwindcss';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  background-color: #ffffff;
+  color: #0f172a;
+  min-height: 100vh;
+}
+
+/* Cajas de estado vacías, notas y listas de definición: siempre texto oscuro de alto contraste */
+.bg-slate-100 {
+  color: #0f172a !important;
+}
+
+.bg-slate-100 dt {
+  color: #334155 !important;
+}
+
+.bg-slate-100 dd {
+  color: #0f172a !important;
+}
