@@ -1,22 +1,23 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { TEXTOS } from '../../../../shared/textos';
+import { TEXTOS } from '../../../shared/textos';
 import { FormularioService } from '../../formulario/formulario.service';
 import { EsquemaFormulario, FormularioVersionDTO } from '../../formulario/modelos';
 import { MotorFormularioComponent } from '../../formulario/motor-formulario/motor-formulario';
+import { ModalPublicar } from './modal-publicar';
 
 @Component({
   selector: 'app-editor-formulario',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, MotorFormularioComponent],
+  imports: [CommonModule, FormsModule, RouterLink, MotorFormularioComponent, ModalPublicar],
   template: `
     <div class="space-y-6 p-4 max-w-7xl mx-auto">
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <div class="flex items-center gap-2">
-            <a routerLink="/admin/formularios" class="text-sm font-medium text-blue-600 hover:underline">
+            <a routerLink="/admin/formularios" class="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline">
               ← Volver a versiones
             </a>
           </div>
@@ -34,6 +35,16 @@ import { MotorFormularioComponent } from '../../formulario/motor-formulario/moto
               class="px-5 py-2.5 bg-blue-600 text-white font-semibold text-sm rounded-xl hover:bg-blue-700 shadow-sm disabled:opacity-50 transition-colors">
               {{ guardando ? 'Guardando…' : textos.guardarBorrador }}
             </button>
+
+            @if (!esNuevo && version?.estado === 'BORRADOR') {
+              <button
+                type="button"
+                (click)="abrirPublicar()"
+                [disabled]="guardando"
+                class="px-5 py-2.5 bg-emerald-600 text-white font-semibold text-sm rounded-xl hover:bg-emerald-700 shadow-sm disabled:opacity-50 transition-colors">
+                {{ textos.publicarBorrador }}
+              </button>
+            }
           }
         </div>
       </div>
@@ -45,35 +56,50 @@ import { MotorFormularioComponent } from '../../formulario/motor-formulario/moto
       }
 
       <!-- Pestañas de Editor vs Vista Previa -->
-      <div class="flex gap-2 border-b border-gray-200 dark:border-gray-700">
-        <button
-          type="button"
-          (click)="tabActiva = 'editor'"
-          class="px-4 py-2 font-semibold text-sm border-b-2 transition-colors"
-          [class.border-blue-600]="tabActiva === 'editor'"
-          [class.text-blue-600]="tabActiva === 'editor'"
-          [class.border-transparent]="tabActiva !== 'editor'"
-          [class.text-gray-500]="tabActiva !== 'editor'">
-          Editor JSON Schema
-        </button>
-        <button
-          type="button"
-          (click)="actualizarVistaPrevia()"
-          class="px-4 py-2 font-semibold text-sm border-b-2 transition-colors"
-          [class.border-blue-600]="tabActiva === 'preview'"
-          [class.text-blue-600]="tabActiva === 'preview'"
-          [class.border-transparent]="tabActiva !== 'preview'"
-          [class.text-gray-500]="tabActiva !== 'preview'">
-          Vista Previa en Vivo (<app-motor-formulario>)
-        </button>
+      <div class="flex items-center justify-between border-b border-gray-200 dark:border-gray-700">
+        <div class="flex gap-2">
+          <button
+            type="button"
+            (click)="tabActiva = 'editor'"
+            class="px-4 py-2 font-semibold text-sm border-b-2 transition-colors cursor-pointer"
+            [class.border-blue-600]="tabActiva === 'editor'"
+            [class.text-blue-600]="tabActiva === 'editor'"
+            [class.dark:text-blue-400]="tabActiva === 'editor'"
+            [class.border-transparent]="tabActiva !== 'editor'"
+            [class.text-gray-600]="tabActiva !== 'editor'"
+            [class.dark:text-gray-400]="tabActiva !== 'editor'">
+            Editor JSON Schema
+          </button>
+          <button
+            type="button"
+            (click)="actualizarVistaPrevia()"
+            class="px-4 py-2 font-semibold text-sm border-b-2 transition-colors cursor-pointer"
+            [class.border-blue-600]="tabActiva === 'preview'"
+            [class.text-blue-600]="tabActiva === 'preview'"
+            [class.dark:text-blue-400]="tabActiva === 'preview'"
+            [class.border-transparent]="tabActiva !== 'preview'"
+            [class.text-gray-600]="tabActiva !== 'preview'"
+            [class.dark:text-gray-400]="tabActiva !== 'preview'">
+            Vista Previa en Vivo (&lt;app-motor-formulario&gt;)
+          </button>
+        </div>
+
+        @if (tabActiva === 'editor' && !esSoloLectura) {
+          <button
+            type="button"
+            (click)="cargarEsquemaActivoComoBase()"
+            class="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium px-2 py-1 rounded hover:bg-blue-50 dark:hover:bg-blue-900/40 cursor-pointer">
+            ↺ Cargar Esquema Activo Oficial (V1.0.0)
+          </button>
+        }
       </div>
 
       <!-- Contenido del Editor -->
       @if (tabActiva === 'editor') {
-        <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 space-y-4">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 space-y-4">
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1">
+              <label class="block text-sm font-semibold text-gray-800 dark:text-gray-200 mb-1">
                 {{ textos.codigo }}
               </label>
               <input
@@ -88,7 +114,7 @@ import { MotorFormularioComponent } from '../../formulario/motor-formulario/moto
 
           <div>
             <div class="flex items-center justify-between mb-1">
-              <label class="block text-sm font-semibold text-gray-700 dark:text-gray-200">
+              <label class="block text-sm font-semibold text-gray-800 dark:text-gray-200">
                 Estructura JSON Schema (Draft 7)
               </label>
               @if (errorSintaxis) {
@@ -107,8 +133,13 @@ import { MotorFormularioComponent } from '../../formulario/motor-formulario/moto
       } @else {
         <!-- Vista previa renderizada por el motor dinámico -->
         <div class="space-y-4">
-          <div class="p-3 bg-blue-50 border border-blue-200 rounded-xl text-xs text-blue-800">
-            Esta vista previa se genera dinámicamente con el componente <code>&lt;app-motor-formulario&gt;</code> exactamente igual a como lo visualizan los inspectores en campo.
+          <div class="p-3.5 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 rounded-xl text-xs text-blue-900 dark:text-blue-200 flex items-center gap-2 shadow-xs">
+            <svg class="w-4 h-4 text-blue-600 dark:text-blue-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span>
+              Esta vista previa se genera dinámicamente con el componente <code class="px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-900/60 font-mono text-blue-950 dark:text-blue-200 font-semibold">&lt;app-motor-formulario&gt;</code> exactamente igual a como lo visualizan los inspectores en campo.
+            </span>
           </div>
           @if (esquemaCompilado) {
             <app-motor-formulario
@@ -117,6 +148,14 @@ import { MotorFormularioComponent } from '../../formulario/motor-formulario/moto
           }
         </div>
       }
+
+      <!-- Modal de publicación si se solicita desde el editor -->
+      @if (mostrarModalPublicar && version) {
+        <app-modal-publicar
+          [version]="version"
+          (publicado)="alPublicarExitoso()"
+          (cancelar)="mostrarModalPublicar = false" />
+      }
     </div>
   `,
 })
@@ -124,6 +163,7 @@ export class EditorFormulario implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly formularioService = inject(FormularioService);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   readonly textos = TEXTOS.formulario.admin;
 
@@ -136,6 +176,7 @@ export class EditorFormulario implements OnInit {
 
   tabActiva: 'editor' | 'preview' = 'editor';
   guardando = false;
+  mostrarModalPublicar = false;
   errorSintaxis = '';
   errorGeneral = '';
 
@@ -152,30 +193,66 @@ export class EditorFormulario implements OnInit {
     } else {
       this.esNuevo = true;
       this.codigo = 'V2.0.0';
-      this.esquemaJsonTexto = JSON.stringify(
-        {
-          $schema: 'http://json-schema.org/draft-07/schema#',
-          title: 'Nuevo Formulario',
-          type: 'object',
-          properties: {
-            seccion_1: {
-              type: 'object',
-              title: 'Sección 1',
-              properties: {
-                pregunta_1: {
-                  type: 'integer',
-                  minimum: 0,
-                  maximum: 4,
-                  title: 'Calificación de daño preliminar',
-                  'x-dano': true,
-                },
+      this.cargarEsquemaActivoComoBase();
+    }
+  }
+
+  cargarEsquemaActivoComoBase(): void {
+    this.formularioService.obtenerActivo().subscribe({
+      next: (activa) => {
+        if (activa?.esquema) {
+          this.esquemaJsonTexto = JSON.stringify(activa.esquema, null, 2);
+          try {
+            this.esquemaCompilado = JSON.parse(this.esquemaJsonTexto);
+          } catch {
+            // Ignorar
+          }
+        } else {
+          this.usarPlantillaMinima();
+        }
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.usarPlantillaMinima();
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
+  private usarPlantillaMinima(): void {
+    this.esquemaJsonTexto = JSON.stringify(
+      {
+        $schema: 'http://json-schema.org/draft-07/schema#',
+        title: 'Formulario de Inspección de Puentes',
+        type: 'object',
+        properties: {
+          seccion_1: {
+            type: 'object',
+            title: 'Sección 1: Datos Generales',
+            properties: {
+              codigo_puente: {
+                type: 'string',
+                title: 'Código del Puente',
+                'x-permanente': true,
+              },
+              calificacion_preliminar: {
+                type: 'integer',
+                minimum: 0,
+                maximum: 4,
+                title: 'Calificación preliminar de daño',
+                'x-dano': true,
               },
             },
           },
         },
-        null,
-        2,
-      );
+      },
+      null,
+      2,
+    );
+    try {
+      this.esquemaCompilado = JSON.parse(this.esquemaJsonTexto);
+    } catch {
+      // Ignorar
     }
   }
 
@@ -185,9 +262,16 @@ export class EditorFormulario implements OnInit {
         this.version = v;
         this.codigo = v.codigo;
         this.esquemaJsonTexto = JSON.stringify(v.esquema, null, 2);
+        try {
+          this.esquemaCompilado = JSON.parse(this.esquemaJsonTexto);
+        } catch {
+          // Ignorar
+        }
+        this.cdr.markForCheck();
       },
       error: () => {
         this.errorGeneral = 'No se pudo cargar la versión del formulario.';
+        this.cdr.markForCheck();
       },
     });
   }
@@ -200,6 +284,17 @@ export class EditorFormulario implements OnInit {
     } catch {
       this.errorSintaxis = 'Sintaxis JSON inválida. Corrígela antes de abrir la vista previa.';
     }
+    this.cdr.markForCheck();
+  }
+
+  abrirPublicar(): void {
+    this.mostrarModalPublicar = true;
+    this.cdr.markForCheck();
+  }
+
+  alPublicarExitoso(): void {
+    this.mostrarModalPublicar = false;
+    this.router.navigate(['/admin/formularios']);
   }
 
   guardar(): void {
@@ -228,6 +323,7 @@ export class EditorFormulario implements OnInit {
           error: (err) => {
             this.guardando = false;
             this.errorGeneral = err?.error?.detail || 'Error al guardar el nuevo borrador.';
+            this.cdr.markForCheck();
           },
         });
     } else if (this.idVersion) {
@@ -243,6 +339,7 @@ export class EditorFormulario implements OnInit {
           error: (err) => {
             this.guardando = false;
             this.errorGeneral = err?.error?.detail || 'Error al actualizar el borrador.';
+            this.cdr.markForCheck();
           },
         });
     }

@@ -1,8 +1,8 @@
 <div class="space-y-6">
   <!-- Aviso de Modo Lectura (RN-FRM-05) -->
   @if (modo === 'lectura') {
-    <div class="p-4 rounded-xl bg-blue-50 border border-blue-200 text-blue-900 flex items-center gap-3">
-      <svg class="w-5 h-5 text-blue-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div class="p-4 rounded-xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 text-blue-900 dark:text-blue-200 flex items-center gap-3">
+      <svg class="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
       </svg>
       <span class="text-sm font-medium">
@@ -18,14 +18,18 @@
         <button
           type="button"
           (click)="cambiarSeccion(i)"
-          class="px-4 py-2 text-sm font-semibold whitespace-nowrap rounded-lg transition-colors border"
+          class="px-4 py-2 text-sm font-semibold whitespace-nowrap rounded-lg transition-colors border shadow-xs cursor-pointer"
           [class.bg-blue-600]="seccionActiva === i"
           [class.text-white]="seccionActiva === i"
           [class.border-blue-600]="seccionActiva === i"
           [class.bg-white]="seccionActiva !== i"
           [class.text-gray-700]="seccionActiva !== i"
           [class.border-gray-200]="seccionActiva !== i"
-          [class.hover:bg-gray-50]="seccionActiva !== i">
+          [class.hover:bg-gray-50]="seccionActiva !== i"
+          [class.dark:bg-gray-800]="seccionActiva !== i"
+          [class.dark:text-gray-200]="seccionActiva !== i"
+          [class.dark:border-gray-700]="seccionActiva !== i"
+          [class.dark:hover:bg-gray-700]="seccionActiva !== i">
           {{ i + 1 }}. {{ seccion.titulo }}
         </button>
       }
@@ -34,14 +38,14 @@
     <!-- Contenedor de la sección activa -->
     @if (secciones[seccionActiva]; as seccionActual) {
       <div [formGroup]="formGroup" class="space-y-6">
-        <div [formGroupName]="seccionActual.clave" class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 space-y-6">
-          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-gray-100 dark:border-gray-700">
+        <div [formGroupName]="seccionActual.clave" class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 space-y-6">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-gray-200 dark:border-gray-700">
             <div>
               <h2 class="text-xl font-bold text-gray-900 dark:text-white">
                 {{ seccionActual.titulo }}
               </h2>
               @if (seccionActual.descripcion) {
-                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">
                   {{ seccionActual.descripcion }}
                 </p>
               }
@@ -52,8 +56,8 @@
               <button
                 type="button"
                 (click)="marcarSinDanos(seccionActual.clave)"
-                class="px-3 py-2 text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-300 rounded-lg hover:bg-emerald-100 transition-colors flex items-center gap-1.5 self-start sm:self-auto">
-                <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                class="px-3.5 py-2 text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-200 border border-emerald-300 dark:border-emerald-700 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/60 transition-colors flex items-center gap-1.5 self-start sm:self-auto shadow-xs cursor-pointer">
+                <svg class="w-4 h-4 text-emerald-700 dark:text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 {{ textos.sinDanosEnElemento }}
@@ -65,27 +69,31 @@
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             @for (prop of seccionActual.propiedades; track prop.clave) {
               <div
-                class="space-y-2 p-3 rounded-xl border border-transparent transition-all"
-                [class.bg-gray-50]="prop.esquema['x-dano']"
-                [class.md:col-span-2]="prop.esquema['x-dano'] || prop.esquema.type === 'string' && !prop.esquema.enum"
+                class="space-y-2.5 p-4 rounded-xl border transition-all"
+                [class.bg-slate-50]="prop.esquema['x-dano']"
+                [class.border-slate-200]="prop.esquema['x-dano']"
+                [class.dark:bg-gray-900/60]="prop.esquema['x-dano']"
+                [class.dark:border-gray-700]="prop.esquema['x-dano']"
+                [class.border-transparent]="!prop.esquema['x-dano']"
+                [class.md:col-span-2]="prop.esquema['x-dano'] || (prop.esquema.type === 'string' && !prop.esquema.enum)"
                 [attr.data-elemento-ref]="prop.esquema['x-elemento-ref']">
                 
-                <div class="flex items-center justify-between">
-                  <label [for]="prop.clave" class="block text-sm font-semibold text-gray-900 dark:text-gray-100">
+                <div class="flex items-center justify-between gap-2">
+                  <label [for]="prop.clave" class="block text-sm font-bold text-gray-900 dark:text-gray-100">
                     {{ prop.esquema.title || prop.clave }}
                     @if (esquema.properties[seccionActual.clave]?.required?.includes(prop.clave)) {
-                      <span class="text-rose-500 font-bold">*</span>
+                      <span class="text-rose-600 font-bold">*</span>
                     }
                   </label>
                   @if (prop.esquema['x-permanente']) {
-                    <span class="text-xs bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-0.5 rounded font-mono">
+                    <span class="text-xs bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 font-semibold px-2 py-0.5 rounded font-mono">
                       Permanente
                     </span>
                   }
                 </div>
 
                 @if (prop.esquema.description) {
-                  <p class="text-xs text-gray-500 dark:text-gray-400">
+                  <p class="text-xs text-gray-600 dark:text-gray-300 leading-relaxed">
                     {{ prop.esquema.description }}
                   </p>
                 }
@@ -101,7 +109,7 @@
                   <select
                     [id]="prop.clave"
                     [formControlName]="prop.clave"
-                    class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:outline-none shadow-xs">
                     <option [ngValue]="null">Seleccione una opción…</option>
                     @for (opcion of prop.esquema.enum; track opcion) {
                       <option [value]="opcion">{{ opcion }}</option>
@@ -114,7 +122,7 @@
                       [id]="prop.clave"
                       [formControlName]="prop.clave"
                       class="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
-                    <span class="text-sm text-gray-700 dark:text-gray-300">Sí</span>
+                    <span class="text-sm font-medium text-gray-800 dark:text-gray-200">Sí</span>
                   </div>
                 } @else if (prop.esquema.type === 'number' || prop.esquema.type === 'integer') {
                   <div class="relative">
@@ -124,9 +132,9 @@
                       [formControlName]="prop.clave"
                       [min]="prop.esquema.minimum ?? null"
                       [max]="prop.esquema.maximum ?? null"
-                      class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+                      class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:outline-none shadow-xs" />
                     @if (prop.esquema['x-unidad']) {
-                      <span class="absolute right-3 top-2 text-sm text-gray-400 font-medium">
+                      <span class="absolute right-3 top-2 text-sm text-gray-600 dark:text-gray-300 font-semibold">
                         {{ prop.esquema['x-unidad'] }}
                       </span>
                     }
@@ -137,13 +145,16 @@
                     [id]="prop.clave"
                     [formControlName]="prop.clave"
                     [readOnly]="prop.esquema.readOnly"
-                    class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                    [class.bg-gray-100]="prop.esquema.readOnly" />
+                    class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:outline-none shadow-xs"
+                    [class.bg-gray-100]="prop.esquema.readOnly"
+                    [class.dark:bg-gray-800]="prop.esquema.readOnly"
+                    [class.text-gray-600]="prop.esquema.readOnly"
+                    [class.dark:text-gray-300]="prop.esquema.readOnly" />
                 }
 
                 <!-- Mensaje de error de validación -->
                 @if (obtenerError(seccionActual.clave, prop.clave); as error) {
-                  <p class="text-xs text-rose-600 font-medium pt-1">
+                  <p class="text-xs text-rose-600 dark:text-rose-400 font-semibold pt-1">
                     {{ error }}
                   </p>
                 }
@@ -152,16 +163,16 @@
           </div>
 
           <!-- Botones de navegación entre secciones -->
-          <div class="flex items-center justify-between pt-6 border-t border-gray-100 dark:border-gray-700">
+          <div class="flex items-center justify-between pt-6 border-t border-gray-200 dark:border-gray-700">
             <button
               type="button"
               (click)="cambiarSeccion(seccionActiva - 1)"
               [disabled]="seccionActiva === 0"
-              class="px-4 py-2 text-sm font-medium rounded-lg border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed">
+              class="px-4 py-2 text-sm font-semibold rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed shadow-xs transition-colors cursor-pointer">
               ← {{ textos.seccionAnterior }}
             </button>
 
-            <span class="text-xs text-gray-500 font-medium">
+            <span class="text-xs text-gray-600 dark:text-gray-300 font-medium">
               Sección {{ seccionActiva + 1 }} de {{ secciones.length }}
             </span>
 
@@ -169,7 +180,7 @@
               type="button"
               (click)="cambiarSeccion(seccionActiva + 1)"
               [disabled]="seccionActiva === secciones.length - 1"
-              class="px-4 py-2 text-sm font-medium rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed">
+              class="px-4 py-2 text-sm font-semibold rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed shadow-xs transition-colors cursor-pointer">
               {{ textos.seccionSiguiente }} →
             </button>
           </div>
@@ -177,7 +188,7 @@
       </div>
     }
   } @else {
-    <div class="p-8 text-center text-gray-500">
+    <div class="p-8 text-center text-gray-600 dark:text-gray-300 font-medium">
       {{ textos.sinEsquema }}
     </div>
   }

@@ -52,4 +52,21 @@ describe('ControlDanoComponent', () => {
 
     expect(fixture.componentInstance.valorSeleccionado).toBeNull();
   });
+
+  it('debe aplicar alto contraste para evitar texto claro sobre fondos claros', () => {
+    const fixture = TestBed.createComponent(ControlDanoComponent);
+    const comp = fixture.componentInstance;
+
+    // Al seleccionar nivel 1 (amarillo/ámbar), debe usar texto oscuro contrastante text-amber-950
+    comp.seleccionar(1);
+    const claseNivel1 = comp.obtenerClase(1);
+    expect(claseNivel1).toContain('text-amber-950');
+    expect(claseNivel1).toContain('bg-amber-400');
+    expect(claseNivel1).not.toContain('text-white');
+
+    // Botón no seleccionado debe tener texto legible
+    comp.seleccionar(0);
+    const claseNivel1SinSeleccionar = comp.obtenerClase(1);
+    expect(claseNivel1SinSeleccionar).toContain('text-amber-900');
+  });
 });

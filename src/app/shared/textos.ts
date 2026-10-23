@@ -513,6 +513,7 @@ export const TEXTOS = {
       usuarios: 'Usuarios',
       invitaciones: 'Invitaciones',
       auditoria: 'Bitácora',
+      formularios: 'Formularios',
     },
     roles: {
       ESTUDIANTE: 'Estudiante',

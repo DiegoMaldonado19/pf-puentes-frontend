@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, inject, Input, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { TEXTOS } from '../../../../shared/textos';
+import { TEXTOS } from '../../../shared/textos';
 import { FormularioService } from '../../formulario/formulario.service';
 import { FormularioVersionDTO } from '../../formulario/modelos';
 
@@ -19,7 +19,7 @@ import { FormularioVersionDTO } from '../../formulario/modelos';
           <button (click)="cancelar.emit()" class="text-gray-400 hover:text-gray-600">✕</button>
         </div>
 
-        <div class="p-3 bg-amber-50 border border-amber-200 rounded-xl text-amber-900 text-xs leading-relaxed">
+        <div class="p-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-xl text-amber-900 dark:text-amber-200 text-xs leading-relaxed">
           ⚠️ <strong>{{ textos.advertenciaInmutable }}</strong>
         </div>
 
@@ -27,14 +27,14 @@ import { FormularioVersionDTO } from '../../formulario/modelos';
           <label class="block text-sm font-semibold text-gray-900 dark:text-white">
             {{ textos.declararMapeo }}
           </label>
-          <p class="text-xs text-gray-500">
-            Define equivalencias JSON para conservar la comparabilidad histórica (ej. {"antiguo_campo": "nuevo_campo"}).
+          <p class="text-xs text-gray-600 dark:text-gray-300">
+            Define equivalencias JSON para conservar la comparabilidad histórica (ej. &#123;&quot;antiguo_campo&quot;: &quot;nuevo_campo&quot;&#125;).
           </p>
           <textarea
             [(ngModel)]="mapeoJson"
             rows="4"
             class="w-full px-3 py-2 text-xs font-mono rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
-            placeholder='{"subestructura.viga_1": "subestructura.viga_entrada"}'>
+            [placeholder]="'{\&quot;subestructura.viga_1\&quot;: \&quot;subestructura.viga_entrada\&quot;}'">
           </textarea>
           @if (errorFormato) {
             <p class="text-xs text-rose-600 font-semibold">{{ errorFormato }}</p>
@@ -46,7 +46,7 @@ import { FormularioVersionDTO } from '../../formulario/modelos';
             type="button"
             (click)="cancelar.emit()"
             [disabled]="publicando"
-            class="px-4 py-2 text-sm font-medium rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50">
+            class="px-4 py-2 text-sm font-medium rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700">
             {{ textos.cancelar }}
           </button>
           <button
