@@ -35,6 +35,11 @@ describe('guardias de sesión y rol', () => {
           { path: 'login', component: Vacio, canActivate: [visitanteGuard] },
           { path: 'perfil', component: Vacio, canActivate: [sesionGuard] },
           { path: 'admin/usuarios', component: Vacio, canActivate: [rolGuard('ADMINISTRADOR')] },
+          {
+            path: 'admin/invitaciones',
+            component: Vacio,
+            canActivate: [rolGuard('ADMINISTRADOR')],
+          },
           { path: 'puentes', component: Vacio },
           {
             path: 'puentes/nuevo',
@@ -71,6 +76,12 @@ describe('guardias de sesión y rol', () => {
   it('manda al estudiante que entra a /admin/usuarios de vuelta al mapa', async () => {
     await entrar('ESTUDIANTE');
     await router.navigateByUrl('/admin/usuarios');
+    expect(router.url).toBe('/puentes');
+  });
+
+  it('manda al estudiante que entra a /admin/invitaciones de vuelta al mapa', async () => {
+    await entrar('ESTUDIANTE');
+    await router.navigateByUrl('/admin/invitaciones');
     expect(router.url).toBe('/puentes');
   });
 
