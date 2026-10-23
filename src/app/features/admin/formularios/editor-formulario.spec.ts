@@ -83,4 +83,58 @@ describe('EditorFormulario', () => {
     expect(botonVistaPrevia).toBeTruthy();
     expect(botonVistaPrevia?.classList.contains('text-blue-600')).toBe(true);
   });
+
+  it('debe validar la sintaxis en tiempo real al escribir JSON inválido sin necesidad de guardar', () => {
+    const fixture = TestBed.createComponent(EditorFormulario);
+    fixture.detectChanges();
+
+    // Estado inicial válido desde el esquema mock
+    expect(fixture.componentInstance.errorSintaxis).toBe('');
+    const badgeValidoInicial = fixture.nativeElement.querySelector('.text-emerald-600');
+    expect(badgeValidoInicial).toBeTruthy();
+    expect(badgeValidoInicial.textContent).toContain('Sintaxis JSON válida');
+
+    // Simular escritura de JSON incompleto/inválido en tiempo real
+    const textarea: HTMLTextAreaElement = fixture.nativeElement.querySelector('textarea');
+    textarea.value = '{ "title": "Incompleto", ';
+    textarea.dispatchEvent(new Event('input'));
+    fixture.componentInstance.validarSintaxis(textarea.value);
+    fixture.detectChanges();
+
+    // Verificación inmediata de error sintáctico sin presionar guardar
+    expect(fixture.componentInstance.errorSintaxis).toBeTruthy();
+    expect(fixture.componentInstance.errorSintaxis).toContain('Sintaxis JSON inválida');
+
+    const mensajeError = fixture.nativeElement.querySelector('.text-rose-600');
+    expect(mensajeError).toBeTruthy();
+    expect(mensajeError.textContent).toContain('Sintaxis JSON inválida');
+
+    // El botón guardar borrador debe quedar deshabilitado
+    const botones: HTMLButtonElement[] = fixture.nativeElement.querySelectorAll('button');
+    const botonGuardar = Array.from(botones).find((b) => b.textContent?.includes('Guardar borrador'));
+    expect(botonGuardar?.disabled).toBe(true);
+  });
+
+  it('debe restablecer la validación en tiempo real cuando el JSON se corrige', () => {
+    const fixture = TestBed.createComponent(EditorFormulario);
+    fixture.detectChanges();
+
+    // Poner primero un error
+    fixture.componentInstance.validarSintaxis('{ error de sintaxis ');
+    fixture.detectChanges();
+    expect(fixture.componentInstance.errorSintaxis).toBeTruthy();
+
+    // Corregir el JSON en tiempo real
+    fixture.componentInstance.validarSintaxis(JSON.stringify({ title: 'Válido', type: 'object' }));
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.errorSintaxis).toBe('');
+    const badgeValido = fixture.nativeElement.querySelector('.text-emerald-600');
+    expect(badgeValido).toBeTruthy();
+    expect(badgeValido.textContent).toContain('Sintaxis JSON válida');
+
+    const botones: HTMLButtonElement[] = fixture.nativeElement.querySelectorAll('button');
+    const botonGuardar = Array.from(botones).find((b) => b.textContent?.includes('Guardar borrador'));
+    expect(botonGuardar?.disabled).toBe(false);
+  });
 });

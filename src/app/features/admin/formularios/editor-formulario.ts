@@ -31,7 +31,7 @@ import { ModalPublicar } from './modal-publicar';
             <button
               type="button"
               (click)="guardar()"
-              [disabled]="guardando"
+              [disabled]="guardando || !!errorSintaxis"
               class="px-5 py-2.5 bg-blue-600 text-white font-semibold text-sm rounded-xl hover:bg-blue-700 shadow-sm disabled:opacity-50 transition-colors">
               {{ guardando ? 'Guardando…' : textos.guardarBorrador }}
             </button>
@@ -40,7 +40,7 @@ import { ModalPublicar } from './modal-publicar';
               <button
                 type="button"
                 (click)="abrirPublicar()"
-                [disabled]="guardando"
+                [disabled]="guardando || !!errorSintaxis"
                 class="px-5 py-2.5 bg-emerald-600 text-white font-semibold text-sm rounded-xl hover:bg-emerald-700 shadow-sm disabled:opacity-50 transition-colors">
                 {{ textos.publicarBorrador }}
               </button>
@@ -118,15 +118,33 @@ import { ModalPublicar } from './modal-publicar';
                 Estructura JSON Schema (Draft 7)
               </label>
               @if (errorSintaxis) {
-                <span class="text-xs text-rose-600 font-bold">{{ errorSintaxis }}</span>
+                <span class="text-xs text-rose-600 dark:text-rose-400 font-bold flex items-center gap-1">
+                  <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span>{{ errorSintaxis }}</span>
+                </span>
+              } @else if (esquemaCompilado) {
+                <span class="text-xs text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
+                  <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span>{{ textos.sintaxisValida }}</span>
+                </span>
               }
             </div>
             <textarea
-              [(ngModel)]="esquemaJsonTexto"
-              (input)="errorSintaxis = ''"
+              [ngModel]="esquemaJsonTexto"
+              (ngModelChange)="validarSintaxis($event)"
               [readOnly]="esSoloLectura"
               rows="22"
-              class="w-full px-4 py-3 text-xs font-mono rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 font-medium leading-relaxed">
+              class="w-full px-4 py-3 text-xs font-mono rounded-xl border bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white font-medium leading-relaxed transition-colors focus:outline-none"
+              [class.border-rose-500]="!!errorSintaxis"
+              [class.focus:ring-2]="true"
+              [class.focus:ring-rose-500]="!!errorSintaxis"
+              [class.border-gray-300]="!errorSintaxis"
+              [class.dark:border-gray-600]="!errorSintaxis"
+              [class.focus:ring-blue-500]="!errorSintaxis">
             </textarea>
           </div>
         </div>
@@ -197,16 +215,43 @@ export class EditorFormulario implements OnInit {
     }
   }
 
+  validarSintaxis(nuevoTexto?: string): void {
+    if (nuevoTexto !== undefined) {
+      this.esquemaJsonTexto = nuevoTexto;
+    }
+    const texto = this.esquemaJsonTexto?.trim() ?? '';
+    if (!texto) {
+      this.errorSintaxis = this.textos.esquemaVacio;
+      this.esquemaCompilado = undefined;
+      this.cdr.markForCheck();
+      return;
+    }
+    try {
+      const parsed = JSON.parse(texto);
+      if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+        this.errorSintaxis = this.textos.esquemaRaizObjeto;
+        this.esquemaCompilado = undefined;
+        this.cdr.markForCheck();
+        return;
+      }
+      this.errorSintaxis = '';
+      this.esquemaCompilado = parsed;
+    } catch (e: unknown) {
+      const detalle = e instanceof Error ? e.message : '';
+      this.errorSintaxis = detalle
+        ? `${this.textos.errorSintaxis} (${detalle})`
+        : this.textos.errorSintaxis;
+      this.esquemaCompilado = undefined;
+    }
+    this.cdr.markForCheck();
+  }
+
   cargarEsquemaActivoComoBase(): void {
     this.formularioService.obtenerActivo().subscribe({
       next: (activa) => {
         if (activa?.esquema) {
           this.esquemaJsonTexto = JSON.stringify(activa.esquema, null, 2);
-          try {
-            this.esquemaCompilado = JSON.parse(this.esquemaJsonTexto);
-          } catch {
-            // Ignorar
-          }
+          this.validarSintaxis();
         } else {
           this.usarPlantillaMinima();
         }
@@ -249,11 +294,7 @@ export class EditorFormulario implements OnInit {
       null,
       2,
     );
-    try {
-      this.esquemaCompilado = JSON.parse(this.esquemaJsonTexto);
-    } catch {
-      // Ignorar
-    }
+    this.validarSintaxis();
   }
 
   cargarVersion(id: string): void {
@@ -262,11 +303,7 @@ export class EditorFormulario implements OnInit {
         this.version = v;
         this.codigo = v.codigo;
         this.esquemaJsonTexto = JSON.stringify(v.esquema, null, 2);
-        try {
-          this.esquemaCompilado = JSON.parse(this.esquemaJsonTexto);
-        } catch {
-          // Ignorar
-        }
+        this.validarSintaxis();
         this.cdr.markForCheck();
       },
       error: () => {
@@ -277,12 +314,11 @@ export class EditorFormulario implements OnInit {
   }
 
   actualizarVistaPrevia(): void {
-    try {
-      this.esquemaCompilado = JSON.parse(this.esquemaJsonTexto);
-      this.errorSintaxis = '';
+    this.validarSintaxis();
+    if (!this.errorSintaxis && this.esquemaCompilado) {
       this.tabActiva = 'preview';
-    } catch {
-      this.errorSintaxis = 'Sintaxis JSON inválida. Corrígela antes de abrir la vista previa.';
+    } else if (!this.errorSintaxis) {
+      this.errorSintaxis = this.textos.corregirAntesDePrevia;
     }
     this.cdr.markForCheck();
   }
@@ -298,13 +334,11 @@ export class EditorFormulario implements OnInit {
   }
 
   guardar(): void {
-    let parsed: EsquemaFormulario;
-    try {
-      parsed = JSON.parse(this.esquemaJsonTexto);
-    } catch {
-      this.errorSintaxis = 'Sintaxis JSON inválida.';
+    this.validarSintaxis();
+    if (this.errorSintaxis || !this.esquemaCompilado) {
       return;
     }
+    const parsed = this.esquemaCompilado;
 
     this.guardando = true;
     this.errorGeneral = '';

@@ -771,6 +771,11 @@ export const TEXTOS = {
       declararMapeo: 'Declarar mapeo de campos respecto a la versión anterior',
       guardarBorrador: 'Guardar borrador',
       cancelar: 'Cancelar',
+      sintaxisValida: 'Sintaxis JSON válida',
+      errorSintaxis: 'Sintaxis JSON inválida.',
+      esquemaVacio: 'El esquema JSON no puede estar vacío.',
+      esquemaRaizObjeto: 'El esquema raíz debe ser un objeto JSON.',
+      corregirAntesDePrevia: 'Sintaxis JSON inválida. Corrígela antes de abrir la vista previa.',
     },
   },
 } as const;

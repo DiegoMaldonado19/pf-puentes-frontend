@@ -37,15 +37,18 @@ El módulo de Frontend de P4 resuelve el desafío central de la evaluación: **e
 Componente reutilizable en `src/app/features/formulario/motor-formulario/`:
 * Usado por **P5 (Inspecciones)** en modo `'edicion'` para levantar evaluaciones en campo.
 * Usado por **P7 (Revisión)**, **P9 (Foro)** e impresión en modo `'lectura'` para auditoría y visualización.
+* **Soporte Dinámico de Listas (`FormArray`):** Procesa secciones de tipo arreglo (como Sección 3 de Tramos Individuales), permitiendo agregar y eliminar tramos dinámicamente con renumeración correlativa automática.
+* **Ordenamiento Canónico de Pestañas:** Implementa `calcularOrdenSeccion()` para garantizar la secuencia estricta 1 a 8 independientemente de la reordenación interna de PostgreSQL `jsonb`.
+* **Emisión Íntegra:** Emite `formGroup.getRawValue()` para que los campos de inventario permanente (P3) deshabilitados permanezcan en el objeto final.
 
 ### 2.2 Vistas Administrativas del Formulario
 * **Navegación:** Enlace directo **Formularios** en la cabecera principal (`app.html`), visible exclusivamente para usuarios con rol `ADMINISTRADOR`.
 * **Listado de Versiones (`/admin/formularios`):** Visualización reactiva con `signal()` de versiones vigentes (`ACTIVA`), borradores (`BORRADOR`) y retiradas (`RETIRADA`). Incluye botón de publicación rápida de borradores.
 * **Editor de Esquemas (`/admin/formularios/nuevo` y `/admin/formularios/:id/editar`):**
-  * Editor JSON Schema en tiempo real con validación sintáctica.
-  * Precarga automática del formulario oficial activo (V1.0.0 con 8 secciones) al crear nuevas versiones.
-  * Botón directo de publicación inmutable con modal de mapeo (`RN-FRM-06`).
-  * Pestaña de **Vista Previa en Vivo** renderizada dinámicamente mediante `<app-motor-formulario>`.
+  * **Validación de sintaxis en tiempo real:** Evaluación reactiva continua en cada pulsación (`(ngModelChange)="validarSintaxis($event)"`) en el `<textarea>` del JSON Schema. Provee retroalimentación visual inmediata con mensaje descriptivo de la falla (`errorSintaxis`), contorno de advertencia (`border-rose-500`) e insignia de confirmación (`✓ Sintaxis JSON válida`) al normalizarse. Deshabilita reactivamente los botones "Guardar borrador" y "Publicar como ACTIVA" mientras persistan errores sintácticos.
+  * **Precarga oficial:** Carga automática del esquema activo oficial (V1.0.0 con 8 secciones) al inicializar nuevas versiones.
+  * **Publicación inmutable directa:** Modal de mapeo de campos (`RN-FRM-06`) integrado desde la barra superior de acciones.
+  * **Vista Previa en Vivo:** Pestaña interactiva sincronizada que compila el esquema y lo renderiza mediante `<app-motor-formulario>`, exigiendo sintaxis válida previa.
 * **Modal de Publicación (`modal-publicar.ts`):** Confirmación de inmutabilidad y declaración de equivalencias JSON (`{"antiguo": "nuevo"}`) para comparabilidad histórica.
 
 ---
@@ -69,7 +72,11 @@ Componente reutilizable en `src/app/features/formulario/motor-formulario/`:
   </div>
   ```
 * **Botón "Sin daños en este elemento" (RN-INS-11):**
-  Para cada grupo con metadato `x-grupo`, el motor provee un botón rápido que asigna calificación `0` a todos los campos de daño pertenecientes al grupo.
+  Para cada grupo con metadato `x-grupo` (e.g. estribos, pilas, cimentación, vigas, losa, etc.), el motor provee un botón rápido contextual que asigna calificación `0` exclusivamente a los campos de daño pertenecientes a dicho grupo.
+* **Insignia de Anulación Crítica (`x-anulacion-critica`):**
+  Identifica visualmente mediante una insignia de advertencia (`rose-100`) aquellos campos de daño que activan las 4 anulaciones críticas de P8 (socavación, asentamiento, elemento cortado, ausencia).
+* **Unidades Físicas y Textareas:**
+  Los campos numéricos con metadato `x-unidad` muestran su unidad fija (`m`, `km`) y padding `pr-12`. Los campos de observaciones y recomendaciones se renderizan como `<textarea rows="3">`.
 
 ---
 
@@ -94,3 +101,7 @@ Componente reutilizable en `src/app/features/formulario/motor-formulario/`:
    Uso de `rolGuard` y `sesionGuard` desde `src/app/core/auth/`.
 3. **Mapeo de Errores ProblemDetail (RFC 7807):**
    Integración con `src/app/core/errores/problema.ts`: cuando el backend retorna `422`, los errores del arreglo `errores[].campo` se asocian directamente al `FormControl` correspondiente mediante su ruta semántica.
+4. **Pruebas Automatizadas del Módulo:**
+   * `control-dano.spec.ts` (5 pruebas): Botones táctiles de calificación de daño ≥ 44×44 px, estados deshabilitados y `ControlValueAccessor`.
+   * `motor-formulario.spec.ts` (7 pruebas): Renderizado dinámico, `FormArray` de tramos (agregar, eliminar, renumeración), agrupación de daños `x-grupo`, botón "Sin daños en este elemento", badges de `x-anulacion-critica` y emisión con `getRawValue()`.
+   * `editor-formulario.spec.ts` (4 pruebas): Navegación entre editor y vista previa en vivo, validación de sintaxis en tiempo real al tipear con reporte inmediato de errores, restablecimiento reactivo al corregir JSON y bloqueo del botón "Guardar borrador".
