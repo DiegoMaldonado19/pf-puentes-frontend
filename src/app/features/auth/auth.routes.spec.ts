@@ -15,6 +15,7 @@ describe('rutas de P2', () => {
 
   it('declara las rutas de administración junto a pesos, sin sustituirlas', () => {
     expect(RUTAS_ADMIN.map((ruta) => ruta.path)).toEqual([
+      'pesos',
       'invitaciones',
       'usuarios',
       'usuarios/:id',

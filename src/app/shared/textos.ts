@@ -269,6 +269,18 @@ export const TEXTOS = {
     prioridades: { ALTA: 'Alta', MEDIA: 'Media', BAJA: 'Baja' },
   },
   pesos: {
+    acceso: {
+      titulo: 'Consulta administrativa de pesos',
+      cargando: 'Cargando versiones con pesos guardados…',
+      descripcion:
+        'Selecciona una versión del formulario para consultar sus juegos y pesos históricos. Esta consulta no modifica configuraciones ni acredita su calibración.',
+      tabla: 'Versiones con juegos de pesos guardados',
+      codigo: 'Código de versión del formulario',
+      consultar: 'Consultar juegos',
+      vacia: 'Todavía no hay versiones del formulario con juegos de pesos guardados.',
+      paginacion: 'Páginas de versiones con pesos',
+      actualizar: 'Actualizar versiones',
+    },
     titulo: 'Pesos del índice de condición',
     descripcion: 'Consulta los juegos de pesos de la versión seleccionada del formulario.',
     juegos: 'Juegos de pesos',

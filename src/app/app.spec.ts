@@ -81,6 +81,7 @@ describe('App', () => {
       '/puentes',
       '/puentes/mapa',
       '/perfil',
+      '/admin/pesos',
       '/admin/usuarios',
       '/admin/invitaciones',
       '/admin/auditoria',

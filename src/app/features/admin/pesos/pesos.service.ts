@@ -1,13 +1,20 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { JuegoPesosDTO, PaginaPesosDTO, PesoElementoDTO } from './modelos';
+import { FormularioConPesosDTO, JuegoPesosDTO, PaginaPesosDTO, PesoElementoDTO } from './modelos';
 
 /** Consume la API administrativa real; la sesión corresponde a los interceptores globales de P2. */
 @Injectable({ providedIn: 'root' })
 export class PesosService {
   private readonly http = inject(HttpClient);
   private readonly base = '/api/v1';
+
+  listarFormularios(page = 0, size = 20): Observable<PaginaPesosDTO<FormularioConPesosDTO>> {
+    return this.http.get<PaginaPesosDTO<FormularioConPesosDTO>>(
+      `${this.base}/juegos-pesos/formularios`,
+      { params: { page, size } },
+    );
+  }
 
   listarJuegos(
     formularioVersionId: string,

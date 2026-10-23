@@ -1,4 +1,9 @@
 /** Contrato de lectura de HU-P8-IC-04; nombres iguales al JSON del backend. */
+export interface FormularioConPesosDTO {
+  readonly id: string;
+  readonly codigo: string;
+}
+
 export interface JuegoPesosDTO {
   readonly id: string;
   readonly formulario_version_id: string;
