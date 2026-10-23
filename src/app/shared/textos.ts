@@ -1,6 +1,20 @@
 // DT-FE-12: los textos de la interfaz viven aquí para poder traducirla sin tocar las plantillas
 export const TEXTOS = {
   mantenimiento: {
+    gestion: {
+      titulo: 'Mantenimiento del puente',
+      cargando: 'Cargando el puente…',
+      sinAcceso:
+        'Se requiere una sesión de Catedrático o Administrador para consultar mantenimiento.',
+      noPuente: 'El puente solicitado no existe.',
+      error: 'No se pudo cargar el puente. Comprueba tu sesión y vuelve a intentar.',
+      reintentar: 'Volver a cargar el puente',
+      volver: 'Volver a la ficha del puente',
+      navegacion: 'Consultas de mantenimiento',
+      ordenes: 'Historial y seguimiento anual',
+      propuestas: 'Propuestas pendientes',
+      guardando: 'Guardando la operación. Espera el resultado antes de cambiar de vista o salir.',
+    },
     rutinarioAnual: {
       titulo: 'Seguimiento rutinario anual',
       evaluacion: 'Fecha de evaluación',
@@ -353,6 +367,7 @@ export const TEXTOS = {
       atribucion: '© OpenStreetMap contributors',
     },
     ficha: {
+      mantenimiento: 'Gestionar mantenimiento',
       volver: 'Volver al inventario',
       cargando: 'Cargando puente…',
       editar: 'Editar',

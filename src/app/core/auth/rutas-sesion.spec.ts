@@ -8,6 +8,7 @@ describe('rutaExigeSesion', () => {
     expect(rutaExigeSesion('/puentes/solicitudes')).toBe(true);
     expect(rutaExigeSesion('/puentes/solicitudes/nueva')).toBe(true);
     expect(rutaExigeSesion('/puentes/abc/editar')).toBe(true);
+    expect(rutaExigeSesion('/puentes/abc/mantenimiento?page=1')).toBe(true);
   });
 
   it('deja públicos inventario, mapa, ficha y la puerta', () => {

@@ -1,5 +1,14 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, computed, effect, inject, input, linkedSignal, output } from '@angular/core';
+import {
+  Component,
+  computed,
+  effect,
+  inject,
+  input,
+  linkedSignal,
+  output,
+  viewChild,
+} from '@angular/core';
 import { BandejaPropuestas } from './bandeja-propuestas';
 import { MantenimientoService } from './mantenimiento.service';
 import {
@@ -29,6 +38,8 @@ export class ConsultaPropuestas {
   readonly puedeConsultar = input.required<boolean>();
   readonly puedeAceptar = input.required<boolean>();
   readonly aceptada = output<OrdenMantenimientoDTO>();
+  private readonly bandeja = viewChild(BandejaPropuestas);
+  readonly operacionPendiente = computed(() => this.bandeja()?.operacionPendiente() ?? false);
   private readonly servicio = inject(MantenimientoService);
   private readonly contexto = computed(() => ({
     puente: this.puenteId(),

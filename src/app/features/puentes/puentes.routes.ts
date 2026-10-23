@@ -1,8 +1,18 @@
 import { Routes } from '@angular/router';
 import { rolGuard } from '../../core/auth/rol.guard';
+import type { GestionMantenimiento } from '../mantenimiento/gestion-mantenimiento';
+import { TEXTOS } from '../../shared/textos';
 
 /** RN-USR-10: alta, edición y solicitudes piden sesión y rol. El backend igual rechaza 401/403. */
 const RUTAS_PRIVADAS: Routes = [
+  {
+    path: ':id/mantenimiento',
+    title: TEXTOS.mantenimiento.gestion.titulo,
+    canActivate: [rolGuard('ADMINISTRADOR', 'CATEDRATICO')],
+    canDeactivate: [(componente: GestionMantenimiento) => !componente.operacionPendiente()],
+    loadComponent: () =>
+      import('../mantenimiento/gestion-mantenimiento').then((m) => m.GestionMantenimiento),
+  },
   {
     path: 'nuevo',
     data: { roles: ['ADMINISTRADOR'], modo: 'alta' },
