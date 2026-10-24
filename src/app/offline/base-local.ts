@@ -19,6 +19,12 @@ export class BaseLocal extends Dexie {
   cola_sync!: Table<Operacion, string>;
   bloqueos!: Table<Bloqueo, string>;
   constructor(nombre = 'puentes-offline') {
+    if (typeof indexedDB !== 'undefined' && !Dexie.dependencies.indexedDB) {
+      Dexie.dependencies.indexedDB = indexedDB;
+    }
+    if (typeof IDBKeyRange !== 'undefined' && !Dexie.dependencies.IDBKeyRange) {
+      Dexie.dependencies.IDBKeyRange = IDBKeyRange;
+    }
     super(nombre);
     this.version(1).stores(ALMACENES_V1);
     this.version(2).stores({ ...ALMACENES_V1, bloqueos: 'propietario_id' });

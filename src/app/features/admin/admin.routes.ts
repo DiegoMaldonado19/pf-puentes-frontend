@@ -23,4 +23,19 @@ export const RUTAS_ADMIN: Routes = [
     title: TEXTOS.admin.auditoria.titulo,
     loadComponent: () => import('./auditoria/auditoria').then((m) => m.Auditoria),
   },
+  {
+    path: 'formularios',
+    title: TEXTOS.formulario.admin.titulo,
+    loadComponent: () => import('./formularios/listado-versiones').then((m) => m.ListadoVersiones),
+  },
+  {
+    path: 'formularios/nuevo',
+    title: TEXTOS.formulario.admin.nuevaVersion,
+    loadComponent: () => import('./formularios/editor-formulario').then((m) => m.EditorFormulario),
+  },
+  {
+    path: 'formularios/:id/editar',
+    title: TEXTOS.formulario.admin.editarBorrador,
+    loadComponent: () => import('./formularios/editor-formulario').then((m) => m.EditorFormulario),
+  },
 ];

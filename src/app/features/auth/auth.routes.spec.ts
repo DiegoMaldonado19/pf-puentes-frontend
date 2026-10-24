@@ -19,6 +19,9 @@ describe('rutas de P2', () => {
       'usuarios',
       'usuarios/:id',
       'auditoria',
+      'formularios',
+      'formularios/nuevo',
+      'formularios/:id/editar',
     ]);
   });
 });
