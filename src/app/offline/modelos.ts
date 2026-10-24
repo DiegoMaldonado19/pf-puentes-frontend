@@ -73,6 +73,8 @@ export interface TransporteSync {
 export interface SesionOffline {
   propietarioActual(): string | null;
   preparar(propietario_id: string): Promise<boolean>;
+  /** Cancela ejecución remota; no elimina capturas ni operaciones. */
+  alInvalidar?(cancelar: () => void): () => void;
 }
 export interface ReferenciaOffline {
   consultar(

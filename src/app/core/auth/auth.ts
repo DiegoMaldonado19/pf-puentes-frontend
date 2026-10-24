@@ -1,10 +1,15 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { catchError, map, Observable, of, shareReplay, tap } from 'rxjs';
+import { catchError, defer, map, Observable, of, shareReplay, Subject, tap } from 'rxjs';
 import { Rol, SesionDTO, UsuarioSesionDTO } from './modelos';
 
 const API_AUTH = '/api/v1/auth';
+
+export interface EventoSesion {
+  tipo: 'login' | 'cierre' | 'cambio' | 'red' | 'invalida';
+  propietario_id: string | null;
+}
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -18,6 +23,10 @@ export class AuthService {
     () => this.rol() === 'ADMINISTRADOR' || this.rol() === 'CATEDRATICO',
   );
   readonly listo = signal(false);
+  private readonly eventos = new Subject<EventoSesion>();
+  /** Eventos síncronos; acceso local y autorización remota son responsabilidades separadas. */
+  readonly eventosSesion = this.eventos.asObservable();
+  private generacion = 0;
   private renovacion: Observable<SesionDTO | null> | null = null;
   private hidratacion: Observable<void> | null = null;
 
@@ -28,26 +37,40 @@ export class AuthService {
         { correo: correo.trim().toLowerCase(), contrasena },
         { withCredentials: true },
       )
-      .pipe(tap((sesion) => this.guardar(sesion)));
+      .pipe(
+        tap((sesion) => {
+          this.guardar(sesion);
+          this.eventos.next({ tipo: 'login', propietario_id: sesion.usuario.id });
+        }),
+      );
   }
 
   renovar(): Observable<SesionDTO | null> {
     if (!this.renovacion) {
-      this.renovacion = this.http
+      const generacion = this.generacion;
+      const renovacion = this.http
         .post<SesionDTO>(`${API_AUTH}/renovar`, {}, { withCredentials: true })
         .pipe(
-          tap((sesion) => this.guardar(sesion)),
-          catchError(() => {
-            this.cerrarSesionLocal();
+          map((sesion) => {
+            if (generacion !== this.generacion) return null;
+            this.guardar(sesion);
+            return sesion;
+          }),
+          catchError((error: unknown) => {
+            if (generacion === this.generacion)
+              this.invalidar(
+                error instanceof HttpErrorResponse && error.status === 0 ? 'red' : 'invalida',
+              );
             return of(null);
           }),
           tap({
             complete: () => {
-              this.renovacion = null;
+              if (this.renovacion === renovacion) this.renovacion = null;
             },
           }),
           shareReplay(1),
         );
+      this.renovacion = renovacion;
     }
     return this.renovacion;
   }
@@ -70,17 +93,27 @@ export class AuthService {
   }
 
   cerrarSesion(): Observable<void> {
-    return this.http.post(`${API_AUTH}/cerrar-sesion`, {}, { withCredentials: true }).pipe(
-      catchError(() => of(null)),
-      tap(() => this.cerrarSesionLocal()),
-      tap(() => void this.router.navigateByUrl('/puentes')),
-      map(() => undefined),
-    );
+    return defer(() => {
+      this.cerrarSesionLocal();
+      return this.http.post(`${API_AUTH}/cerrar-sesion`, {}, { withCredentials: true }).pipe(
+        catchError(() => of(null)),
+        tap(() => void this.router.navigateByUrl('/puentes')),
+        map(() => undefined),
+      );
+    });
   }
 
   cerrarSesionLocal(): void {
+    this.invalidar('cierre');
+  }
+
+  private invalidar(tipo: EventoSesion['tipo']): void {
+    const propietario_id = this.usuario()?.id ?? null;
+    this.generacion++;
+    this.renovacion = null;
     this.accessToken.set(null);
     this.usuario.set(null);
+    this.eventos.next({ tipo, propietario_id });
   }
 
   destinoTrasLogin(): string {
@@ -88,6 +121,12 @@ export class AuthService {
   }
 
   private guardar(sesion: SesionDTO): void {
+    const anterior = this.usuario()?.id;
+    // Un login también invalida renovaciones previas, aunque sea del mismo propietario.
+    this.generacion++;
+    this.renovacion = null;
+    if (anterior && anterior !== sesion.usuario.id)
+      this.eventos.next({ tipo: 'cambio', propietario_id: anterior });
     this.accessToken.set(sesion.access_token);
     this.usuario.set(sesion.usuario);
     this.listo.set(true);
