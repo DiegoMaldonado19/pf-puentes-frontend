@@ -2,7 +2,8 @@
 
 Ubicación del módulo: `src/app/features/formulario`.  
 Reglas de negocio asociadas: **RN-FRM-01**, **RN-FRM-05**, **RN-FRM-07**, **RN-FRM-08**.  
-Directrices técnicas: **DT-FE-07** (generación dinámica desde JSON Schema), **DT-FE-08** (`ReactiveFormsModule` dinámico), **DT-FE-09** (controles táctiles ≥ 44×44 px), **DT-FE-12** (`textos.ts`), **DT-OFF-01**.
+Directrices técnicas: **DT-FE-07** (generación dinámica desde JSON Schema), **DT-FE-08** (`ReactiveFormsModule` dinámico), **DT-FE-09** (controles táctiles ≥ 44×44 px), **DT-FE-12** (`textos.ts`), **DT-OFF-01**.  
+📋 **Guía de Verificación Interactiva con Casillas y Payloads:** [docs-analisis/guia-interaccion-y-pruebas-p4.md](../../../docs-analisis/guia-interaccion-y-pruebas-p4.md).
 
 ---
 
@@ -101,7 +102,10 @@ Componente reutilizable en `src/app/features/formulario/motor-formulario/`:
    Uso de `rolGuard` y `sesionGuard` desde `src/app/core/auth/`.
 3. **Mapeo de Errores ProblemDetail (RFC 7807):**
    Integración con `src/app/core/errores/problema.ts`: cuando el backend retorna `422`, los errores del arreglo `errores[].campo` se asocian directamente al `FormControl` correspondiente mediante su ruta semántica.
-4. **Pruebas Automatizadas del Módulo:**
-   * `control-dano.spec.ts` (5 pruebas): Botones táctiles de calificación de daño ≥ 44×44 px, estados deshabilitados y `ControlValueAccessor`.
-   * `motor-formulario.spec.ts` (7 pruebas): Renderizado dinámico, `FormArray` de tramos (agregar, eliminar, renumeración), agrupación de daños `x-grupo`, botón "Sin daños en este elemento", badges de `x-anulacion-critica` y emisión con `getRawValue()`.
-   * `editor-formulario.spec.ts` (4 pruebas): Navegación entre editor y vista previa en vivo, validación de sintaxis en tiempo real al tipear con reporte inmediato de errores, restablecimiento reactivo al corregir JSON y bloqueo del botón "Guardar borrador".
+4. **Pruebas Automatizadas del Módulo (27 pruebas pasando):**
+   * `control-dano.spec.ts` (5 pruebas): Botones táctiles de calificación de daño ≥ 44×44 px (`DT-FE-09`), estados deshabilitados y `ControlValueAccessor`.
+   * `motor-formulario.spec.ts` (7 pruebas): Renderizado dinámico (`DT-FE-07`), `FormArray` de tramos (agregar, eliminar, renumeración correlativa), ordenamiento canónico contra PostgreSQL `jsonb`, agrupación de daños `x-grupo`, botón "Sin daños en este elemento" (`RN-INS-11`), badges de `x-anulacion-critica` y emisión segura con `getRawValue()`.
+   * `editor-formulario.spec.ts` (4 pruebas): Navegación entre editor y vista previa en vivo, validación de sintaxis en tiempo real al tipear con reporte inmediato de errores (`errorSintaxis`), restablecimiento reactivo al corregir JSON y bloqueo del botón "Guardar borrador".
+   * `formulario.service.spec.ts` (5 pruebas): Peticiones HTTP tipadas (`GET /activo`, `GET /versiones/:codigo`, `POST /versiones`, `PUT`, `POST /publicar`) y persistencia local en Dexie.js para modo offline (`DT-OFF-01`).
+   * `listado-versiones.spec.ts` (3 pruebas): Carga de versiones, renderizado de badges de estado (`ACTIVA`, `BORRADOR`, `RETIRADA`), botón de publicación condicional sólo en borradores y apertura del modal.
+   * `modal-publicar.spec.ts` (3 pruebas): Modal de publicación, advertencia de inmutabilidad (`RN-FRM-03`), validación de sintaxis del mapeo JSON (`RN-FRM-06`) y emisión al confirmar.

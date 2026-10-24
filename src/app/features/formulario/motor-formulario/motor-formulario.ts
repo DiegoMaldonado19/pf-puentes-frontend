@@ -1,7 +1,9 @@
 import { CommonModule } from '@angular/common';
 import {
+  ChangeDetectorRef,
   Component,
   EventEmitter,
+  inject,
   Input,
   OnChanges,
   OnDestroy,
@@ -57,6 +59,7 @@ export class MotorFormularioComponent implements OnInit, OnChanges, OnDestroy {
   @Output() validoChange = new EventEmitter<boolean>();
 
   readonly textos = TEXTOS.formulario.motor;
+  private cdr = inject(ChangeDetectorRef);
 
   formGroup: FormGroup = new FormGroup({});
   secciones: SeccionMeta[] = [];
@@ -119,6 +122,7 @@ export class MotorFormularioComponent implements OnInit, OnChanges, OnDestroy {
 
     this.datosChange.emit(this.formGroup.getRawValue());
     this.validoChange.emit(this.formGroup.valid);
+    this.cdr.markForCheck();
   }
 
   obtenerControl(seccionClave: string, campoClave: string): FormControl | null {
@@ -154,6 +158,7 @@ export class MotorFormularioComponent implements OnInit, OnChanges, OnDestroy {
     array.markAsDirty();
     this.datosChange.emit(this.formGroup.getRawValue());
     this.validoChange.emit(this.formGroup.valid);
+    this.cdr.markForCheck();
   }
 
   eliminarFilaArray(seccionClave: string, index: number): void {
@@ -172,6 +177,7 @@ export class MotorFormularioComponent implements OnInit, OnChanges, OnDestroy {
     array.markAsDirty();
     this.datosChange.emit(this.formGroup.getRawValue());
     this.validoChange.emit(this.formGroup.valid);
+    this.cdr.markForCheck();
   }
 
   obtenerErrorArray(seccionClave: string, index: number, campoClave: string): string | null {

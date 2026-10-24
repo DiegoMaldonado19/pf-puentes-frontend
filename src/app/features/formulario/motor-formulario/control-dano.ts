@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, forwardRef, Input } from '@angular/core';
+import { ChangeDetectorRef, Component, forwardRef, inject, Input } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { TEXTOS } from '../../../shared/textos';
 
@@ -47,11 +47,13 @@ export class ControlDanoComponent implements ControlValueAccessor {
   readonly valores = [0, 1, 2, 3, 4] as const;
   valorSeleccionado: number | null = null;
 
+  private cdr = inject(ChangeDetectorRef);
   private onChange: (valor: number | null) => void = () => {};
   private onTouched: () => void = () => {};
 
   writeValue(valor: any): void {
     this.valorSeleccionado = valor !== null && valor !== undefined ? Number(valor) : null;
+    this.cdr.markForCheck();
   }
 
   registerOnChange(fn: any): void {
@@ -64,6 +66,7 @@ export class ControlDanoComponent implements ControlValueAccessor {
 
   setDisabledState(isDisabled: boolean): void {
     this.deshabilitado = isDisabled;
+    this.cdr.markForCheck();
   }
 
   seleccionar(valor: number): void {
@@ -71,6 +74,7 @@ export class ControlDanoComponent implements ControlValueAccessor {
     this.valorSeleccionado = valor;
     this.onChange(this.valorSeleccionado);
     this.onTouched();
+    this.cdr.markForCheck();
   }
 
   obtenerDescripcion(valor: number): string {
