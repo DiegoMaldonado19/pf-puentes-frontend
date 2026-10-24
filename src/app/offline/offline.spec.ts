@@ -9,6 +9,9 @@ import { TransporteSimulado } from './demo/transporte-simulado';
 import { TransporteSync } from './modelos';
 import { consultarAlmacenamiento } from './almacenamiento';
 
+Dexie.dependencies.indexedDB = indexedDB;
+Dexie.dependencies.IDBKeyRange = IDBKeyRange;
+
 describe('base offline', () => {
   let db: BaseLocal, local: PersistenciaOffline, transporte: TransporteSimulado, motor: MotorSync;
   const propietario = v7(),
