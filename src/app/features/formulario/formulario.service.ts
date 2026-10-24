@@ -9,6 +9,7 @@ import {
   PublicarFormularioVersionDTO,
 } from './modelos';
 import { BaseLocal } from '../../offline/base-local';
+import { Json, ReferenciaLocal } from '../../offline/modelos';
 
 @Injectable({ providedIn: 'root' })
 export class FormularioService {
@@ -21,13 +22,14 @@ export class FormularioService {
       tap((version) => {
         // Almacena en Dexie para soporte offline (P6)
         try {
-          this.db.esquemas_formulario.put({
+          const ref: ReferenciaLocal = {
             id: version.id,
             propietario_id: 'sistema',
-            referencia_id: version.codigo,
-            payload: version,
-            actualizado_en: new Date().toISOString(),
-          } as any);
+            modelo_version: 1,
+            datos: version as unknown as Json,
+            preparada_en: new Date().toISOString(),
+          };
+          this.db.esquemas_formulario.put(ref);
         } catch {
           // Ignora si falla IndexedDB en entornos donde no esté disponible
         }

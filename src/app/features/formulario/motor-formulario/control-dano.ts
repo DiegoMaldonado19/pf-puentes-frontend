@@ -50,19 +50,19 @@ export class ControlDanoComponent implements ControlValueAccessor {
   valorSeleccionado: number | null = null;
 
   private cdr = inject(ChangeDetectorRef);
-  private onChange: (valor: number | null) => void = () => {};
-  private onTouched: () => void = () => {};
+  private onChange: (valor: number | null) => void = () => undefined;
+  private onTouched: () => void = () => undefined;
 
-  writeValue(valor: any): void {
+  writeValue(valor: unknown): void {
     this.valorSeleccionado = valor !== null && valor !== undefined ? Number(valor) : null;
     this.cdr.markForCheck();
   }
 
-  registerOnChange(fn: any): void {
+  registerOnChange(fn: (valor: number | null) => void): void {
     this.onChange = fn;
   }
 
-  registerOnTouched(fn: any): void {
+  registerOnTouched(fn: () => void): void {
     this.onTouched = fn;
   }
 

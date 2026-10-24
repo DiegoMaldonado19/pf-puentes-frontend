@@ -8,7 +8,7 @@ import { FormularioVersionDTO } from '../../formulario/modelos';
 import { ListadoVersiones } from './listado-versiones';
 
 describe('ListadoVersiones', () => {
-  let formularioServiceMock: any;
+  let formularioServiceMock: Partial<Record<keyof FormularioService, ReturnType<typeof vi.fn>>>;
 
   const versionesMock: FormularioVersionDTO[] = [
     {

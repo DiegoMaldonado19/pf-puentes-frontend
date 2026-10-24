@@ -182,14 +182,16 @@ describe('MotorFormularioComponent', () => {
     });
     fixture.detectChanges();
 
-    let datosEmitidos: any = null;
-    fixture.componentInstance.datosChange.subscribe((d) => (datosEmitidos = d));
+    let datosEmitidos: Record<string, Record<string, unknown>> | null = null;
+    fixture.componentInstance.datosChange.subscribe(
+      (d) => (datosEmitidos = d as Record<string, Record<string, unknown>>),
+    );
 
     // Modificar un campo
     fixture.componentInstance.formGroup.get('subestructura.dano_estribo')?.setValue(1);
 
     expect(datosEmitidos).toBeTruthy();
     // Aunque codigo esté deshabilitado por readOnly, getRawValue lo preserva
-    expect(datosEmitidos.identificacion.codigo).toBe('GT-01-001');
+    expect(datosEmitidos?.['identificacion']?.['codigo']).toBe('GT-01-001');
   });
 });

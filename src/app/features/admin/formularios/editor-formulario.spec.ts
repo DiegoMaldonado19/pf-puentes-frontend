@@ -1,5 +1,5 @@
 import { provideHttpClient } from '@angular/common/http';
-import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { of } from 'rxjs';
@@ -7,7 +7,7 @@ import { FormularioService } from '../../formulario/formulario.service';
 import { EditorFormulario } from './editor-formulario';
 
 describe('EditorFormulario', () => {
-  let formularioServiceMock: any;
+  let formularioServiceMock: Partial<Record<keyof FormularioService, ReturnType<typeof vi.fn>>>;
 
   beforeEach(async () => {
     formularioServiceMock = {

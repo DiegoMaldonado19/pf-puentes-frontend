@@ -115,10 +115,14 @@ import { ModalPublicar } from './modal-publicar';
         >
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-semibold text-gray-800 dark:text-gray-200 mb-1">
+              <label
+                for="codigo-version-input"
+                class="block text-sm font-semibold text-gray-800 dark:text-gray-200 mb-1"
+              >
                 {{ textos.codigo }}
               </label>
               <input
+                id="codigo-version-input"
                 type="text"
                 [(ngModel)]="codigo"
                 [readOnly]="!esNuevo"
@@ -131,7 +135,10 @@ import { ModalPublicar } from './modal-publicar';
 
           <div>
             <div class="flex items-center justify-between mb-1">
-              <label class="block text-sm font-semibold text-gray-800 dark:text-gray-200">
+              <label
+                for="esquema-json-editor"
+                class="block text-sm font-semibold text-gray-800 dark:text-gray-200"
+              >
                 Estructura JSON Schema (Draft 7)
               </label>
               @if (errorSintaxis) {
@@ -175,6 +182,7 @@ import { ModalPublicar } from './modal-publicar';
               }
             </div>
             <textarea
+              id="esquema-json-editor"
               [ngModel]="esquemaJsonTexto"
               (ngModelChange)="validarSintaxis($event)"
               [readOnly]="esSoloLectura"

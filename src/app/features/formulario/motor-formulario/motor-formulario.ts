@@ -12,6 +12,7 @@ import {
   SimpleChanges,
 } from '@angular/core';
 import {
+  AbstractControl,
   FormArray,
   FormControl,
   FormGroup,
@@ -51,11 +52,11 @@ export interface SeccionMeta {
 })
 export class MotorFormularioComponent implements OnInit, OnChanges, OnDestroy {
   @Input({ required: true }) esquema!: EsquemaFormulario;
-  @Input() datos: Record<string, any> = {};
+  @Input() datos: Record<string, unknown> = {};
   @Input() modo: ModoFormulario = 'edicion';
   @Input() erroresServidor: Record<string, string> = {};
 
-  @Output() datosChange = new EventEmitter<Record<string, any>>();
+  @Output() datosChange = new EventEmitter<Record<string, unknown>>();
   @Output() validoChange = new EventEmitter<boolean>();
 
   readonly textos = TEXTOS.formulario.motor;
@@ -197,7 +198,7 @@ export class MotorFormularioComponent implements OnInit, OnChanges, OnDestroy {
     return null;
   }
 
-  crearFormGroupItemArray(seccion: SeccionMeta, valoresItem?: Record<string, any>): FormGroup {
+  crearFormGroupItemArray(seccion: SeccionMeta, valoresItem?: Record<string, unknown>): FormGroup {
     const controlesItem: Record<string, FormControl> = {};
 
     for (const prop of seccion.itemPropiedades) {
@@ -350,10 +351,12 @@ export class MotorFormularioComponent implements OnInit, OnChanges, OnDestroy {
     // Ordenar las secciones para que se muestren estrictamente en orden 1 a 8
     this.secciones.sort((a, b) => a.orden - b.orden);
 
-    const grupoRaiz: Record<string, any> = {};
+    const grupoRaiz: Record<string, AbstractControl> = {};
 
     for (const seccion of this.secciones) {
-      const valoresSeccion = this.datos ? this.datos[seccion.clave] : undefined;
+      const valoresSeccion = this.datos
+        ? (this.datos[seccion.clave] as Record<string, unknown> | undefined)
+        : undefined;
 
       if (seccion.tipo === 'array') {
         const arrayForm = new FormArray<FormGroup>([]);
@@ -361,7 +364,9 @@ export class MotorFormularioComponent implements OnInit, OnChanges, OnDestroy {
 
         if (valoresArray.length > 0) {
           for (const itemVal of valoresArray) {
-            arrayForm.push(this.crearFormGroupItemArray(seccion, itemVal));
+            arrayForm.push(
+              this.crearFormGroupItemArray(seccion, itemVal as Record<string, unknown>),
+            );
           }
         } else if (this.modo === 'edicion') {
           // Si está en edición y no hay datos, inicializar con el primer tramo
@@ -451,7 +456,7 @@ export class MotorFormularioComponent implements OnInit, OnChanges, OnDestroy {
           const formArray = this.obtenerFormArray(seccion.clave);
           if (formArray) {
             formArray.clear();
-            const items = this.datos[seccion.clave] as Record<string, any>[];
+            const items = this.datos[seccion.clave] as Record<string, unknown>[];
             for (const item of items) {
               formArray.push(this.crearFormGroupItemArray(seccion, item));
             }

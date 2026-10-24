@@ -7,7 +7,7 @@ import { FormularioVersionDTO } from '../../formulario/modelos';
 import { ModalPublicar } from './modal-publicar';
 
 describe('ModalPublicar', () => {
-  let formularioServiceMock: any;
+  let formularioServiceMock: Partial<Record<keyof FormularioService, ReturnType<typeof vi.fn>>>;
 
   const versionMock: FormularioVersionDTO = {
     id: '0192b000-0000-7000-8000-000000000002',

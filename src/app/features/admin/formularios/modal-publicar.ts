@@ -28,7 +28,10 @@ import { FormularioVersionDTO } from '../../formulario/modelos';
         </div>
 
         <div class="space-y-2">
-          <label class="block text-sm font-semibold text-gray-900 dark:text-white">
+          <label
+            for="mapeo-json-input"
+            class="block text-sm font-semibold text-gray-900 dark:text-white"
+          >
             {{ textos.declararMapeo }}
           </label>
           <p class="text-xs text-gray-600 dark:text-gray-300">
@@ -36,6 +39,7 @@ import { FormularioVersionDTO } from '../../formulario/modelos';
             &#123;&quot;antiguo_campo&quot;: &quot;nuevo_campo&quot;&#125;).
           </p>
           <textarea
+            id="mapeo-json-input"
             [(ngModel)]="mapeoJson"
             rows="4"
             class="w-full px-3 py-2 text-xs font-mono rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
