@@ -49,6 +49,11 @@ export interface Operacion extends RegistroLocal {
   ejecucion: string | null;
   resultado: Json | null;
 }
+export interface HabilitacionLocal {
+  id: 'ultima';
+  propietario_id: string;
+  revocados: string[];
+}
 export interface Bloqueo {
   propietario_id: string;
   token: string;

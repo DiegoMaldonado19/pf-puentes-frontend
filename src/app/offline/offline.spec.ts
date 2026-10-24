@@ -286,7 +286,7 @@ describe('base offline', () => {
     });
     expect(await migrada.cola_sync.count()).toBe(2);
     expect(await migrada.inspecciones.get(i.id)).toEqual(i);
-    expect(migrada.verno).toBe(2);
+    expect(migrada.verno).toBe(3);
     await migrada.delete();
   });
   it('informa denegación, ausencia y error de Storage API', async () => {
@@ -345,7 +345,11 @@ describe('base offline', () => {
       const archivo =
         tipo === 'foto'
           ? await local.foto(propietario, i.id, foto(), 'campo')
-          : await local.documento(propietario, i.id, new Blob(['pdf'], { type: 'application/pdf' }));
+          : await local.documento(
+              propietario,
+              i.id,
+              new Blob(['pdf'], { type: 'application/pdf' }),
+            );
       const tabla = tipo === 'foto' ? db.fotos : db.documentos;
       const archivoOriginal = await tabla.get(archivo.id);
       const captura = await local.inspeccion(propietario, i.id);
@@ -380,7 +384,9 @@ describe('base offline', () => {
         expect(await local.inspeccion(propietario, i.id)).toEqual(captura);
         expect(await tabla.get(archivo.id)).toEqual(archivoOriginal);
         expect(await local.operaciones(propietario)).toEqual(
-          originales.map((o) => o.entidad_id === archivo.id ? { ...o, ultimo_intento: ahora } : o),
+          originales.map((o) =>
+            o.entidad_id === archivo.id ? { ...o, ultimo_intento: ahora } : o,
+          ),
         );
       } finally {
         lectura.mockRestore();

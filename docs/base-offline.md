@@ -47,7 +47,8 @@ queda pendiente de ejecución y registro por el equipo.
 ## API local e integración posterior
 
 - `BaseLocal`: base `puentes-offline` por defecto; versión 1 con seis almacenes
-  de dominio, versión 2 añade `bloqueos` sin borrar capturas. Cada registro
+  de dominio, versión 2 añade `bloqueos` y versión 3 añade `acceso_local`,
+  sin borrar capturas. Cada registro
   declara `modelo_version`. Referencia usa clave compuesta propietario/id.
 - `PersistenciaOffline`: `crear`, `editar`, `foto`, `documento`, `enviar`,
   `inspeccion`, `operaciones` y `guardarReferencias`. Todas reciben propietario
@@ -84,6 +85,23 @@ cola pendiente. El simulador se importa solo desde el harness y las pruebas.
 Los límites locales son 60 fotos, 10 PDF y 20 MiB por PDF; el contrato de P1
 garantiza el formato/dimensiones de `FotoCapturada`. El objetivo de 200–400 KB
 no es un rechazo por tamaño de una imagen simple ya comprimida por P1.
+
+### Acceso local G2 — primera unidad, aún sin navegación
+
+`AccesoLocal(db, auth, sesionRemota)` conserva la última identidad preparada y
+las revocaciones por propietario sin credenciales. `habilitarPreparada` requiere
+una sesión remota vigente del mismo dueño; su llamador deberá acreditar la
+preparación completa. `propietarioActual` e `inspecciones` consultan la política
+durable y devuelven únicamente capturas de ese propietario. Un UUID no desbloquea
+una revocación: hace falta login online de su dueño, no una renovación.
+
+Esta unidad no instancia el servicio en producción ni altera rutas, roles o
+`AuthService.autenticado()`. Quedan pendientes navegación separada, cancelación
+activa entre pestañas y pruebas de navegador con preparación ficticia aislada.
+La demo histórica anterior todavía usa selección libre de propietarios; no
+acredita la revocación de G2. No hay transporte real ni aceptación V09 completa.
+El acceso presupone control del navegador/perfil y no protege frente al acceso
+directo a IndexedDB. Decisión propuesta: [ADR 0024](adr/0024-acceso-local-sesion-offline.md).
 
 ### Adaptadores pendientes (grupos 2..7)
 
