@@ -1,9 +1,21 @@
 <div class="space-y-6">
   <!-- Aviso de Modo Lectura (RN-FRM-05) -->
   @if (modo === 'lectura') {
-    <div class="p-4 rounded-xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 text-blue-900 dark:text-blue-200 flex items-center gap-3">
-      <svg class="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+    <div
+      class="p-4 rounded-xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 text-blue-900 dark:text-blue-200 flex items-center gap-3"
+    >
+      <svg
+        class="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+        />
       </svg>
       <span class="text-sm font-medium">
         {{ textos.modoLecturaAviso.replace('{codigo}', esquema.title || 'SIECA') }}
@@ -13,7 +25,10 @@
 
   @if (secciones.length > 0) {
     <!-- Barra de navegación por pestañas de secciones (ordenadas estrictamente 1 a 8) -->
-    <nav class="flex overflow-x-auto gap-2 pb-2 border-b border-gray-200 dark:border-gray-700" aria-label="Secciones del formulario">
+    <nav
+      class="flex overflow-x-auto gap-2 pb-2 border-b border-gray-200 dark:border-gray-700"
+      aria-label="Secciones del formulario"
+    >
       @for (seccion of secciones; track seccion.clave; let i = $index) {
         <button
           type="button"
@@ -29,7 +44,8 @@
           [class.dark:bg-gray-800]="seccionActiva !== i"
           [class.dark:text-gray-200]="seccionActiva !== i"
           [class.dark:border-gray-700]="seccionActiva !== i"
-          [class.dark:hover:bg-gray-700]="seccionActiva !== i">
+          [class.dark:hover:bg-gray-700]="seccionActiva !== i"
+        >
           {{ obtenerTituloPestana(seccion, i) }}
         </button>
       }
@@ -38,10 +54,13 @@
     <!-- Contenedor de la sección activa -->
     @if (secciones[seccionActiva]; as seccionActual) {
       <div [formGroup]="formGroup" class="space-y-6">
-        <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 space-y-6">
-          
+        <div
+          class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 space-y-6"
+        >
           <!-- Encabezado de la sección -->
-          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-gray-200 dark:border-gray-700">
+          <div
+            class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-gray-200 dark:border-gray-700"
+          >
             <div>
               <h2 class="text-xl font-bold text-gray-900 dark:text-white">
                 {{ seccionActual.titulo }}
@@ -58,9 +77,20 @@
               <button
                 type="button"
                 (click)="marcarSinDanos(seccionActual.clave)"
-                class="px-3.5 py-2 text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-200 border border-emerald-300 dark:border-emerald-700 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/60 transition-colors flex items-center gap-1.5 self-start sm:self-auto shadow-xs cursor-pointer">
-                <svg class="w-4 h-4 text-emerald-700 dark:text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                class="px-3.5 py-2 text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-200 border border-emerald-300 dark:border-emerald-700 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/60 transition-colors flex items-center gap-1.5 self-start sm:self-auto shadow-xs cursor-pointer"
+              >
+                <svg
+                  class="w-4 h-4 text-emerald-700 dark:text-emerald-300"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
                 </svg>
                 {{ textos.sinDanosTodaSeccion }}
               </button>
@@ -70,7 +100,9 @@
           <!-- CASO A: Sección de tipo Lista / Arreglo (Ej. Sección 3: Tramos Individuales) -->
           @if (seccionActual.tipo === 'array') {
             <div [formArrayName]="seccionActual.clave" class="space-y-6">
-              <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 rounded-xl bg-slate-50 dark:bg-gray-900/40 border border-slate-200 dark:border-gray-700">
+              <div
+                class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 rounded-xl bg-slate-50 dark:bg-gray-900/40 border border-slate-200 dark:border-gray-700"
+              >
                 <div>
                   <h3 class="text-sm font-bold text-gray-900 dark:text-white">
                     {{ textos.listadoTramos }}
@@ -84,9 +116,15 @@
                   <button
                     type="button"
                     (click)="agregarFilaArray(seccionActual.clave)"
-                    class="px-3.5 py-2 text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center gap-1.5 shadow-xs cursor-pointer self-start sm:self-auto">
+                    class="px-3.5 py-2 text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center gap-1.5 shadow-xs cursor-pointer self-start sm:self-auto"
+                  >
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M12 4v16m8-8H4"
+                      />
                     </svg>
                     {{ textos.agregarTramo }}
                   </button>
@@ -95,11 +133,22 @@
 
               <!-- Tarjetas de cada tramo -->
               <div class="space-y-4">
-                @for (tramoCtrl of obtenerFormArray(seccionActual.clave).controls; track tramoCtrl; let idx = $index) {
-                  <div [formGroupName]="idx" class="p-5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900/60 shadow-xs space-y-4">
-                    <div class="flex items-center justify-between pb-3 border-b border-gray-200 dark:border-gray-700">
+                @for (
+                  tramoCtrl of obtenerFormArray(seccionActual.clave).controls;
+                  track tramoCtrl;
+                  let idx = $index
+                ) {
+                  <div
+                    [formGroupName]="idx"
+                    class="p-5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900/60 shadow-xs space-y-4"
+                  >
+                    <div
+                      class="flex items-center justify-between pb-3 border-b border-gray-200 dark:border-gray-700"
+                    >
                       <div class="flex items-center gap-2.5">
-                        <span class="w-7 h-7 rounded-full bg-blue-600 text-white font-black text-xs flex items-center justify-center shadow-xs">
+                        <span
+                          class="w-7 h-7 rounded-full bg-blue-600 text-white font-black text-xs flex items-center justify-center shadow-xs"
+                        >
                           {{ idx + 1 }}
                         </span>
                         <span class="text-sm font-bold text-gray-900 dark:text-white">
@@ -112,9 +161,20 @@
                           type="button"
                           (click)="eliminarFilaArray(seccionActual.clave, idx)"
                           [disabled]="obtenerFormArray(seccionActual.clave).length <= 1"
-                          class="px-3 py-1.5 text-xs font-semibold text-rose-700 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-1 cursor-pointer">
-                          <svg class="w-4 h-4 text-rose-600 dark:text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          class="px-3 py-1.5 text-xs font-semibold text-rose-700 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-1 cursor-pointer"
+                        >
+                          <svg
+                            class="w-4 h-4 text-rose-600 dark:text-rose-400"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                            />
                           </svg>
                           {{ textos.eliminarTramo }}
                         </button>
@@ -125,7 +185,10 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                       @for (itemProp of seccionActual.itemPropiedades; track itemProp.clave) {
                         <div class="space-y-1.5">
-                          <label [for]="'tramo_' + idx + '_' + itemProp.clave" class="block text-xs font-bold text-gray-800 dark:text-gray-200">
+                          <label
+                            [for]="'tramo_' + idx + '_' + itemProp.clave"
+                            class="block text-xs font-bold text-gray-800 dark:text-gray-200"
+                          >
                             {{ itemProp.esquema.title || itemProp.clave }}
                             @if (seccionActual.itemRequired.includes(itemProp.clave)) {
                               <span class="text-rose-600 font-bold">*</span>
@@ -142,13 +205,17 @@
                             <select
                               [id]="'tramo_' + idx + '_' + itemProp.clave"
                               [formControlName]="itemProp.clave"
-                              class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:outline-none shadow-xs">
+                              class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:outline-none shadow-xs"
+                            >
                               <option [ngValue]="null">Seleccione…</option>
                               @for (opcion of itemProp.esquema.enum; track opcion) {
                                 <option [value]="opcion">{{ opcion }}</option>
                               }
                             </select>
-                          } @else if (itemProp.esquema.type === 'number' || itemProp.esquema.type === 'integer') {
+                          } @else if (
+                            itemProp.esquema.type === 'number' ||
+                            itemProp.esquema.type === 'integer'
+                          ) {
                             <div class="relative">
                               <input
                                 type="number"
@@ -157,9 +224,12 @@
                                 [min]="itemProp.esquema.minimum ?? null"
                                 [max]="itemProp.esquema.maximum ?? null"
                                 class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:outline-none shadow-xs"
-                                [class.pr-12]="itemProp.esquema['x-unidad']" />
+                                [class.pr-12]="itemProp.esquema['x-unidad']"
+                              />
                               @if (itemProp.esquema['x-unidad']) {
-                                <span class="absolute right-3 top-2 text-xs text-gray-600 dark:text-gray-300 font-semibold pointer-events-none">
+                                <span
+                                  class="absolute right-3 top-2 text-xs text-gray-600 dark:text-gray-300 font-semibold pointer-events-none"
+                                >
                                   {{ itemProp.esquema['x-unidad'] }}
                                 </span>
                               }
@@ -169,11 +239,17 @@
                               type="text"
                               [id]="'tramo_' + idx + '_' + itemProp.clave"
                               [formControlName]="itemProp.clave"
-                              class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:outline-none shadow-xs" />
+                              class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:outline-none shadow-xs"
+                            />
                           }
 
-                          @if (obtenerErrorArray(seccionActual.clave, idx, itemProp.clave); as err) {
-                            <p class="text-xs text-rose-600 dark:text-rose-400 font-semibold pt-0.5">
+                          @if (
+                            obtenerErrorArray(seccionActual.clave, idx, itemProp.clave);
+                            as err
+                          ) {
+                            <p
+                              class="text-xs text-rose-600 dark:text-rose-400 font-semibold pt-0.5"
+                            >
                               {{ err }}
                             </p>
                           }
@@ -193,7 +269,9 @@
                 <div class="space-y-4">
                   <!-- Cabecera de grupo si tiene daños y nombre (RN-INS-11) -->
                   @if (seccionActual.tieneDanos && grupo.nombre) {
-                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pb-2.5 border-b border-gray-200 dark:border-gray-700">
+                    <div
+                      class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pb-2.5 border-b border-gray-200 dark:border-gray-700"
+                    >
                       <div class="flex items-center gap-2">
                         <span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
                         <h3 class="text-base font-bold text-gray-900 dark:text-white">
@@ -205,9 +283,20 @@
                         <button
                           type="button"
                           (click)="marcarSinDanos(seccionActual.clave, grupo.clave)"
-                          class="px-3 py-1.5 text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-200 border border-emerald-300 dark:border-emerald-700 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/60 transition-colors flex items-center gap-1.5 self-start sm:self-auto shadow-xs cursor-pointer">
-                          <svg class="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          class="px-3 py-1.5 text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-200 border border-emerald-300 dark:border-emerald-700 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/60 transition-colors flex items-center gap-1.5 self-start sm:self-auto shadow-xs cursor-pointer"
+                        >
+                          <svg
+                            class="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-300"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                            />
                           </svg>
                           Sin daños en {{ grupo.nombre }}
                         </button>
@@ -226,20 +315,33 @@
                         [class.dark:border-gray-700]="prop.esquema['x-dano']"
                         [class.border-gray-200]="!prop.esquema['x-dano']"
                         [class.dark:border-gray-700]="!prop.esquema['x-dano']"
-                        [class.md:col-span-2]="prop.esquema['x-dano'] || prop.clave.includes('recomendacion') || prop.clave.includes('observacion')"
-                        [attr.data-elemento-ref]="prop.esquema['x-elemento-ref']">
-                        
+                        [class.md:col-span-2]="
+                          prop.esquema['x-dano'] ||
+                          prop.clave.includes('recomendacion') ||
+                          prop.clave.includes('observacion')
+                        "
+                        [attr.data-elemento-ref]="prop.esquema['x-elemento-ref']"
+                      >
                         <div class="flex flex-wrap items-center justify-between gap-2">
-                          <label [for]="prop.clave" class="block text-sm font-bold text-gray-900 dark:text-gray-100">
+                          <label
+                            [for]="prop.clave"
+                            class="block text-sm font-bold text-gray-900 dark:text-gray-100"
+                          >
                             {{ prop.esquema.title || prop.clave }}
-                            @if (esquema.properties[seccionActual.clave]?.required?.includes(prop.clave)) {
+                            @if (
+                              esquema.properties[seccionActual.clave]?.required?.includes(
+                                prop.clave
+                              )
+                            ) {
                               <span class="text-rose-600 font-bold">*</span>
                             }
                           </label>
 
                           <div class="flex items-center gap-1.5">
                             @if (prop.esquema['x-permanente']) {
-                              <span class="text-xs bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 font-semibold px-2 py-0.5 rounded font-mono">
+                              <span
+                                class="text-xs bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 font-semibold px-2 py-0.5 rounded font-mono"
+                              >
                                 Permanente
                               </span>
                             }
@@ -248,9 +350,20 @@
                             @if (prop.esquema['x-anulacion-critica']) {
                               <span
                                 class="text-xs bg-rose-100 dark:bg-rose-950/60 text-rose-800 dark:text-rose-200 border border-rose-300 dark:border-rose-800 font-bold px-2 py-0.5 rounded flex items-center gap-1 shadow-2xs cursor-help select-none"
-                                [title]="textos.anulacionCriticaAviso">
-                                <svg class="w-3.5 h-3.5 text-rose-600 dark:text-rose-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                [title]="textos.anulacionCriticaAviso"
+                              >
+                                <svg
+                                  class="w-3.5 h-3.5 text-rose-600 dark:text-rose-400 flex-shrink-0"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                                  />
                                 </svg>
                                 {{ textos.anulacionCritica }}
                               </span>
@@ -270,12 +383,14 @@
                           <app-control-dano
                             [etiqueta]="prop.esquema.title || ''"
                             [deshabilitado]="modo === 'lectura'"
-                            [formControlName]="prop.clave" />
+                            [formControlName]="prop.clave"
+                          />
                         } @else if (prop.esquema.enum) {
                           <select
                             [id]="prop.clave"
                             [formControlName]="prop.clave"
-                            class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:outline-none shadow-xs">
+                            class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:outline-none shadow-xs"
+                          >
                             <option [ngValue]="null">Seleccione una opción…</option>
                             @for (opcion of prop.esquema.enum; track opcion) {
                               <option [value]="opcion">{{ opcion }}</option>
@@ -287,10 +402,15 @@
                               type="checkbox"
                               [id]="prop.clave"
                               [formControlName]="prop.clave"
-                              class="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
-                            <span class="text-sm font-medium text-gray-800 dark:text-gray-200">Sí</span>
+                              class="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                            />
+                            <span class="text-sm font-medium text-gray-800 dark:text-gray-200"
+                              >Sí</span
+                            >
                           </div>
-                        } @else if (prop.esquema.type === 'number' || prop.esquema.type === 'integer') {
+                        } @else if (
+                          prop.esquema.type === 'number' || prop.esquema.type === 'integer'
+                        ) {
                           <div class="relative">
                             <input
                               type="number"
@@ -299,14 +419,19 @@
                               [min]="prop.esquema.minimum ?? null"
                               [max]="prop.esquema.maximum ?? null"
                               class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:outline-none shadow-xs"
-                              [class.pr-12]="prop.esquema['x-unidad']" />
+                              [class.pr-12]="prop.esquema['x-unidad']"
+                            />
                             @if (prop.esquema['x-unidad']) {
-                              <span class="absolute right-3 top-2 text-sm text-gray-600 dark:text-gray-300 font-semibold pointer-events-none">
+                              <span
+                                class="absolute right-3 top-2 text-sm text-gray-600 dark:text-gray-300 font-semibold pointer-events-none"
+                              >
                                 {{ prop.esquema['x-unidad'] }}
                               </span>
                             }
                           </div>
-                        } @else if (prop.clave.includes('recomendacion') || prop.clave.includes('observacion')) {
+                        } @else if (
+                          prop.clave.includes('recomendacion') || prop.clave.includes('observacion')
+                        ) {
                           <textarea
                             [id]="prop.clave"
                             [formControlName]="prop.clave"
@@ -316,7 +441,8 @@
                             [class.bg-gray-100]="prop.esquema.readOnly"
                             [class.dark:bg-gray-800]="prop.esquema.readOnly"
                             [class.text-gray-600]="prop.esquema.readOnly"
-                            [class.dark:text-gray-300]="prop.esquema.readOnly"></textarea>
+                            [class.dark:text-gray-300]="prop.esquema.readOnly"
+                          ></textarea>
                         } @else {
                           <input
                             type="text"
@@ -327,7 +453,8 @@
                             [class.bg-gray-100]="prop.esquema.readOnly"
                             [class.dark:bg-gray-800]="prop.esquema.readOnly"
                             [class.text-gray-600]="prop.esquema.readOnly"
-                            [class.dark:text-gray-300]="prop.esquema.readOnly" />
+                            [class.dark:text-gray-300]="prop.esquema.readOnly"
+                          />
                         }
 
                         <!-- Mensaje de error de validación -->
@@ -345,12 +472,15 @@
           }
 
           <!-- Botones de navegación entre secciones -->
-          <div class="flex items-center justify-between pt-6 border-t border-gray-200 dark:border-gray-700">
+          <div
+            class="flex items-center justify-between pt-6 border-t border-gray-200 dark:border-gray-700"
+          >
             <button
               type="button"
               (click)="cambiarSeccion(seccionActiva - 1)"
               [disabled]="seccionActiva === 0"
-              class="px-4 py-2 text-sm font-semibold rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed shadow-xs transition-colors cursor-pointer">
+              class="px-4 py-2 text-sm font-semibold rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed shadow-xs transition-colors cursor-pointer"
+            >
               ← {{ textos.seccionAnterior }}
             </button>
 
@@ -362,7 +492,8 @@
               type="button"
               (click)="cambiarSeccion(seccionActiva + 1)"
               [disabled]="seccionActiva === secciones.length - 1"
-              class="px-4 py-2 text-sm font-semibold rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed shadow-xs transition-colors cursor-pointer">
+              class="px-4 py-2 text-sm font-semibold rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed shadow-xs transition-colors cursor-pointer"
+            >
               {{ textos.seccionSiguiente }} →
             </button>
           </div>

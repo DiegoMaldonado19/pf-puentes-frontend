@@ -18,7 +18,8 @@ import { TEXTOS } from '../../../shared/textos';
     <div
       class="flex flex-wrap items-center gap-2"
       role="radiogroup"
-      [attr.aria-label]="etiqueta || 'Calificación de daño'">
+      [attr.aria-label]="etiqueta || 'Calificación de daño'"
+    >
       @for (valor of valores; track valor) {
         <button
           type="button"
@@ -28,7 +29,8 @@ import { TEXTOS } from '../../../shared/textos';
           [disabled]="deshabilitado"
           (click)="seleccionar(valor)"
           class="min-w-[44px] min-h-[44px] px-3.5 py-2 rounded-lg font-bold text-sm border-2 transition-all flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-xs cursor-pointer disabled:cursor-not-allowed"
-          [ngClass]="obtenerClase(valor)">
+          [ngClass]="obtenerClase(valor)"
+        >
           {{ valor }}
         </button>
       }

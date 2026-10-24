@@ -18,13 +18,15 @@ import { ModalPublicar } from './modal-publicar';
             {{ textos.titulo }}
           </h1>
           <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">
-            Control de inmutabilidad y publicación del formulario de inspección SIECA (RN-FRM-01 a RN-FRM-06).
+            Control de inmutabilidad y publicación del formulario de inspección SIECA (RN-FRM-01 a
+            RN-FRM-06).
           </p>
         </div>
 
         <a
           routerLink="nuevo"
-          class="px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-700 transition-colors shadow-sm self-start sm:self-auto flex items-center gap-2">
+          class="px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-700 transition-colors shadow-sm self-start sm:self-auto flex items-center gap-2"
+        >
           <span>+</span> {{ textos.nuevaVersion }}
         </a>
       </div>
@@ -36,7 +38,9 @@ import { ModalPublicar } from './modal-publicar';
       }
 
       <!-- Tabla de versiones -->
-      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+      <div
+        class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden"
+      >
         @if (cargando()) {
           <div class="p-8 text-center text-gray-600 dark:text-gray-300">
             Cargando versiones del formulario…
@@ -49,7 +53,9 @@ import { ModalPublicar } from './modal-publicar';
           <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
               <thead>
-                <tr class="border-b border-gray-100 dark:border-gray-700 text-xs font-semibold text-gray-600 dark:text-gray-300 bg-gray-50/50 dark:bg-gray-900/50">
+                <tr
+                  class="border-b border-gray-100 dark:border-gray-700 text-xs font-semibold text-gray-600 dark:text-gray-300 bg-gray-50/50 dark:bg-gray-900/50"
+                >
                   <th class="p-4">{{ textos.codigo }}</th>
                   <th class="p-4">{{ textos.estado }}</th>
                   <th class="p-4">{{ textos.publicadaEn }}</th>
@@ -62,7 +68,9 @@ import { ModalPublicar } from './modal-publicar';
                     <td class="p-4 font-bold text-gray-900 dark:text-white flex items-center gap-2">
                       {{ v.codigo }}
                       @if (v.estado === 'ACTIVA') {
-                        <span class="text-xs bg-emerald-100 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-200 px-2 py-0.5 rounded-full font-semibold">
+                        <span
+                          class="text-xs bg-emerald-100 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-200 px-2 py-0.5 rounded-full font-semibold"
+                        >
                           Vigente Oficial
                         </span>
                       }
@@ -71,10 +79,14 @@ import { ModalPublicar } from './modal-publicar';
                       <span
                         class="text-xs font-semibold px-2.5 py-1 rounded-full inline-block"
                         [ngClass]="{
-                          'bg-emerald-100 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-200': v.estado === 'ACTIVA',
-                          'bg-amber-100 dark:bg-amber-950/50 text-amber-900 dark:text-amber-200': v.estado === 'BORRADOR',
-                          'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200': v.estado === 'RETIRADA'
-                        }">
+                          'bg-emerald-100 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-200':
+                            v.estado === 'ACTIVA',
+                          'bg-amber-100 dark:bg-amber-950/50 text-amber-900 dark:text-amber-200':
+                            v.estado === 'BORRADOR',
+                          'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200':
+                            v.estado === 'RETIRADA',
+                        }"
+                      >
                         {{ v.estado }}
                       </span>
                     </td>
@@ -84,7 +96,8 @@ import { ModalPublicar } from './modal-publicar';
                     <td class="p-4 text-right space-x-2">
                       <a
                         [routerLink]="[v.id, 'editar']"
-                        class="px-3 py-1.5 text-xs font-medium rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200">
+                        class="px-3 py-1.5 text-xs font-medium rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200"
+                      >
                         {{ v.estado === 'BORRADOR' ? textos.editarBorrador : textos.verEsquema }}
                       </a>
 
@@ -92,7 +105,8 @@ import { ModalPublicar } from './modal-publicar';
                         <button
                           type="button"
                           (click)="abrirPublicar(v)"
-                          class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm">
+                          class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm"
+                        >
                           {{ textos.publicarBorrador }}
                         </button>
                       }
@@ -110,7 +124,8 @@ import { ModalPublicar } from './modal-publicar';
         <app-modal-publicar
           [version]="versionSel"
           (publicado)="alPublicarExitoso()"
-          (cancelar)="versionSeleccionada.set(null)" />
+          (cancelar)="versionSeleccionada.set(null)"
+        />
       }
     </div>
   `,

@@ -47,7 +47,9 @@
       </p>
     } @else if (resultado.value(); as datos) {
       @if (datos.contenido.length === 0) {
-        <p role="status" class="rounded bg-slate-100 p-4 text-slate-800 font-medium">{{ s.vacia }}</p>
+        <p role="status" class="rounded bg-slate-100 p-4 text-slate-800 font-medium">
+          {{ s.vacia }}
+        </p>
       } @else {
         <ul class="grid gap-3" [attr.aria-label]="s.tabla">
           @for (sol of datos.contenido; track sol.id) {

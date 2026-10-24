@@ -36,7 +36,9 @@
     </header>
 
     @if (bajaHecha()) {
-      <p role="status" class="mt-3 rounded bg-slate-100 p-3 text-slate-800 font-medium">{{ t.baja.hecha }}</p>
+      <p role="status" class="mt-3 rounded bg-slate-100 p-3 text-slate-800 font-medium">
+        {{ t.baja.hecha }}
+      </p>
     }
     @if (!p.activo) {
       <div role="note" class="mt-3 rounded border border-slate-500 bg-slate-100 p-3 text-slate-900">

@@ -64,7 +64,9 @@
       <p role="alert" [class]="claseAlerta">{{ errorLista() }}</p>
     } @else if (resultado.value(); as lista) {
       @if (lista.content.length === 0) {
-        <p role="status" class="rounded bg-slate-100 p-4 text-slate-800 font-medium">{{ t.vacia }}</p>
+        <p role="status" class="rounded bg-slate-100 p-4 text-slate-800 font-medium">
+          {{ t.vacia }}
+        </p>
       } @else {
         <div class="overflow-x-auto">
           <table class="w-full border-collapse text-left">

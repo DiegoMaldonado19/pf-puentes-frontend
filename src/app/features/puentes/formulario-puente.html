@@ -190,8 +190,13 @@
       }
 
       @if (original.value(); as p) {
-        <section aria-labelledby="titulo-derivados-edicion" class="rounded bg-slate-100 p-3 text-slate-900">
-          <h2 id="titulo-derivados-edicion" class="font-semibold text-slate-900">{{ t.ficha.derivados }}</h2>
+        <section
+          aria-labelledby="titulo-derivados-edicion"
+          class="rounded bg-slate-100 p-3 text-slate-900"
+        >
+          <h2 id="titulo-derivados-edicion" class="font-semibold text-slate-900">
+            {{ t.ficha.derivados }}
+          </h2>
           <p class="text-sm text-slate-700">{{ t.ficha.derivadosNota }}</p>
           <p class="text-slate-900">
             {{ t.campos.ic }}: {{ p.indice_condicion_actual ?? t.ficha.sinInspeccion }} ·

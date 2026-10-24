@@ -111,7 +111,9 @@ describe('EditorFormulario', () => {
 
     // El botón guardar borrador debe quedar deshabilitado
     const botones: HTMLButtonElement[] = fixture.nativeElement.querySelectorAll('button');
-    const botonGuardar = Array.from(botones).find((b) => b.textContent?.includes('Guardar borrador'));
+    const botonGuardar = Array.from(botones).find((b) =>
+      b.textContent?.includes('Guardar borrador'),
+    );
     expect(botonGuardar?.disabled).toBe(true);
   });
 
@@ -134,7 +136,9 @@ describe('EditorFormulario', () => {
     expect(badgeValido.textContent).toContain('Sintaxis JSON válida');
 
     const botones: HTMLButtonElement[] = fixture.nativeElement.querySelectorAll('button');
-    const botonGuardar = Array.from(botones).find((b) => b.textContent?.includes('Guardar borrador'));
+    const botonGuardar = Array.from(botones).find((b) =>
+      b.textContent?.includes('Guardar borrador'),
+    );
     expect(botonGuardar?.disabled).toBe(false);
   });
 });

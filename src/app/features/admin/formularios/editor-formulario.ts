@@ -17,12 +17,21 @@ import { ModalPublicar } from './modal-publicar';
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <div class="flex items-center gap-2">
-            <a routerLink="/admin/formularios" class="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline">
+            <a
+              routerLink="/admin/formularios"
+              class="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline"
+            >
               ← Volver a versiones
             </a>
           </div>
           <h1 class="text-2xl font-bold text-gray-900 dark:text-white mt-1">
-            {{ esNuevo ? textos.nuevaVersion : (version?.estado === 'BORRADOR' ? textos.editarBorrador : 'Consulta de Esquema') }}: {{ codigo }}
+            {{
+              esNuevo
+                ? textos.nuevaVersion
+                : version?.estado === 'BORRADOR'
+                  ? textos.editarBorrador
+                  : 'Consulta de Esquema'
+            }}: {{ codigo }}
           </h1>
         </div>
 
@@ -32,7 +41,8 @@ import { ModalPublicar } from './modal-publicar';
               type="button"
               (click)="guardar()"
               [disabled]="guardando || !!errorSintaxis"
-              class="px-5 py-2.5 bg-blue-600 text-white font-semibold text-sm rounded-xl hover:bg-blue-700 shadow-sm disabled:opacity-50 transition-colors">
+              class="px-5 py-2.5 bg-blue-600 text-white font-semibold text-sm rounded-xl hover:bg-blue-700 shadow-sm disabled:opacity-50 transition-colors"
+            >
               {{ guardando ? 'Guardando…' : textos.guardarBorrador }}
             </button>
 
@@ -41,7 +51,8 @@ import { ModalPublicar } from './modal-publicar';
                 type="button"
                 (click)="abrirPublicar()"
                 [disabled]="guardando || !!errorSintaxis"
-                class="px-5 py-2.5 bg-emerald-600 text-white font-semibold text-sm rounded-xl hover:bg-emerald-700 shadow-sm disabled:opacity-50 transition-colors">
+                class="px-5 py-2.5 bg-emerald-600 text-white font-semibold text-sm rounded-xl hover:bg-emerald-700 shadow-sm disabled:opacity-50 transition-colors"
+              >
                 {{ textos.publicarBorrador }}
               </button>
             }
@@ -67,7 +78,8 @@ import { ModalPublicar } from './modal-publicar';
             [class.dark:text-blue-400]="tabActiva === 'editor'"
             [class.border-transparent]="tabActiva !== 'editor'"
             [class.text-gray-600]="tabActiva !== 'editor'"
-            [class.dark:text-gray-400]="tabActiva !== 'editor'">
+            [class.dark:text-gray-400]="tabActiva !== 'editor'"
+          >
             Editor JSON Schema
           </button>
           <button
@@ -79,7 +91,8 @@ import { ModalPublicar } from './modal-publicar';
             [class.dark:text-blue-400]="tabActiva === 'preview'"
             [class.border-transparent]="tabActiva !== 'preview'"
             [class.text-gray-600]="tabActiva !== 'preview'"
-            [class.dark:text-gray-400]="tabActiva !== 'preview'">
+            [class.dark:text-gray-400]="tabActiva !== 'preview'"
+          >
             Vista Previa en Vivo (&lt;app-motor-formulario&gt;)
           </button>
         </div>
@@ -88,7 +101,8 @@ import { ModalPublicar } from './modal-publicar';
           <button
             type="button"
             (click)="cargarEsquemaActivoComoBase()"
-            class="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium px-2 py-1 rounded hover:bg-blue-50 dark:hover:bg-blue-900/40 cursor-pointer">
+            class="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium px-2 py-1 rounded hover:bg-blue-50 dark:hover:bg-blue-900/40 cursor-pointer"
+          >
             ↺ Cargar Esquema Activo Oficial (V1.0.0)
           </button>
         }
@@ -96,7 +110,9 @@ import { ModalPublicar } from './modal-publicar';
 
       <!-- Contenido del Editor -->
       @if (tabActiva === 'editor') {
-        <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 space-y-4">
+        <div
+          class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 space-y-4"
+        >
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label class="block text-sm font-semibold text-gray-800 dark:text-gray-200 mb-1">
@@ -108,7 +124,8 @@ import { ModalPublicar } from './modal-publicar';
                 [readOnly]="!esNuevo"
                 placeholder="V2.0.0"
                 class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                [class.bg-gray-100]="!esNuevo" />
+                [class.bg-gray-100]="!esNuevo"
+              />
             </div>
           </div>
 
@@ -118,16 +135,40 @@ import { ModalPublicar } from './modal-publicar';
                 Estructura JSON Schema (Draft 7)
               </label>
               @if (errorSintaxis) {
-                <span class="text-xs text-rose-600 dark:text-rose-400 font-bold flex items-center gap-1">
-                  <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <span
+                  class="text-xs text-rose-600 dark:text-rose-400 font-bold flex items-center gap-1"
+                >
+                  <svg
+                    class="w-3.5 h-3.5 flex-shrink-0"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
                   </svg>
                   <span>{{ errorSintaxis }}</span>
                 </span>
               } @else if (esquemaCompilado) {
-                <span class="text-xs text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
-                  <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                <span
+                  class="text-xs text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1"
+                >
+                  <svg
+                    class="w-3.5 h-3.5 flex-shrink-0"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M5 13l4 4L19 7"
+                    />
                   </svg>
                   <span>{{ textos.sintaxisValida }}</span>
                 </span>
@@ -144,25 +185,41 @@ import { ModalPublicar } from './modal-publicar';
               [class.focus:ring-rose-500]="!!errorSintaxis"
               [class.border-gray-300]="!errorSintaxis"
               [class.dark:border-gray-600]="!errorSintaxis"
-              [class.focus:ring-blue-500]="!errorSintaxis">
+              [class.focus:ring-blue-500]="!errorSintaxis"
+            >
             </textarea>
           </div>
         </div>
       } @else {
         <!-- Vista previa renderizada por el motor dinámico -->
         <div class="space-y-4">
-          <div class="p-3.5 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 rounded-xl text-xs text-blue-900 dark:text-blue-200 flex items-center gap-2 shadow-xs">
-            <svg class="w-4 h-4 text-blue-600 dark:text-blue-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <div
+            class="p-3.5 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 rounded-xl text-xs text-blue-900 dark:text-blue-200 flex items-center gap-2 shadow-xs"
+          >
+            <svg
+              class="w-4 h-4 text-blue-600 dark:text-blue-400 flex-shrink-0"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
             </svg>
             <span>
-              Esta vista previa se genera dinámicamente con el componente <code class="px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-900/60 font-mono text-blue-950 dark:text-blue-200 font-semibold">&lt;app-motor-formulario&gt;</code> exactamente igual a como lo visualizan los inspectores en campo.
+              Esta vista previa se genera dinámicamente con el componente
+              <code
+                class="px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-900/60 font-mono text-blue-950 dark:text-blue-200 font-semibold"
+                >&lt;app-motor-formulario&gt;</code
+              >
+              exactamente igual a como lo visualizan los inspectores en campo.
             </span>
           </div>
           @if (esquemaCompilado) {
-            <app-motor-formulario
-              [esquema]="esquemaCompilado"
-              [modo]="'edicion'" />
+            <app-motor-formulario [esquema]="esquemaCompilado" [modo]="'edicion'" />
           }
         </div>
       }
@@ -172,7 +229,8 @@ import { ModalPublicar } from './modal-publicar';
         <app-modal-publicar
           [version]="version"
           (publicado)="alPublicarExitoso()"
-          (cancelar)="mostrarModalPublicar = false" />
+          (cancelar)="mostrarModalPublicar = false"
+        />
       }
     </div>
   `,
