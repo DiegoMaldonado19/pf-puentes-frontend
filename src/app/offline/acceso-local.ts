@@ -1,3 +1,5 @@
+import { DestroyRef, inject } from '@angular/core';
+import { liveQuery } from 'dexie';
 import { Subscription } from 'rxjs';
 import { AuthService, EventoSesion } from '../core/auth/auth';
 import { BaseLocal } from './base-local';
@@ -5,8 +7,16 @@ import { HabilitacionLocal } from './modelos';
 import { PersistenciaOffline } from './persistencia';
 import { SesionOffline } from './sesion-offline';
 
-/** Política durable; sin instancia ni preparación ficticia en producción. */
+/** Política durable; la preparación ficticia pertenece solo al harness. */
+export function crearAccesoLocal(): AccesoLocal {
+  const acceso = new AccesoLocal(inject(BaseLocal), inject(AuthService), inject(SesionOffline));
+  inject(DestroyRef).onDestroy(() => acceso.detener());
+  return acceso;
+}
+
 export class AccesoLocal {
+  private readonly cambios: { unsubscribe(): void };
+  private readonly oyentes = new Set<() => void>();
   private readonly eventos: Subscription;
   private pendiente: Promise<void> = Promise.resolve();
   private fallo = false;
@@ -19,14 +29,34 @@ export class AccesoLocal {
     private readonly remoto: SesionOffline,
   ) {
     this.local = new PersistenciaOffline(db);
+    remoto.coordinarAcceso(async (propietario) => {
+      await this.pendiente;
+      const registro = await db.acceso_local.get('ultima');
+      return !this.fallo && !registro?.revocados.includes(propietario);
+    });
+    this.cambios = liveQuery(async () => {
+      await db.inspecciones.count();
+      return db.acceso_local.get('ultima');
+    }).subscribe({
+      next: (registro) => {
+        const propietario = remoto.propietarioActual() ?? registro?.propietario_id;
+        if (propietario && registro?.revocados.includes(propietario)) this.invalidar();
+        else for (const actualizar of this.oyentes) actualizar();
+      },
+      error: () => {
+        this.fallo = true;
+        this.invalidar();
+      },
+    });
     this.eventos = auth.eventosSesion.subscribe((evento) => {
       if (evento.tipo === 'red' || evento.tipo === 'invalida') return;
-      this.revision++;
+      this.invalidar();
       this.pendiente = this.pendiente
         .then(() => this.aplicar(evento))
         .catch(() => {
           // Un fallo de persistencia no debe dejar acceso concedido por memoria.
           this.fallo = true;
+          this.invalidar();
         });
     });
   }
@@ -72,19 +102,32 @@ export class AccesoLocal {
     });
   }
 
+  /** Solo al terminar la hidratación inicial: P2 aún no tenía identidad anterior. */
+  async reconciliarAlArrancar(): Promise<void> {
+    await this.pendiente;
+    const revision = this.revision;
+    const propietario = this.remoto.propietarioActual();
+    if (this.fallo || !propietario) return;
+    await this.db.transaction('rw', this.db.acceso_local, async () => {
+      const registro = await this.db.acceso_local.get('ultima');
+      if (
+        registro &&
+        registro.propietario_id !== propietario &&
+        revision === this.revision &&
+        this.remoto.propietarioActual() === propietario
+      )
+        await this.aplicar({ tipo: 'cambio', propietario_id: registro.propietario_id });
+    });
+  }
+
   private async habilitacion(): Promise<HabilitacionLocal | undefined> {
     await this.pendiente;
     if (this.fallo) return undefined;
-    return this.db.transaction('rw', this.db.acceso_local, async () => {
-      const registro = await this.db.acceso_local.get('ultima');
-      if (!registro || registro.revocados.includes(registro.propietario_id)) return undefined;
-      const remoto = this.remoto.propietarioActual();
-      if (remoto && remoto !== registro.propietario_id) {
-        await this.aplicar({ tipo: 'cambio', propietario_id: registro.propietario_id });
-        return undefined;
-      }
-      return registro;
-    });
+    const registro = await this.db.acceso_local.get('ultima');
+    if (!registro || registro.revocados.includes(registro.propietario_id)) return undefined;
+    const remoto = this.remoto.propietarioActual();
+    // Una pestaña con sesión antigua no ve datos ajenos ni puede volver a revocarlos.
+    return remoto && remoto !== registro.propietario_id ? undefined : registro;
   }
 
   async propietarioActual(): Promise<string | null> {
@@ -107,8 +150,21 @@ export class AccesoLocal {
     return revision === this.revision && propietarioFinal === propietario ? capturas : [];
   }
 
+  private invalidar(): void {
+    this.revision++;
+    this.remoto.cancelarEjecucion();
+    for (const cancelar of this.oyentes) cancelar();
+  }
+
+  alInvalidar(cancelar: () => void): () => void {
+    this.oyentes.add(cancelar);
+    return () => this.oyentes.delete(cancelar);
+  }
+
   detener(): void {
     this.revision++;
     this.eventos.unsubscribe();
+    this.cambios.unsubscribe();
+    this.oyentes.clear();
   }
 }

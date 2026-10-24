@@ -290,6 +290,7 @@ export const TEXTOS = {
       app: 'Sistema de Gestión de Puentes',
       inventario: 'Puentes',
       mapa: 'Mapa',
+      local: 'Capturas locales',
       saltar: 'Saltar al contenido',
       principal: 'Principal',
     },
@@ -450,6 +451,16 @@ export const TEXTOS = {
     REGULAR: 'Regular',
     MALO: 'Malo',
     SIN_EVALUAR: 'Sin evaluar',
+  },
+  accesoLocal: {
+    titulo: 'Capturas locales',
+    limite:
+      'Consulta local sin sesión remota. La edición de capturas P5 y Preparar salida aún no están integrados; esta vista no sincroniza.',
+    sinAcceso:
+      'Sin capturas habilitadas. Tras cerrar o cambiar de cuenta se requiere login online del propietario preparado.',
+    inspeccion: 'Inspección',
+    harness: 'Sesión offline G2 — datos ficticios',
+    preparar: 'Preparar captura ficticia',
   },
   offline: {
     titulo: 'Base offline — datos ficticios',

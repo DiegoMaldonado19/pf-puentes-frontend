@@ -1,3 +1,4 @@
+import { Injectable } from '@angular/core';
 import Dexie, { Table } from 'dexie';
 import {
   ArchivoLocal,
@@ -17,6 +18,7 @@ export const ALMACENES_V1 = {
   cola_sync:
     'id, propietario_id, [propietario_id+inspeccion_id], [propietario_id+estado+proximo_intento], *dependencias',
 };
+@Injectable({ providedIn: 'root', useFactory: () => new BaseLocal() })
 export class BaseLocal extends Dexie {
   puentes!: Table<ReferenciaLocal, [string, string]>;
   esquemas_formulario!: Table<ReferenciaLocal, [string, string]>;

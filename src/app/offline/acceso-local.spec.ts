@@ -1,15 +1,19 @@
 import 'fake-indexeddb/auto';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { createEnvironmentInjector, EnvironmentInjector } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import Dexie from 'dexie';
 import { firstValueFrom, Subject } from 'rxjs';
 import { v7 } from 'uuid';
+import { inicializarSesion } from '../app.config';
 import { AuthService, EventoSesion } from '../core/auth/auth';
-import { AccesoLocal } from './acceso-local';
+import { AccesoLocal, crearAccesoLocal } from './acceso-local';
 import { ALMACENES_V1, BaseLocal } from './base-local';
 import { PersistenciaOffline } from './persistencia';
+import { MotorSync } from './motor-sync';
+import { TransporteSimulado } from './demo/transporte-simulado';
 import { SesionOffline } from './sesion-offline';
 
 Dexie.dependencies.indexedDB = indexedDB;
@@ -17,7 +21,7 @@ Dexie.dependencies.IDBKeyRange = IDBKeyRange;
 const ana = v7(),
   bea = v7();
 
-describe('habilitación local durable (sin navegación productiva)', () => {
+describe('habilitación local durable y coordinación de pestañas', () => {
   let db: BaseLocal, local: PersistenciaOffline, acceso: AccesoLocal;
   let auth: AuthService, remoto: SesionOffline, http: HttpTestingController;
   beforeEach(() => {
@@ -83,6 +87,29 @@ describe('habilitación local durable (sin navegación productiva)', () => {
     await arranque;
   }
 
+  it('inicializa antes de hidratar y revoca una cuenta distinta aunque no se abra la vista', async () => {
+    await preparar();
+    acceso.detener();
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideRouter([]),
+        { provide: BaseLocal, useValue: db },
+        { provide: AccesoLocal, useFactory: crearAccesoLocal },
+      ],
+    });
+    const arranque = TestBed.runInInjectionContext(inicializarSesion);
+    auth = TestBed.inject(AuthService);
+    remoto = TestBed.inject(SesionOffline);
+    acceso = TestBed.inject(AccesoLocal);
+    http = TestBed.inject(HttpTestingController);
+    http.expectOne('/api/v1/auth/renovar').flush(respuesta(bea));
+    await arranque;
+    await reabrir();
+    expect(await acceso.propietarioActual()).toBeNull();
+  });
   it('no desbloquea por UUID ni habilita una identidad ajena', async () => {
     expect(await acceso.habilitarPreparada(ana)).toBe(false);
     await entrar();
@@ -178,7 +205,11 @@ describe('habilitación local durable (sin navegación productiva)', () => {
     const otraBase = new BaseLocal(db.name);
     const eventos = new Subject<EventoSesion>();
     const sesionAntigua = { eventosSesion: eventos.asObservable() } as AuthService;
-    const remotoAntiguo = { propietarioActual: () => ana } as SesionOffline;
+    const remotoAntiguo = {
+      propietarioActual: () => ana,
+      coordinarAcceso: vi.fn(),
+      cancelarEjecucion: vi.fn(),
+    } as unknown as SesionOffline;
     const otra = new AccesoLocal(otraBase, sesionAntigua, remotoAntiguo);
     try {
       expect(await otra.propietarioActual()).toBe(ana);
@@ -190,6 +221,121 @@ describe('habilitación local durable (sin navegación productiva)', () => {
       otraBase.close();
     }
   });
+  it('notifica activamente revocación entre instancias y bloquea renovación remota antigua', async () => {
+    await preparar();
+    const otraBase = new BaseLocal(db.name);
+    const otra = new AccesoLocal(otraBase, auth, remoto);
+    const invalidada = vi.fn();
+    const liberar = otra.alInvalidar(invalidada);
+    try {
+      await vi.waitFor(() => expect(invalidada).toHaveBeenCalled());
+      invalidada.mockClear();
+      auth.cerrarSesionLocal();
+      await vi.waitFor(() => expect(invalidada).toHaveBeenCalled());
+      expect(await otra.inspecciones()).toEqual([]);
+      // Una sesión antigua de otra pestaña no puede reactivar el drenaje.
+      auth.usuario.set(respuesta().usuario as NonNullable<ReturnType<typeof auth.usuario>>);
+      auth.accessToken.set('antiguo');
+      expect(await remoto.preparar(ana)).toBe(false);
+      http.expectNone('/api/v1/auth/renovar');
+    } finally {
+      liberar();
+      otra.detener();
+      otraBase.close();
+    }
+  });
+  function abrirOtraPestana() {
+    const inyector = createEnvironmentInjector(
+      [provideHttpClient(), provideHttpClientTesting(), AuthService, SesionOffline],
+      TestBed.inject(EnvironmentInjector),
+    );
+    const auth = inyector.get(AuthService);
+    const http = inyector.get(HttpTestingController);
+    const base = new BaseLocal(db.name);
+    const acceso = new AccesoLocal(base, auth, inyector.get(SesionOffline));
+    return {
+      acceso,
+      auth,
+      entrar: async (id: string) => {
+        const entrada = firstValueFrom(auth.iniciarSesion('otra@correo.com', 'clave'));
+        http.expectOne('/api/v1/auth/login').flush(respuesta(id));
+        await entrada;
+      },
+      detener: () => {
+        acceso.detener();
+        http.verify();
+        inyector.destroy();
+        base.close();
+      },
+    };
+  }
+  it('una lectura desde una cuenta antigua no revoca el login restaurado del dueño', async () => {
+    const captura = await local.crear(ana, v7(), v7());
+    await local.crear(bea, v7(), v7());
+    const cola = await local.operaciones(ana);
+    await preparar();
+    const otra = abrirOtraPestana();
+    try {
+      await otra.entrar(bea);
+      expect(await otra.acceso.inspecciones()).toEqual([]);
+      expect(await acceso.inspecciones()).toEqual([]);
+      await entrar();
+      expect(await acceso.inspecciones()).toEqual([captura]);
+      // La pestaña B sigue sin ver A, pero consultar no equivale a cambiar cuenta.
+      expect(await otra.acceso.inspecciones()).toEqual([]);
+      expect(await acceso.inspecciones()).toEqual([captura]);
+      expect(await local.operaciones(ana)).toEqual(cola);
+    } finally {
+      otra.detener();
+    }
+  });
+  it.each(['cierre', 'cambio'] as const)(
+    '%s en otra pestaña cancela el transporte en vuelo sin ACK ni siguiente operación',
+    async (tipo) => {
+      const captura = await local.crear(ana, v7(), v7(), { primera: true });
+      await local.editar(ana, captura.id, { nueva: true });
+      const original = await local.inspeccion(ana, captura.id);
+      const cola = await local.operaciones(ana);
+      await preparar();
+      const otra = abrirOtraPestana();
+      const transporte = new TransporteSimulado();
+      transporte.demora = 30000;
+      const ejecutar = vi.spyOn(transporte, 'ejecutar');
+      const motor = new MotorSync(db, remoto, transporte, Date.now, () => true);
+      let trabajo: Promise<void> | undefined;
+      try {
+        await otra.entrar(ana);
+        await otra.acceso.propietarioActual();
+        const renovacion = observarRenovacion();
+        trabajo = motor.drenar();
+        await renovacion;
+        http.expectOne('/api/v1/auth/renovar').flush(respuesta());
+        await vi.waitFor(() => expect(transporte.activos).toBe(1));
+        const signal = ejecutar.mock.calls[0][2];
+        expect(signal.aborted).toBe(false);
+        if (tipo === 'cierre') otra.auth.cerrarSesionLocal();
+        else await otra.entrar(bea);
+        await vi.waitFor(() => expect(signal.aborted).toBe(true));
+        await trabajo;
+        expect(auth.autenticado()).toBe(true); // Esta pestaña no recibió eventos P2.
+        expect(transporte.registro).toHaveLength(1);
+        expect(await local.inspeccion(ana, captura.id)).toEqual(original);
+        expect(await local.operaciones(ana)).toEqual([
+          { ...cola[0], ultimo_intento: expect.any(Number) },
+          cola[1],
+        ]);
+        expect(await remoto.preparar(ana)).toBe(false);
+        http.expectNone('/api/v1/auth/renovar');
+      } finally {
+        motor.detener();
+        await trabajo;
+        otra.detener();
+      }
+      await reabrir();
+      expect(await acceso.propietarioActual()).toBeNull();
+      expect(await local.inspeccion(ana, captura.id)).toEqual(original);
+    },
+  );
   it('sustituye al propietario solo tras preparar, no con un simple login', async () => {
     await preparar();
     await entrar(bea);

@@ -119,24 +119,27 @@ describe('sesión remota offline P2 (sin transporte productivo)', () => {
     expect(eventos).toContainEqual({ tipo: 'cambio', propietario_id: ana });
   });
 
-  it.each([401, 0])('renovación fallida %s pausa sin enviar ni consumir intentos', async (estado) => {
-    await entrar();
-    const i = await local.crear(ana, v7(), v7());
-    const originales = await local.operaciones(ana);
-    const ejecutar = vi.fn();
-    motor = new MotorSync(db, adaptador, { ejecutar }, Date.now, () => true);
-    const inicio = observarRenovacion();
-    const trabajo = motor.drenar();
-    await inicio;
-    const peticion = http.expectOne('/api/v1/auth/renovar');
-    if (estado === 0) peticion.error(new ProgressEvent('error'));
-    else peticion.flush(null, { status: estado, statusText: 'Unauthorized' });
-    await trabajo;
-    expect(ejecutar).not.toHaveBeenCalled();
-    expect(motor.pausa()).not.toBeNull();
-    expect(await local.operaciones(ana)).toEqual(originales);
-    expect(await local.inspeccion(ana, i.id)).toEqual(i);
-  });
+  it.each([401, 0])(
+    'renovación fallida %s pausa sin enviar ni consumir intentos',
+    async (estado) => {
+      await entrar();
+      const i = await local.crear(ana, v7(), v7());
+      const originales = await local.operaciones(ana);
+      const ejecutar = vi.fn();
+      motor = new MotorSync(db, adaptador, { ejecutar }, Date.now, () => true);
+      const inicio = observarRenovacion();
+      const trabajo = motor.drenar();
+      await inicio;
+      const peticion = http.expectOne('/api/v1/auth/renovar');
+      if (estado === 0) peticion.error(new ProgressEvent('error'));
+      else peticion.flush(null, { status: estado, statusText: 'Unauthorized' });
+      await trabajo;
+      expect(ejecutar).not.toHaveBeenCalled();
+      expect(motor.pausa()).not.toBeNull();
+      expect(await local.operaciones(ana)).toEqual(originales);
+      expect(await local.inspeccion(ana, i.id)).toEqual(i);
+    },
+  );
 
   it.each([
     ['cierre', 'transporte'],

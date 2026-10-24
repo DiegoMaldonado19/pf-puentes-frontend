@@ -19,11 +19,29 @@ persistente en memoria. Las escrituras se serializan con transacciones Dexie.
 
 ## Límites y entrega incremental
 
-Primera unidad: servicio y migración con pruebas HTTP aisladas. Aún no se
-instancia desde producción ni conecta navegación, preparación o motor. La
-siguiente unidad debe cancelar ejecución/limpiar vistas entre pestañas al
-revocar, conectar el servicio antes de hidratar P2, ofrecer navegación local
-separada y verificar el harness en navegador. No conectar un servicio parcial.
+Implementación local G2: la fábrica de `AccesoLocal` se instancia antes de
+hidratar P2 y registra su liberación con `DestroyRef`. Al terminar esa hidratación
+reconcilia una identidad remota distinta de la preparada: en ese arranque P2 no
+tenía usuario anterior para emitir `cambio`. Después, únicamente los eventos de
+sesión y una nueva preparación modifican la habilitación; consultar desde una
+pestaña con identidad antigua no puede volver a revocar un login legítimo.
+Esa pestaña sigue sin poder consultar capturas del otro propietario.
+
+Dexie `liveQuery` observa habilitación y capturas para limpiar/actualizar vistas.
+La revocación durable también invalida el adaptador `SesionOffline`, que reutiliza
+la cancelación generacional y `AbortSignal` de `MotorSync`. Antes y después de
+renovar, el adaptador comprueba la revocación durable. No se concede acceso
+mediante mensajes o UUID recibidos de otra pestaña. Las pruebas con HTTP de
+prueba y transporte simulado aislado cubren cierre/cambio en otra instancia
+durante ejecución, sin aplicar ACK ni consumir intentos de la operación siguiente.
+
+La ruta productiva diferida `/offline/local` consulta únicamente capturas del
+dueño habilitado y se vacía al invalidar. No exige ni concede sesión remota.
+Es consultiva: P5 aún no integra su edición; no se inventa un editor productivo
+ni Preparar salida. El harness `/offline/demo?sesion=1` sí acredita edición con
+la persistencia existente, preparación ficticia y base exclusiva
+`puentes-offline-sesion-demo`. Playwright sustituye HTTP de `AuthService`, no
+instala una autenticación alternativa. La demo B01–B08 conserva su ruta y base.
 
 La identidad preparada nunca modifica `AuthService.autenticado()`, roles ni
 permisos. No hay transporte HTTP, caché genérica, purga ni simulador productivo.
