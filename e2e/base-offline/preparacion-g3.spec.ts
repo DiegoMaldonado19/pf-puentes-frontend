@@ -1,29 +1,12 @@
 import { expect, test } from '@playwright/test';
-import type { SesionDemo } from '../../src/app/offline/demo/sesion-demo';
-
-declare global {
-  interface Window {
-    __sesionDemo?: SesionDemo;
-  }
-}
-const propietario = '019a0000-0000-7000-8000-000000000001';
+import { ana as propietario, abrir, autenticarFicticiamente } from '../fixtures/sesion-offline';
 
 test('G3 — preparación completa alimenta captura y conserva JSON, foto, PDF e intención al reabrir', async ({
   page,
   context,
 }) => {
-  await context.route('**/api/v1/auth/**', (route) =>
-    route.fulfill({
-      json: {
-        access_token: 'g3-solo-memoria',
-        token_type: 'Bearer',
-        expires_in: 900,
-        usuario: { id: propietario, nombre: 'Estudiante', rol: 'ESTUDIANTE' },
-      },
-    }),
-  );
-  await page.goto('/offline/demo?sesion=1');
-  await page.waitForFunction(() => !!window.__sesionDemo);
+  await autenticarFicticiamente(context, () => propietario, 'g3-solo-memoria');
+  await abrir(page);
   await page.evaluate(async () => {
     await window.__sesionDemo!.entrar();
     await window.__sesionDemo!.preparar();
