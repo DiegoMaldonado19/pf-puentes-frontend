@@ -143,14 +143,18 @@
               {{ iniciando() ? t.inicio.enviando : t.inicio.accion }}
             </button>
           }
-          @if (orden.estado === 'PROPUESTA' && puedeDescartar()) {
-            <app-descarte-propuesta
+          @if (
+            (orden.estado === 'PROPUESTA' && puedeDescartar()) ||
+            (orden.estado === 'PROGRAMADA' && puedeCancelar())
+          ) {
+            <app-decision-con-motivo-orden
               [orden]="orden"
               [puedeConsultar]="puedeConsultar()"
-              [puedeDescartar]="puedeDescartar()"
+              [puedeDecidir]="orden.estado === 'PROGRAMADA' ? puedeCancelar() : puedeDescartar()"
+              [operacion]="orden.estado === 'PROGRAMADA' ? 'cancelacion' : 'descarte'"
               [bloqueada]="otraOperacionPendiente()"
-              (descartada)="descarteConfirmado($event)"
-              (actualizacionRequerida)="falloDescarte($event)"
+              (confirmada)="decisionConfirmada($event)"
+              (actualizacionRequerida)="falloDecision($event)"
             />
           }
           @if (puedeProgramar() && orden.estado === 'PROGRAMADA') {
@@ -179,7 +183,7 @@
               [puedeConsultar]="puedeConsultarEvidencia()"
               [puedeSubir]="puedeSubirEvidencia()"
               [puedeCerrar]="puedeCerrar()"
-              [bloqueada]="iniciando() || descartando() || ajustando() || programando()"
+              [bloqueada]="iniciando() || decidiendo() || ajustando() || programando()"
               (cerrada)="cierreConfirmado($event)"
               (accesoDenegado)="denegarEvidencia($event)"
               (actualizarOrden)="releerTrasEscritura($event)"

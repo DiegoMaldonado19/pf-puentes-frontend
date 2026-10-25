@@ -17,28 +17,32 @@ import { TEXTOS } from '../../shared/textos';
 import { MantenimientoService } from './mantenimiento.service';
 import { OrdenMantenimientoDTO } from './modelos';
 
-/** RN-MTO-04/09: acción explícita sobre una PROPUESTA, conservando el motivo escrito. */
+/** RN-MTO-04/09: formulario compartido para descarte y cancelación con motivo conservado. */
 @Component({
-  selector: 'app-descarte-propuesta',
+  selector: 'app-decision-con-motivo-orden',
   imports: [ReactiveFormsModule],
-  templateUrl: './descarte-propuesta.html',
-  styleUrls: ['./bandeja-propuestas.css', './descarte-propuesta.css'],
+  templateUrl: './decision-con-motivo-orden.html',
+  styleUrls: ['./bandeja-propuestas.css', './decision-con-motivo-orden.css'],
 })
-export class DescartePropuesta {
+export class DecisionConMotivoOrden {
   readonly orden = input.required<OrdenMantenimientoDTO>();
   readonly puedeConsultar = input.required<boolean>();
-  readonly puedeDescartar = input(false);
+  readonly puedeDecidir = input(false);
+  readonly operacion = input<'descarte' | 'cancelacion'>('descarte');
   readonly bloqueada = input(false);
-  readonly descartada = output<OrdenMantenimientoDTO>();
+  readonly confirmada = output<OrdenMantenimientoDTO>();
   /** 401/403 retiran datos del host; conflicto/resultado incierto exigen relectura. */
   readonly actualizacionRequerida = output<number>();
   private readonly servicio = inject(MantenimientoService);
   private readonly destruccion = inject(DestroyRef);
-  protected readonly t = TEXTOS.mantenimiento.descarte;
+  protected readonly t = computed(() => TEXTOS.mantenimiento[this.operacion()]);
   private readonly contexto = computed(() => ({
     orden: this.orden(),
     lectura: this.puedeConsultar(),
-    permiso: this.puedeDescartar(),
+    permiso: this.puedeDecidir(),
+    operacion: this.operacion(),
+    origen: this.operacion() === 'descarte' ? 'PROPUESTA' : 'PROGRAMADA',
+    destino: this.operacion() === 'descarte' ? 'DESCARTADA' : 'CANCELADA',
   }));
   protected readonly error = linkedSignal({
     source: this.contexto,
@@ -59,12 +63,12 @@ export class DescartePropuesta {
     });
   }
 
-  protected descartar() {
+  protected decidir() {
     const contexto = this.contexto();
     if (
       !contexto.lectura ||
       !contexto.permiso ||
-      contexto.orden.estado !== 'PROPUESTA' ||
+      contexto.orden.estado !== contexto.origen ||
       this.denegado() ||
       this.enviando() ||
       this.bloqueada()
@@ -72,14 +76,17 @@ export class DescartePropuesta {
       return;
     if (this.motivo.invalid) {
       this.motivo.markAsTouched();
-      this.error.set(this.t.motivoRequerido);
+      this.error.set(this.t().motivoRequerido);
       return;
     }
     const motivo = this.motivo.value;
     this.error.set(null);
     this.enviando.set(true);
-    this.servicio
-      .descartar(contexto.orden.puente_id, contexto.orden.id, { motivo })
+    const peticion =
+      contexto.operacion === 'descarte'
+        ? this.servicio.descartar(contexto.orden.puente_id, contexto.orden.id, { motivo })
+        : this.servicio.cancelar(contexto.orden.puente_id, contexto.orden.id, { motivo });
+    peticion
       .pipe(
         takeUntilDestroyed(this.destruccion),
         finalize(() => this.enviando.set(false)),
@@ -90,30 +97,30 @@ export class DescartePropuesta {
           if (
             resultado.id !== contexto.orden.id ||
             resultado.puente_id !== contexto.orden.puente_id ||
-            resultado.estado !== 'DESCARTADA' ||
+            resultado.estado !== contexto.destino ||
             resultado.motivo !== motivo
           ) {
-            this.error.set(this.t.resultadoDesconocido);
+            this.error.set(this.t().resultadoDesconocido);
             this.actualizacionRequerida.emit(500);
             return;
           }
-          this.descartada.emit(resultado);
+          this.confirmada.emit(resultado);
         },
         error: (error: unknown) => {
           if (this.contexto() !== contexto) return;
           const status = error instanceof HttpErrorResponse ? error.status : 500;
           const mensaje =
             status === 401
-              ? this.t.sinSesion
+              ? this.t().sinSesion
               : status === 403
-                ? this.t.sinPermiso
+                ? this.t().sinPermiso
                 : status === 404
-                  ? this.t.noEncontrada
+                  ? this.t().noEncontrada
                   : status === 409
-                    ? this.t.conflicto
+                    ? this.t().conflicto
                     : status === 400 || status === 422
-                      ? this.t.datosInvalidos
-                      : this.t.resultadoDesconocido;
+                      ? this.t().datosInvalidos
+                      : this.t().resultadoDesconocido;
           this.error.set(mensaje);
           if (status === 401 || status === 403) {
             this.denegado.set(true);

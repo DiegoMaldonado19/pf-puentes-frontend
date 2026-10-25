@@ -20,7 +20,7 @@ import { TEXTOS } from '../../shared/textos';
 import { AjustePrioridadOrden } from './ajuste-prioridad-orden';
 import { ProgramacionOrden } from './programacion-orden';
 import { SeguimientoRutinario } from './seguimiento-rutinario';
-import { DescartePropuesta } from './descarte-propuesta';
+import { DecisionConMotivoOrden } from './decision-con-motivo-orden';
 import { EvidenciaYCierre } from './evidencia-y-cierre';
 import { MantenimientoService } from './mantenimiento.service';
 import { OrdenMantenimientoDTO, PaginaOrdenes } from './modelos';
@@ -39,7 +39,7 @@ interface EstadoConsulta<T> {
   imports: [
     DatePipe,
     EvidenciaYCierre,
-    DescartePropuesta,
+    DecisionConMotivoOrden,
     AjustePrioridadOrden,
     ProgramacionOrden,
     SeguimientoRutinario,
@@ -63,6 +63,8 @@ export class ConsultaOrdenes {
   readonly cerrada = output<OrdenMantenimientoDTO>();
   readonly puedeDescartar = input(false);
   readonly descartada = output<OrdenMantenimientoDTO>();
+  readonly puedeCancelar = input(false);
+  readonly cancelada = output<OrdenMantenimientoDTO>();
   readonly puedeAjustarPrioridad = input(false);
   readonly prioridadAjustada = output<OrdenMantenimientoDTO>();
   readonly puedeProgramar = input(false);
@@ -73,13 +75,13 @@ export class ConsultaOrdenes {
     () =>
       this.iniciando() ||
       this.ajustando() ||
-      this.descartando() ||
+      this.decidiendo() ||
       (this.evidencia()?.envioPendiente() ?? false),
   );
   private readonly ajuste = viewChild(AjustePrioridadOrden);
   protected readonly ajustando = computed(() => this.ajuste()?.envioPendiente() ?? false);
-  private readonly descarte = viewChild(DescartePropuesta);
-  protected readonly descartando = computed(() => this.descarte()?.envioPendiente() ?? false);
+  private readonly decision = viewChild(DecisionConMotivoOrden);
+  protected readonly decidiendo = computed(() => this.decision()?.envioPendiente() ?? false);
   private readonly evidencia = viewChild(EvidenciaYCierre);
   protected readonly otraOperacionPendiente = computed(
     () =>
@@ -92,10 +94,10 @@ export class ConsultaOrdenes {
     () =>
       this.iniciando() ||
       this.programando() ||
-      this.descartando() ||
+      this.decidiendo() ||
       (this.evidencia()?.envioPendiente() ?? false),
   );
-  readonly operacionPendiente = computed(() => this.otraOperacionPendiente() || this.descartando());
+  readonly operacionPendiente = computed(() => this.otraOperacionPendiente() || this.decidiendo());
   protected readonly iniciando = signal(false);
   /** El host puede bloquear también la selección externa del puente durante el envío. */
   readonly inicioPendiente = this.iniciando.asReadonly();
@@ -347,17 +349,20 @@ export class ConsultaOrdenes {
     this.versionSeguimiento.update((v) => v + 1);
   }
 
-  protected descarteConfirmado(resultado: OrdenMantenimientoDTO) {
+  protected decisionConfirmada(resultado: OrdenMantenimientoDTO) {
     const actual = this.detalle().datos;
+    const cancelando = actual?.estado === 'PROGRAMADA';
+    const permiso = cancelando ? this.puedeCancelar() : this.puedeDescartar();
+    const destino = cancelando ? 'CANCELADA' : 'DESCARTADA';
     if (
       !this.puedeConsultar() ||
-      !this.puedeDescartar() ||
+      !permiso ||
       this.accesoDenegado() !== null ||
       !actual ||
-      actual.estado !== 'PROPUESTA' ||
+      (actual.estado !== 'PROPUESTA' && actual.estado !== 'PROGRAMADA') ||
       resultado.id !== actual.id ||
       resultado.puente_id !== this.puenteId() ||
-      resultado.estado !== 'DESCARTADA' ||
+      resultado.estado !== destino ||
       !resultado.motivo?.trim()
     )
       return;
@@ -373,23 +378,31 @@ export class ConsultaOrdenes {
           }
         : null,
     }));
-    this.avisoInicio.set({ mensaje: this.t.descarte.confirmada, error: false });
-    this.descartada.emit(resultado);
+    this.avisoInicio.set({
+      mensaje: this.t[cancelando ? 'cancelacion' : 'descarte'].confirmada,
+      error: false,
+    });
+    if (cancelando) {
+      this.cancelada.emit(resultado);
+      this.versionSeguimiento.update((v) => v + 1);
+    } else this.descartada.emit(resultado);
   }
 
-  protected falloDescarte(status: number) {
+  protected falloDecision(status: number) {
     if (status === 401 || status === 403) {
       this.accesoDenegado.set(status);
       this.avisoInicio.set(null);
       return;
     }
+    const textos =
+      this.t[this.detalle().datos?.estado === 'PROGRAMADA' ? 'cancelacion' : 'descarte'];
     this.avisoInicio.set({
       mensaje:
         status === 409
-          ? this.t.descarte.conflicto
+          ? textos.conflicto
           : status === 404
-            ? this.t.descarte.noEncontrada
-            : this.t.descarte.resultadoDesconocido,
+            ? textos.noEncontrada
+            : textos.resultadoDesconocido,
       error: true,
     });
     this.solicitud.update((actual) => ({ ...actual, intento: actual.intento + 1 }));

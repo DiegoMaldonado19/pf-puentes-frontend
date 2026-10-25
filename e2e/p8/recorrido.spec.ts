@@ -223,6 +223,59 @@ test('Administrador: aceptar, programar, justificar prioridad, iniciar, foto, ci
   ).toBeVisible();
 });
 
+for (const [cuenta, numero] of [
+  ['admin', 23],
+  ['cate', 24],
+] as const) {
+  test(`${cuenta}: cancela una rutina programada y conserva motivo tras recargar`, async ({
+    page,
+  }) => {
+    await entrar(page, cuenta);
+    await page.goto(`/puentes/${puente}/mantenimiento`);
+    await detalle(page, `Rutina para cancelar ${numero}`);
+    const id = `019a0035-0000-7000-8000-${String(numero).padStart(12, '0')}`;
+    if (cuenta === 'admin') {
+      const fotos = page.getByRole('region', { name: 'Fotografías de evidencia', exact: true });
+      await fotos.locator('input[type=file]').setInputFiles('public/icons/icon-72x72.png');
+      await escritura(page, `${base}/${id}/evidencias`, 'POST', () =>
+        fotos.getByRole('button', { name: 'Guardar fotografía', exact: true }).click(),
+      );
+      await expect(fotos.getByRole('img')).toBeVisible();
+    }
+    const panel = page.getByRole('region', { name: 'Cancelar orden programada', exact: true });
+    await panel
+      .getByLabel('Motivo de la cancelación', { exact: true })
+      .fill(`Cancelación del recorrido ${numero}`);
+    await escritura(page, `${base}/${id}/cancelacion`, 'POST', () =>
+      panel.getByRole('button', { name: 'Confirmar cancelación', exact: true }).click(),
+    );
+    await expect(
+      page.getByText('La orden quedó Cancelada. Su motivo se conserva en el historial.', {
+        exact: true,
+      }),
+    ).toBeVisible();
+    await page.reload();
+    await detalle(page, `Rutina para cancelar ${numero}`);
+    await expect(
+      page.getByText(`Cancelación del recorrido ${numero}`, { exact: true }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole('button', { name: 'Confirmar cancelación', exact: true }),
+    ).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Iniciar ejecución', exact: true })).toHaveCount(
+      0,
+    );
+    if (cuenta === 'admin') {
+      const foto = page.getByRole('img', { name: 'Miniatura de la evidencia', exact: true });
+      await expect(foto).toBeVisible();
+      expect((await page.request.get((await foto.getAttribute('src'))!)).ok()).toBe(true);
+      await expect(
+        page.getByRole('button', { name: 'Guardar fotografía', exact: true }),
+      ).toHaveCount(0);
+    }
+  });
+}
+
 test('Catedrático: puede consultar mantenimiento pero no administración de pesos', async ({
   page,
 }) => {
@@ -252,6 +305,14 @@ for (const cuenta of ['estudiante', 'profesional']) {
     const { access_token } = await sesion.json();
     const headers = { Authorization: `Bearer ${access_token}` };
     expect((await page.request.get(base, { headers })).status()).toBe(403);
+    expect(
+      (
+        await page.request.post(`${base}/019a0035-0000-7000-8000-000000000023/cancelacion`, {
+          headers,
+          data: { motivo: 'Intento sin permiso' },
+        })
+      ).status(),
+    ).toBe(403);
     expect((await page.request.get('/api/v1/juegos-pesos/formularios', { headers })).status()).toBe(
       403,
     );

@@ -110,6 +110,24 @@ export const TEXTOS = {
       resultadoDesconocido:
         'No se pudo confirmar el descarte. Revisa el estado actualizado antes de intentar otra vez.',
     },
+    cancelacion: {
+      titulo: 'Cancelar orden programada',
+      explicacion:
+        'Registra por qué no se realizará esta intervención programada. La orden y su motivo se conservarán en el historial.',
+      motivo: 'Motivo de la cancelación',
+      motivoRequerido: 'Escribe un motivo para cancelar la orden.',
+      accion: 'Confirmar cancelación',
+      enviando: 'Cancelando orden…',
+      confirmada: 'La orden quedó Cancelada. Su motivo se conserva en el historial.',
+      datosInvalidos:
+        'No se pudo cancelar con los datos actuales. Revisa el motivo y actualiza el detalle de la orden.',
+      conflicto: 'La orden ya no está programada. Revisa el estado actualizado antes de decidir.',
+      noEncontrada: 'La orden no está disponible en este puente. Revisa el listado actualizado.',
+      sinSesion: 'Tu sesión no está disponible. Inicia sesión y vuelve a consultar la orden.',
+      sinPermiso: 'No tienes permiso para cancelar esta orden.',
+      resultadoDesconocido:
+        'No se pudo confirmar la cancelación. Revisa el estado actualizado antes de intentar otra vez.',
+    },
     evidencia: {
       titulo: 'Fotografías de evidencia',
       descripcion:

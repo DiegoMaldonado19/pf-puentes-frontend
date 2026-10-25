@@ -180,6 +180,18 @@ describe('MantenimientoService', () => {
     req.flush({ ...aceptada, estado: 'DESCARTADA', motivo: datos.motivo });
     expect((await respuesta).estado).toBe('DESCARTADA');
   });
+  it('envía cancelación con motivo al endpoint real escapando identificadores', async () => {
+    const datos = { motivo: '  Cancelación documentada  ' };
+    const respuesta = firstValueFrom(servicio.cancelar('puente/otro', 'orden?otra', datos));
+    const req = http.expectOne(
+      '/api/v1/puentes/puente%2Fotro/ordenes-mantenimiento/orden%3Fotra/cancelacion',
+    );
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual(datos);
+    req.flush({ ...aceptada, estado: 'CANCELADA', motivo: datos.motivo });
+    expect((await respuesta).estado).toBe('CANCELADA');
+  });
+
   it('ajusta por PATCH enviando solo prioridad/justificación y escapando identificadores', async () => {
     const datos = { prioridad: 'BAJA' as const, justificacion: 'Urgencia revisada' };
     const respuesta = firstValueFrom(servicio.ajustarPrioridad('puente/otro', 'orden?otra', datos));
