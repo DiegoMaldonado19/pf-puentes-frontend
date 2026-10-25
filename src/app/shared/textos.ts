@@ -1,6 +1,20 @@
 // DT-FE-12: los textos de la interfaz viven aquí para poder traducirla sin tocar las plantillas
 export const TEXTOS = {
   mantenimiento: {
+    gestion: {
+      titulo: 'Mantenimiento del puente',
+      cargando: 'Cargando el puente…',
+      sinAcceso:
+        'Se requiere una sesión de Catedrático o Administrador para consultar mantenimiento.',
+      noPuente: 'El puente solicitado no existe.',
+      error: 'No se pudo cargar el puente. Comprueba tu sesión y vuelve a intentar.',
+      reintentar: 'Volver a cargar el puente',
+      volver: 'Volver a la ficha del puente',
+      navegacion: 'Consultas de mantenimiento',
+      ordenes: 'Historial y seguimiento anual',
+      propuestas: 'Propuestas pendientes',
+      guardando: 'Guardando la operación. Espera el resultado antes de cambiar de vista o salir.',
+    },
     rutinarioAnual: {
       titulo: 'Seguimiento rutinario anual',
       evaluacion: 'Fecha de evaluación',
@@ -255,6 +269,62 @@ export const TEXTOS = {
     prioridades: { ALTA: 'Alta', MEDIA: 'Media', BAJA: 'Baja' },
   },
   pesos: {
+    creacion: {
+      abrir: 'Configurar nuevo juego de pesos',
+      cerrar: 'Cerrar configuración',
+      titulo: 'Nuevo juego de pesos',
+      descripcion:
+        'Completa un peso por cada campo de daño. Guardar crea un juego nuevo y conserva los anteriores; no cambia resultados de inspecciones ni selecciona un juego para publicación.',
+      cargando: 'Cargando todos los campos de daño…',
+      sinCampos: 'El formulario no declara campos de daño. No se puede crear un juego vacío.',
+      limites:
+        'Cada peso debe ser mayor que cero, no superar 999.999 y tener como máximo tres decimales. No se proponen valores de calibración.',
+      acta: 'Referencia de acta de calibración (opcional para pesos provisionales)',
+      aclaracionActa:
+        'Sin referencia, el juego es provisional. Escribir una referencia no certifica la firma del Catedrático ni la calibración.',
+      guardar: 'Guardar juego nuevo',
+      guardando: 'Guardando juego. Espera antes de cambiar de versión o salir.',
+      invalidos:
+        'Completa todos los pesos y revisa sus límites y la referencia de acta (máximo 300 caracteres).',
+      error: 'No se pudo guardar el juego. Revisa los datos e inténtalo de nuevo.',
+      esquemaCambio:
+        'Los campos del formulario cambiaron o son incompatibles. Cierra la configuración y vuelve a cargar los campos antes de guardar.',
+      incierto:
+        'No se pudo confirmar el resultado. Consulta los juegos guardados antes de intentar registrar otro; este envío no se repetirá automáticamente.',
+      creado: 'Juego nuevo guardado. Los anteriores y los resultados de inspecciones se conservan.',
+      consulta: 'Juegos guardados de esta versión',
+    },
+    campos: {
+      abrir: 'Consultar campos de daño del formulario',
+      cerrar: 'Ocultar campos de daño',
+      titulo: 'Campos de daño disponibles para pesos',
+      descripcion:
+        'Consulta las referencias de daño de cualquier versión, aunque todavía no tenga pesos. La consulta no crea configuraciones ni acredita calibración.',
+      versiones: 'Versión del formulario',
+      elegir: 'Selecciona una versión',
+      sinVersiones: 'No hay versiones del formulario registradas.',
+      cargando: 'Cargando versiones del formulario…',
+      cargandoCampos: 'Cargando campos de daño…',
+      vacia: 'Esta versión no declara campos de daño para configurar pesos.',
+      incompatible: 'El esquema contiene metadatos de daño incompatibles. Solicita su revisión.',
+      referencia: 'Referencia del elemento',
+      aclaracion:
+        'Estas referencias identifican elementos; no indican por sí solas pesos ni condiciones críticas.',
+      paginasVersiones: 'Páginas de versiones del formulario',
+      paginasCampos: 'Páginas de campos de daño',
+    },
+    acceso: {
+      titulo: 'Consulta administrativa de pesos',
+      cargando: 'Cargando versiones con pesos guardados…',
+      descripcion:
+        'Selecciona una versión del formulario para consultar sus juegos y pesos históricos. Esta consulta no modifica configuraciones ni acredita su calibración.',
+      tabla: 'Versiones con juegos de pesos guardados',
+      codigo: 'Código de versión del formulario',
+      consultar: 'Consultar juegos',
+      vacia: 'Todavía no hay versiones del formulario con juegos de pesos guardados.',
+      paginacion: 'Páginas de versiones con pesos',
+      actualizar: 'Actualizar versiones',
+    },
     titulo: 'Pesos del índice de condición',
     descripcion: 'Consulta los juegos de pesos de la versión seleccionada del formulario.',
     juegos: 'Juegos de pesos',
@@ -354,6 +424,7 @@ export const TEXTOS = {
       atribucion: '© OpenStreetMap contributors',
     },
     ficha: {
+      mantenimiento: 'Gestionar mantenimiento',
       volver: 'Volver al inventario',
       cargando: 'Cargando puente…',
       editar: 'Editar',

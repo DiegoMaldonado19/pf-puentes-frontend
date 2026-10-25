@@ -14,6 +14,7 @@ import { TEXTOS } from './shared/textos';
 })
 export class App {
   protected readonly t = TEXTOS.puentes.nav;
+  protected readonly tPesos = TEXTOS.pesos.titulo;
   protected readonly n = TEXTOS.auth.nav;
   protected readonly roles = TEXTOS.auth.roles;
   protected readonly auth = inject(AuthService);

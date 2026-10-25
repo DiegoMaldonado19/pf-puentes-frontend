@@ -60,6 +60,19 @@ describe('FichaPuente', () => {
     expect(texto()).toContain(t.ficha.derivadosNota);
   });
 
+  it.each<RolPuentes | null>([
+    null,
+    'ESTUDIANTE',
+    'PROFESIONAL_EXTERNO',
+    'CATEDRATICO',
+    'ADMINISTRADOR',
+  ])('muestra acceso a mantenimiento solo a gestores, con rol %s', async (actual) => {
+    rol.set(actual);
+    await cargar();
+    const enlace = html().querySelector(`a[href="/puentes/${id}/mantenimiento"]`);
+    expect(enlace !== null).toBe(actual === 'CATEDRATICO' || actual === 'ADMINISTRADOR');
+  });
+
   it('muestra IC y la fecha de la última inspección sin correrla de día', async () => {
     await cargar({
       estado_actual: 'REGULAR',
