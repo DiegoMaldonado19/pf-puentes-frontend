@@ -6,10 +6,11 @@ import { TEXTOS } from '../../../shared/textos';
 import { ConsultaPesos } from './consulta-pesos';
 import { FormularioConPesosDTO } from './modelos';
 import { PesosService } from './pesos.service';
+import { CamposDanoPesos } from './campos-dano-pesos';
 
 @Component({
   selector: 'app-acceso-pesos',
-  imports: [ConsultaPesos],
+  imports: [ConsultaPesos, CamposDanoPesos],
   templateUrl: './acceso-pesos.html',
 })
 export class AccesoPesos {
@@ -17,6 +18,7 @@ export class AccesoPesos {
   private readonly servicio = inject(PesosService);
   protected readonly t = TEXTOS.pesos.acceso;
   protected readonly comun = TEXTOS.pesos;
+  protected readonly mostrarCampos = signal(false);
   protected readonly permitido = computed(
     () => this.auth.listo() && this.auth.autenticado() && this.auth.rol() === 'ADMINISTRADOR',
   );

@@ -9,6 +9,17 @@ export class PesosService {
   private readonly http = inject(HttpClient);
   private readonly base = '/api/v1';
 
+  listarElementosDano(
+    formularioVersionId: string,
+    page = 0,
+    size = 20,
+  ): Observable<PaginaPesosDTO<string>> {
+    return this.http.get<PaginaPesosDTO<string>>(
+      `${this.base}/formularios/${encodeURIComponent(formularioVersionId)}/elementos-dano`,
+      { params: { page, size } },
+    );
+  }
+
   listarFormularios(page = 0, size = 20): Observable<PaginaPesosDTO<FormularioConPesosDTO>> {
     return this.http.get<PaginaPesosDTO<FormularioConPesosDTO>>(
       `${this.base}/juegos-pesos/formularios`,

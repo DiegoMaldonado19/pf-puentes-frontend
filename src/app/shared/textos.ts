@@ -269,6 +269,25 @@ export const TEXTOS = {
     prioridades: { ALTA: 'Alta', MEDIA: 'Media', BAJA: 'Baja' },
   },
   pesos: {
+    campos: {
+      abrir: 'Consultar campos de daño del formulario',
+      cerrar: 'Ocultar campos de daño',
+      titulo: 'Campos de daño disponibles para pesos',
+      descripcion:
+        'Consulta las referencias de daño de cualquier versión, aunque todavía no tenga pesos. La consulta no crea configuraciones ni acredita calibración.',
+      versiones: 'Versión del formulario',
+      elegir: 'Selecciona una versión',
+      sinVersiones: 'No hay versiones del formulario registradas.',
+      cargando: 'Cargando versiones del formulario…',
+      cargandoCampos: 'Cargando campos de daño…',
+      vacia: 'Esta versión no declara campos de daño para configurar pesos.',
+      incompatible: 'El esquema contiene metadatos de daño incompatibles. Solicita su revisión.',
+      referencia: 'Referencia del elemento',
+      aclaracion:
+        'Estas referencias identifican elementos; no indican por sí solas pesos ni condiciones críticas.',
+      paginasVersiones: 'Páginas de versiones del formulario',
+      paginasCampos: 'Páginas de campos de daño',
+    },
     acceso: {
       titulo: 'Consulta administrativa de pesos',
       cargando: 'Cargando versiones con pesos guardados…',

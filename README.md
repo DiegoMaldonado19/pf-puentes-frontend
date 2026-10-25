@@ -1,5 +1,13 @@
 # pf-puentes-frontend
 
+### Campos reales del formulario para pesos (P8, 24/10/2026)
+
+Como Administrador, abre `/admin/pesos` y pulsa **Consultar campos de daño del formulario**. Elige una versión por código/estado desde el listado real P4; también aparecen versiones sin pesos. El panel muestra las referencias canónicas validadas por backend, con paginación, carga/vacío/error y reintento. Cambiar de versión/página, perder sesión u ocultar el panel cancela las lecturas correspondientes. No modifica configuraciones; el guardado espera las decisiones que el usuario consultará con el grupo. [ADR 0027](docs/adr/0027-campos-reales-del-formulario-en-pesos.md).
+
+Verificación 25/10/2026: **568 pruebas aprobadas**, 15 nuevas; ESLint, Prettier y TypeScript estricto aprobados. Una corrida concurrente tuvo tres timeouts y un error de TestBed en otras suites; repetición aislada aprobada sin cambiar esas pruebas ni ampliar sus tiempos.
+
+Build de producción y **seis escenarios Playwright aprobados** contra backend/BD/MinIO reales en entorno aislado. El caso nuevo muestra las 19 referencias de la semilla P4 sin pesos configurados; los cinco anteriores de pesos/mantenimiento/permisos siguen aprobados. [Guía reproducible](../pf-puentes-backend/docs/prueba-navegador-p8.md).
+
 ### Verificación P8 tras recibir P4 y sesión offline (24/10/2026)
 
 553 pruebas frontend aprobadas; Prettier, ESLint, TypeScript estricto y build de producción aprobados. El nuevo adaptador P4 → P8 se implementa en backend y no requiere otra pantalla. Se renumeró el ADR propio de acceso a mantenimiento de 0024 a 0026 para conservar el ADR 0024 de sesión offline P2. Creación de pesos y cálculo/publicación con respuestas reales siguen pendientes.

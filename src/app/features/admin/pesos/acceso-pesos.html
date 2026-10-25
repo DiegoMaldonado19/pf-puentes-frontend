@@ -1,5 +1,18 @@
 <section class="mx-auto max-w-6xl p-4" aria-labelledby="titulo-acceso-pesos">
   <h1 id="titulo-acceso-pesos" class="text-2xl font-bold">{{ t.titulo }}</h1>
+  @if (permitido()) {
+    <button
+      type="button"
+      class="my-3 rounded border p-2"
+      [attr.aria-expanded]="mostrarCampos()"
+      (click)="mostrarCampos.set(!mostrarCampos())"
+    >
+      {{ mostrarCampos() ? comun.campos.cerrar : comun.campos.abrir }}
+    </button>
+    @if (mostrarCampos()) {
+      <app-campos-dano-pesos />
+    }
+  }
   @if (!permitido()) {
     <p role="alert">{{ comun.sinPermiso }}</p>
   } @else if (formularios.isLoading()) {

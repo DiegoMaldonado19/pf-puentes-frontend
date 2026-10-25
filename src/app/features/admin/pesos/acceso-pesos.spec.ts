@@ -106,6 +106,21 @@ describe('Acceso administrativo a pesos con sesión P2', () => {
     expect(html().textContent).toContain(juego.acta);
   });
 
+  it('abre los campos reales de versiones sin pesos y cancela al ocultarlos', async () => {
+    await entrar();
+    await crear();
+    http.expectOne(catalogo).flush(pagina([]));
+    await estabilizar(fixture);
+    boton(t.campos.abrir).click();
+    await estabilizar(fixture);
+    const peticion = http.expectOne('/api/v1/formularios?page=0&size=20');
+    expect(peticion.request.headers.get('Authorization')).toBe('Bearer token-prueba');
+    boton(t.campos.cerrar).click();
+    await estabilizar(fixture);
+    expect(peticion.cancelled).toBe(true);
+    expect(html().querySelector('app-campos-dano-pesos')).toBeNull();
+  });
+
   it('presenta vacío real sin pedir ni crear configuraciones', async () => {
     await entrar();
     await crear();

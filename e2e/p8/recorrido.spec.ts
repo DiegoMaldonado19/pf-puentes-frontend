@@ -39,6 +39,23 @@ async function detalle(page: Page, descripcion: string) {
   ).toBeVisible();
 }
 
+test('Administrador: campos reales del formulario sin pesos configurados', async ({ page }) => {
+  await entrar(page, 'admin');
+  await page.goto('/admin/pesos');
+  await page
+    .getByRole('button', { name: 'Consultar campos de daño del formulario', exact: true })
+    .click();
+  await page
+    .getByLabel('Versión del formulario', { exact: true })
+    .selectOption('0192b000-0000-7000-8000-000000000001');
+  const referencias = page.getByRole('list', { name: 'Referencia del elemento', exact: true });
+  await expect(referencias.getByRole('listitem')).toHaveCount(19);
+  await expect(referencias).toContainText('subestructura.estribo_entrada.socavacion');
+  await expect(referencias).not.toContainText('subestructura.estribo_entrada_socavacion');
+  await page.getByRole('button', { name: 'Ocultar campos de daño', exact: true }).click();
+  await expect(referencias).toHaveCount(0);
+});
+
 test('Administrador: versión → juego → elementos, sin editar pesos', async ({ page }) => {
   await entrar(page, 'admin');
   await page.getByRole('link', { name: 'Pesos del índice de condición', exact: true }).click();

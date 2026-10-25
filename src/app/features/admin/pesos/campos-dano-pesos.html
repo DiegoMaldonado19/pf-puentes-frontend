@@ -1,0 +1,108 @@
+<section class="my-4 rounded border border-slate-300 p-4" aria-labelledby="titulo-campos-dano">
+  <h2 id="titulo-campos-dano" class="text-xl font-semibold">{{ t.titulo }}</h2>
+  <p class="my-3">{{ t.descripcion }}</p>
+  @if (!permitido()) {
+    <p role="alert">{{ comun.sinPermiso }}</p>
+  } @else if (accesoDenegado(); as fallo) {
+    <p role="alert">{{ error(fallo) }}</p>
+    <button type="button" class="rounded border p-2" (click)="reintentar()">
+      {{ comun.reintentar }}
+    </button>
+  } @else if (versiones.isLoading()) {
+    <p role="status">{{ t.cargando }}</p>
+  } @else if (versiones.error()) {
+    <p role="alert">{{ error(versiones.error()) }}</p>
+    <button type="button" class="rounded border p-2" (click)="reintentar()">
+      {{ comun.reintentar }}
+    </button>
+  } @else if (versiones.value(); as datos) {
+    @if (datos.contenido.length) {
+      <label for="version-campos-dano" class="block font-semibold">{{ t.versiones }}</label>
+      <select
+        #selectorVersion
+        id="version-campos-dano"
+        class="my-2 w-full rounded border p-2"
+        [value]="version()"
+        (change)="elegir(selectorVersion.value)"
+      >
+        <option value="">{{ t.elegir }}</option>
+        @for (v of datos.contenido; track v.id) {
+          <option [value]="v.id">{{ v.codigo }} — {{ v.estado }}</option>
+        }
+      </select>
+    } @else {
+      <p role="status">{{ t.sinVersiones }}</p>
+    }
+    <nav class="my-3 flex items-center gap-3" [attr.aria-label]="t.paginasVersiones">
+      <button
+        type="button"
+        class="rounded border p-2 disabled:opacity-50"
+        [disabled]="datos.pagina === 0"
+        (click)="cambiar(datos.pagina - 1)"
+      >
+        {{ comun.anterior }}
+      </button>
+      @if (datos.total_paginas && datos.pagina < datos.total_paginas) {
+        <span
+          >{{ comun.pagina }} {{ datos.pagina + 1 }} {{ comun.de }} {{ datos.total_paginas }}</span
+        >
+      }
+      <button
+        type="button"
+        class="rounded border p-2 disabled:opacity-50"
+        [disabled]="datos.pagina + 1 >= datos.total_paginas"
+        (click)="cambiar(datos.pagina + 1)"
+      >
+        {{ comun.siguiente }}
+      </button>
+      <button type="button" class="rounded border p-2" (click)="reintentar()">
+        {{ comun.acceso.actualizar }}
+      </button>
+    </nav>
+    @if (version()) {
+      @if (campos.isLoading()) {
+        <p role="status">{{ t.cargandoCampos }}</p>
+      } @else if (campos.error()) {
+        <p role="alert">{{ error(campos.error()) }}</p>
+        <button type="button" class="rounded border p-2" (click)="reintentar(true)">
+          {{ comun.reintentar }}
+        </button>
+      } @else if (campos.value(); as elementos) {
+        @if (elementos.content.length) {
+          <p class="my-2">{{ t.aclaracion }}</p>
+          <ul class="list-inside list-disc break-words" [attr.aria-label]="t.referencia">
+            @for (ref of elementos.content; track ref) {
+              <li>{{ ref }}</li>
+            }
+          </ul>
+        } @else {
+          <p role="status">{{ t.vacia }}</p>
+        }
+        <nav class="my-3 flex items-center gap-3" [attr.aria-label]="t.paginasCampos">
+          <button
+            type="button"
+            class="rounded border p-2 disabled:opacity-50"
+            [disabled]="elementos.page === 0"
+            (click)="cambiar(elementos.page - 1, true)"
+          >
+            {{ comun.anterior }}
+          </button>
+          @if (elementos.total_pages && elementos.page < elementos.total_pages) {
+            <span
+              >{{ comun.pagina }} {{ elementos.page + 1 }} {{ comun.de }}
+              {{ elementos.total_pages }}</span
+            >
+          }
+          <button
+            type="button"
+            class="rounded border p-2 disabled:opacity-50"
+            [disabled]="elementos.page + 1 >= elementos.total_pages"
+            (click)="cambiar(elementos.page + 1, true)"
+          >
+            {{ comun.siguiente }}
+          </button>
+        </nav>
+      }
+    }
+  }
+</section>
