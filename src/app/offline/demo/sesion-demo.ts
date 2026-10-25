@@ -1,4 +1,4 @@
-import { Component, inject, OnDestroy } from '@angular/core';
+import { Component, inject, OnDestroy, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../../core/auth/auth';
 import { TEXTOS } from '../../shared/textos';
@@ -8,7 +8,9 @@ import { MotorSync } from '../motor-sync';
 import { PersistenciaOffline } from '../persistencia';
 import { SesionOffline } from '../sesion-offline';
 import { VistaLocal } from '../vista-local';
-import { FORMULARIO, prepararFixtures, PROPIETARIOS, PUENTE } from './fixtures';
+import { PreparacionLocal, ProgresoPreparacion } from '../preparacion';
+import { PROPIETARIOS } from './fixtures';
+import { proveedoresFicticios } from './preparacion-fixtures';
 
 /** Solo build base-offline; HTTP P2 se sustituye en Playwright, nunca en producción. */
 @Component({
@@ -21,6 +23,10 @@ import { FORMULARIO, prepararFixtures, PROPIETARIOS, PUENTE } from './fixtures';
   template: `
     <h1>{{ t.harness }}</h1>
     <button type="button" (click)="preparar()">{{ t.preparar }}</button>
+    <p role="status">{{ estado() }}</p>
+    @for (paso of progreso(); track $index) {
+      <p>{{ paso.proveedor }}: {{ paso.estado }}</p>
+    }
     <app-vista-local />
   `,
 })
@@ -32,6 +38,14 @@ export class SesionDemo implements OnDestroy {
   readonly remoto = inject(SesionOffline);
   readonly persistencia = new PersistenciaOffline(this.db);
   readonly propietario = PROPIETARIOS[0];
+  readonly progreso = signal<ProgresoPreparacion[]>([]);
+  readonly estado = signal('');
+  readonly preparacion = new PreparacionLocal(
+    this.db,
+    this.acceso,
+    this.remoto,
+    proveedoresFicticios(this.db),
+  );
   envios = 0;
   readonly motor = new MotorSync(this.db, this.remoto, {
     ejecutar: async () => {
@@ -49,9 +63,30 @@ export class SesionDemo implements OnDestroy {
     return firstValueFrom(this.auth.cerrarSesion());
   }
   async preparar(): Promise<void> {
-    await prepararFixtures(this.db);
-    if (!(await this.acceso.habilitarPreparada(this.propietario))) return;
-    await this.persistencia.crear(this.propietario, PUENTE, FORMULARIO, { fixture: true });
+    this.progreso.set([]);
+    this.estado.set('');
+    const resultado = await this.preparacion.preparar(this.propietario, (paso) =>
+      this.progreso.update((pasos) => [...pasos, paso]),
+    );
+    if (!resultado.completa) {
+      this.estado.set(this.t.preparacionIncompleta);
+      return;
+    }
+    const { preparacion } = await this.preparacion.consultar(this.propietario);
+    const asignacion = preparacion?.asignaciones[0];
+    if (!preparacion || !asignacion) return;
+    await this.persistencia.crear(
+      this.propietario,
+      asignacion.puente_id,
+      preparacion.formulario_version_id,
+      { fixture: true },
+      {
+        asignacion_id: asignacion.id,
+        curso_id: asignacion.curso_id,
+        inscripcion_id: asignacion.inscripcion_id,
+      },
+    );
+    this.estado.set(this.t.preparacionCompleta);
   }
   async editar(): Promise<void> {
     const [captura] = await this.acceso.inspecciones();
