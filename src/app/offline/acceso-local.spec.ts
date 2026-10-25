@@ -369,7 +369,7 @@ describe('habilitación local durable y coordinación de pestañas', () => {
       expect(await servicio.propietarioActual()).toBeNull();
       expect(await new PersistenciaOffline(migrada).inspeccion(ana, captura.id)).toEqual(captura);
       expect(await new PersistenciaOffline(migrada).operaciones(ana)).toEqual(cola);
-      expect(migrada.verno).toBe(3);
+      expect(migrada.verno).toBe(4);
     } finally {
       servicio.detener();
       await migrada.delete();

@@ -1,11 +1,18 @@
 import { DestroyRef, inject } from '@angular/core';
-import { liveQuery } from 'dexie';
+import { liveQuery, Table } from 'dexie';
 import { Subscription } from 'rxjs';
 import { AuthService, EventoSesion } from '../core/auth/auth';
 import { BaseLocal } from './base-local';
 import { HabilitacionLocal } from './modelos';
 import { PersistenciaOffline } from './persistencia';
 import { SesionOffline } from './sesion-offline';
+
+export interface PublicacionLocal {
+  tablas: Table[];
+  /** Solo escrituras IndexedDB, sin descargas ni otros efectos externos. */
+  publicar(): Promise<void>;
+  vigente(): boolean;
+}
 
 /** Política durable; la preparación ficticia pertenece solo al harness. */
 export function crearAccesoLocal(): AccesoLocal {
@@ -77,8 +84,11 @@ export class AccesoLocal {
     });
   }
 
-  /** Llamar solo después de completar la preparación; G2 no la implementa. */
-  async habilitarPreparada(propietario_id: string): Promise<boolean> {
+  /** Renovación fuera de la transacción; publicación opcional atómica con G3. */
+  async habilitarPreparada(
+    propietario_id: string,
+    publicacion?: PublicacionLocal,
+  ): Promise<boolean> {
     if (this.remoto.propietarioActual() !== propietario_id) return false;
     const revision = this.revision;
     await this.pendiente;
@@ -86,20 +96,38 @@ export class AccesoLocal {
     // Ni renovación ni selección de UUID recuperan una habilitación revocada.
     if (this.fallo || anterior?.revocados.includes(propietario_id)) return false;
     if (!(await this.remoto.preparar(propietario_id))) return false;
-    return this.db.transaction('rw', this.db.acceso_local, async () => {
-      const actual = await this.db.acceso_local.get('ultima');
-      if (
-        this.fallo ||
-        revision !== this.revision ||
-        actual?.revocados.includes(propietario_id) ||
-        this.remoto.propietarioActual() !== propietario_id
-      )
-        return false;
-      const revocados = new Set(actual?.revocados);
-      if (actual && actual.propietario_id !== propietario_id) revocados.add(actual.propietario_id);
-      await this.db.acceso_local.put({ id: 'ultima', propietario_id, revocados: [...revocados] });
-      return true;
-    });
+    const invalidada = new Error('Publicación local invalidada.');
+    try {
+      return await this.db.transaction(
+        'rw',
+        [this.db.acceso_local, ...(publicacion?.tablas ?? [])],
+        async () => {
+          const actual = await this.db.acceso_local.get('ultima');
+          const vigente = () =>
+            !this.fallo &&
+            revision === this.revision &&
+            !actual?.revocados.includes(propietario_id) &&
+            this.remoto.propietarioActual() === propietario_id &&
+            (publicacion?.vigente() ?? true);
+          if (!vigente()) return false;
+          await publicacion?.publicar();
+          if (!vigente()) throw invalidada;
+          const revocados = new Set(actual?.revocados);
+          if (actual && actual.propietario_id !== propietario_id)
+            revocados.add(actual.propietario_id);
+          await this.db.acceso_local.put({
+            id: 'ultima',
+            propietario_id,
+            revocados: [...revocados],
+          });
+          if (!vigente()) throw invalidada;
+          return true;
+        },
+      );
+    } catch (error) {
+      if (error === invalidada) return false;
+      throw error;
+    }
   }
 
   /** Solo al terminar la hidratación inicial: P2 aún no tenía identidad anterior. */
@@ -132,6 +160,18 @@ export class AccesoLocal {
 
   async propietarioActual(): Promise<string | null> {
     return (await this.habilitacion())?.propietario_id ?? null;
+  }
+
+  /** Lectura propia con validez final; las notificaciones de actualización no son revocación. */
+  async consultarPropias<T>(
+    propietario_id: string,
+    leer: () => Promise<T>,
+  ): Promise<T | undefined> {
+    const revision = this.revision;
+    if ((await this.propietarioActual()) !== propietario_id) return undefined;
+    const datos = await leer();
+    const propietarioFinal = await this.propietarioActual();
+    return revision === this.revision && propietarioFinal === propietario_id ? datos : undefined;
   }
 
   async inspecciones() {

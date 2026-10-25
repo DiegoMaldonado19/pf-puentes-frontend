@@ -286,7 +286,7 @@ describe('base offline', () => {
     });
     expect(await migrada.cola_sync.count()).toBe(2);
     expect(await migrada.inspecciones.get(i.id)).toEqual(i);
-    expect(migrada.verno).toBe(3);
+    expect(migrada.verno).toBe(4);
     await migrada.delete();
   });
   it('informa denegación, ausencia y error de Storage API', async () => {

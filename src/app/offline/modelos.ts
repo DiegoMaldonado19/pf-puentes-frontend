@@ -1,3 +1,5 @@
+import type { AsignacionP7DTO } from './asignaciones-p7';
+
 export type Json = null | boolean | number | string | Json[] | { [clave: string]: Json };
 export interface RegistroLocal {
   id: string;
@@ -81,8 +83,19 @@ export interface SesionOffline {
   /** Cancela ejecución remota; no elimina capturas ni operaciones. */
   alInvalidar?(cancelar: () => void): () => void;
 }
+export interface PreparacionCompleta extends RegistroLocal {
+  preparada_en: string;
+  formulario_version_id: string;
+  asignaciones: AsignacionP7DTO[];
+  publicaciones: { puente_id: string; publicacion: ReferenciaLocal | null }[];
+  puentes: ReferenciaLocal[];
+  esquemas_formulario: ReferenciaLocal[];
+}
+export interface LecturaReferencia {
+  puentes: ReferenciaLocal[];
+  esquemas_formulario: ReferenciaLocal[];
+  preparacion?: PreparacionCompleta;
+}
 export interface ReferenciaOffline {
-  consultar(
-    propietario_id: string,
-  ): Promise<{ puentes: ReferenciaLocal[]; esquemas_formulario: ReferenciaLocal[] }>;
+  consultar(propietario_id: string): Promise<LecturaReferencia>;
 }

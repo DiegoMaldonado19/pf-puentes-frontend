@@ -47,8 +47,8 @@ queda pendiente de ejecución y registro por el equipo.
 ## API local e integración posterior
 
 - `BaseLocal`: base `puentes-offline` por defecto; versión 1 con seis almacenes
-  de dominio, versión 2 añade `bloqueos` y versión 3 añade `acceso_local`,
-  sin borrar capturas. Cada registro
+  de dominio, versión 2 añade `bloqueos`, versión 3 añade `acceso_local` y
+  versión 4 añade snapshots completos `preparaciones`, sin borrar capturas. Cada registro
   declara `modelo_version`. Referencia usa clave compuesta propietario/id.
 - `PersistenciaOffline`: `crear`, `editar`, `foto`, `documento`, `enviar`,
   `inspeccion`, `operaciones` y `guardarReferencias`. Todas reciben propietario
@@ -115,7 +115,12 @@ no hay capturas habilitadas; no existe un fallback ficticio productivo.
 Abrir `/offline/demo?sesion=1` en el build `base-offline`. Usa exclusivamente
 `puentes-offline-sesion-demo`; no comparte capturas con producción ni con
 `puentes-offline-demo`. El botón **Preparar captura ficticia** exige sesión P2
-válida y reutiliza fixtures/persistencia existentes. La sesión es `AuthService`;
+válida y coordina los tres proveedores ficticios mediante `PreparacionLocal`.
+La captura consume puente, contexto de asignación y versión exacta del snapshot
+completo; no crea otra captura si la preparación falla. Muestra progreso por
+proveedor y un resultado explícitamente ficticio. Los dos contextos de curso se
+conservan aunque compartan puente; no tener publicación previa es válido.
+La sesión es `AuthService`;
 Playwright sustituye sus respuestas HTTP de login/renovación/cierre. Sin ese
 HTTP de prueba, el servidor estático no proporciona una sesión ficticia.
 
@@ -140,8 +145,10 @@ Decisión propuesta, sin acuerdo externo de P2: [ADR 0024](adr/0024-acceso-local
 
 P2: coordinación externa del acceso local y futuro interceptor offline/replay;
 la adaptación de sesión y renovación usa ya `AuthService`.
-P3/P4/P7: descarga autorizada/paginada y preparación completa; P4: validación
-offline del formulario. P5: borrador, revisión base y transición editable/envío.
+P3/P7: consumidores disponibles; ver [referencia-offline.md](referencia-offline.md).
+G3: coordinación durable disponible; ver [preparacion-local.md](preparacion-local.md).
+P4/P5: faltan proveedores productivos de esquema activo y última publicación;
+P4: validación offline del formulario. P5: borrador, revisión base y transición editable/envío.
 P1: transporte HTTP/multipart con las claves y UUID originales. Los rechazos
 de editabilidad conservarán las versiones nuevas locales; esta base no fuerza
 una transición remota ni sustituye la máquina de estados de P5. El ACK JSON
