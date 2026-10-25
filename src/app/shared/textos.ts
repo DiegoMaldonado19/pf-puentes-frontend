@@ -459,7 +459,8 @@ export const TEXTOS = {
     sinAcceso:
       'Sin capturas habilitadas. Tras cerrar o cambiar de cuenta se requiere login online del propietario preparado.',
     sinCapturas: 'No hay capturas locales para el propietario habilitado.',
-    errorConsulta: 'No se pudieron consultar las capturas locales. Los datos guardados se conservan.',
+    errorConsulta:
+      'No se pudieron consultar las capturas locales. Los datos guardados se conservan.',
     inspeccion: 'Inspección',
     harness: 'Sesión offline G2 — datos ficticios',
     preparar: 'Preparar captura ficticia',
