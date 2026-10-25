@@ -264,7 +264,7 @@ test('B03 — cuota atómica visible, persistencia denegada y migración real', 
     return resultado;
   }, i.id);
   expect(migracion).toMatchObject({
-    version: 3,
+    version: 4,
     fotos: 'foto',
     mini: 'mini',
     cola: 2,
@@ -374,8 +374,9 @@ test('B06 — indicador cuenta entidades y diagnóstico accesible coincide con I
     h.transporte.resultado = 'negocio';
     await h.motor.drenar();
   }, i.id);
+  const diagnostico = page.getByRole('region', { name: 'Diagnóstico local de sincronización' });
   await expect(
-    page
+    diagnostico
       .getByRole('status')
       .filter({ hasText: 'Inspecciones pendientes: 1 · Archivos pendientes: 1' }),
   ).toBeVisible();
@@ -385,14 +386,17 @@ test('B06 — indicador cuenta entidades y diagnóstico accesible coincide con I
   await page.evaluate(() => (window.__offlineDemo!.transporte.resultado = 'ack'));
   await page.getByRole('button', { name: 'Sincronizar simulación' }).click();
   await expect(
-    page
+    diagnostico
       .getByRole('status')
       .filter({ hasText: 'Inspecciones pendientes: 0 · Archivos pendientes: 0' }),
   ).toBeVisible();
   expect(
-    await page.evaluate(async () =>
-      (await window.__offlineDemo!.db.cola_sync.toArray()).every((o) => o.estado === 'confirmada'),
-    ),
+    await page.evaluate(async () => {
+      const h = window.__offlineDemo!;
+      return (await h.persistencia.operaciones(h.propietario())).every(
+        (operacion) => operacion.estado === 'confirmada',
+      );
+    }),
   ).toBe(true);
 });
 

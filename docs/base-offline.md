@@ -47,8 +47,8 @@ queda pendiente de ejecución y registro por el equipo.
 ## API local e integración posterior
 
 - `BaseLocal`: base `puentes-offline` por defecto; versión 1 con seis almacenes
-  de dominio, versión 2 añade `bloqueos` y versión 3 añade `acceso_local`,
-  sin borrar capturas. Cada registro
+  de dominio, versión 2 añade `bloqueos`, versión 3 añade `acceso_local` y
+  versión 4 añade snapshots completos `preparaciones`, sin borrar capturas. Cada registro
   declara `modelo_version`. Referencia usa clave compuesta propietario/id.
 - `PersistenciaOffline`: `crear`, `editar`, `foto`, `documento`, `enviar`,
   `inspeccion`, `operaciones` y `guardarReferencias`. Todas reciben propietario
@@ -74,8 +74,10 @@ queda pendiente de ejecución y registro por el equipo.
 - `IndicadorOffline`: componente standalone independiente para navegación,
   con entrada de operaciones del propietario actual y contadores computed.
 - `DiagnosticoOffline`: componente standalone reusable con entradas base,
-  propietario y motor. Cuenta entidades distintas, no filas ni intentos.
-  La ocupación/cuota corresponde al origen completo, no solo a esta base.
+  propietario y motor opcional. Cuenta entidades distintas, no filas ni intentos.
+  Sin motor consulta con `AccesoLocal.consultarPropias` y es de solo lectura; el
+  harness G1 recibe el motor simulado explícitamente. La ocupación/cuota corresponde
+  al origen completo, no solo a esta base.
 - `consultarAlmacenamiento(true)`: solicitar persistencia al entrar en captura;
   resultado/denegación/ausencia visibles. `mensajeEscritura` distingue cuota y
   validaciones. No se purgan pendientes ni blobs automáticamente.
@@ -115,7 +117,12 @@ no hay capturas habilitadas; no existe un fallback ficticio productivo.
 Abrir `/offline/demo?sesion=1` en el build `base-offline`. Usa exclusivamente
 `puentes-offline-sesion-demo`; no comparte capturas con producción ni con
 `puentes-offline-demo`. El botón **Preparar captura ficticia** exige sesión P2
-válida y reutiliza fixtures/persistencia existentes. La sesión es `AuthService`;
+válida y coordina los tres proveedores ficticios mediante `PreparacionLocal`.
+La captura consume puente, contexto de asignación y versión exacta del snapshot
+completo; no crea otra captura si la preparación falla. Muestra progreso por
+proveedor y un resultado explícitamente ficticio. Los dos contextos de curso se
+conservan aunque compartan puente; no tener publicación previa es válido.
+La sesión es `AuthService`;
 Playwright sustituye sus respuestas HTTP de login/renovación/cierre. Sin ese
 HTTP de prueba, el servidor estático no proporciona una sesión ficticia.
 
@@ -136,12 +143,39 @@ real, edición P5 productiva ni aceptación V09 completa. El acceso presupone
 control del navegador/perfil y no protege frente al acceso directo a IndexedDB.
 Decisión propuesta, sin acuerdo externo de P2: [ADR 0024](adr/0024-acceso-local-sesion-offline.md).
 
+### Diagnóstico local G4 — integración parcial de solo lectura
+
+La navegación de la aplicación muestra los conteos pendientes del propietario
+que devuelve `AccesoLocal.propietarioActual()`. `EstadoLocal` consulta la cola a
+través de `AccesoLocal.consultarPropias`, vuelve a validar las emisiones vivas y
+vacía la vista al invalidar o cambiar esa identidad; nunca toma un UUID de la UI
+ni lee la cola de otro propietario. `/offline/local` conserva la ruta G2 y
+compone las capturas autorizadas con `DiagnosticoOffline` para ese mismo dueño.
+El indicador cuenta inspecciones y archivos distintos pendientes, no filas ni
+intentos. El diagnóstico muestra estados, errores, dependencias, último intento
+y uso/cuota del origen, con estados y errores como texto accesible (no solo
+color). El estado de almacenamiento sigue visible incluso sin dueño habilitado;
+en ese caso no consulta la cola.
+
+La ruta productiva omite la entrada `MotorSync`: no muestra acciones de reintento
+ni conecta el simulador o un transporte HTTP. Las operaciones no confirmadas,
+capturas, fotos y PDF permanecen en IndexedDB; cerrar sesión o cambiar de cuenta
+solo oculta el acceso y no las purga. Se explicitan la falta de edición P5,
+Preparar salida productivo, transporte/reintento productivos, los acuerdos de
+conflictos/permisos y la política de caché privada pendiente de G11. La demo G1
+sigue pasando su motor simulado de forma explícita y mantiene sus acciones de
+prueba.
+
+Verificación G4 y escenarios observados: [validacion-diagnostico-g4.md](validacion-diagnostico-g4.md).
+
 ### Adaptadores pendientes (grupos 2..7)
 
 P2: coordinación externa del acceso local y futuro interceptor offline/replay;
 la adaptación de sesión y renovación usa ya `AuthService`.
-P3/P4/P7: descarga autorizada/paginada y preparación completa; P4: validación
-offline del formulario. P5: borrador, revisión base y transición editable/envío.
+P3/P7: consumidores disponibles; ver [referencia-offline.md](referencia-offline.md).
+G3: coordinación durable disponible; ver [preparacion-local.md](preparacion-local.md).
+P4/P5: faltan proveedores productivos de esquema activo y última publicación;
+P4: validación offline del formulario. P5: borrador, revisión base y transición editable/envío.
 P1: transporte HTTP/multipart con las claves y UUID originales. Los rechazos
 de editabilidad conservarán las versiones nuevas locales; esta base no fuerza
 una transición remota ni sustituye la máquina de estados de P5. El ACK JSON

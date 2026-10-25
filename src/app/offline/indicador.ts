@@ -5,7 +5,7 @@ import { Operacion } from './modelos';
 /** La navegación puede reutilizar el indicador sin montar el diagnóstico. */
 @Component({
   selector: 'app-indicador-offline',
-  template: `<p role="status">
+  template: `<p role="status" aria-live="polite">
     {{ t.inspecciones }}: {{ inspecciones() }} · {{ t.archivos }}: {{ archivos() }}
   </p>`,
 })

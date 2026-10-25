@@ -526,15 +526,27 @@ export const TEXTOS = {
   accesoLocal: {
     titulo: 'Capturas locales',
     limite:
-      'Consulta local sin sesión remota. La edición de capturas P5 y Preparar salida aún no están integrados; esta vista no sincroniza.',
+      'Consulta local sin sesión remota. La edición P5 y Preparar salida productivo aún no están integrados; no hay transporte ni reintento productivos. Conflictos, permisos por acordar y caché privada quedan en G11. Cerrar o cambiar cuenta oculta la vista, pero conserva capturas, archivos y cola en este dispositivo.',
     sinAcceso:
       'Sin capturas habilitadas. Tras cerrar o cambiar de cuenta se requiere login online del propietario preparado.',
+    sinCapturas: 'No hay capturas locales para el propietario habilitado.',
+    errorConsulta:
+      'No se pudieron consultar las capturas locales. Los datos guardados se conservan.',
     inspeccion: 'Inspección',
     harness: 'Sesión offline G2 — datos ficticios',
     preparar: 'Preparar captura ficticia',
+    preparacionCompleta:
+      'Preparación ficticia completa; captura local confirmada. No acredita Preparar salida productivo.',
+    preparacionIncompleta:
+      'Preparación ficticia incompleta; se conserva la última completa y no se crea otra captura.',
   },
   offline: {
     titulo: 'Base offline — datos ficticios',
+    diagnostico: 'Diagnóstico local de sincronización',
+    estadoAlmacenamiento: 'Estado del almacenamiento',
+    soloLectura:
+      'Diagnóstico de solo lectura. Sin transporte productivo, las operaciones se conservan y no se reintentan.',
+    lecturaError: 'No se pudo leer el estado local. Los datos se conservan; vuelve a consultar.',
     propietario: 'Propietario ficticio',
     crear: 'Crear inspección ficticia',
     guardar: 'Guardar respuestas',

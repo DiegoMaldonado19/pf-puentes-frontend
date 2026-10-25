@@ -6,6 +6,7 @@ import {
   HabilitacionLocal,
   InspeccionLocal,
   Operacion,
+  PreparacionCompleta,
   ReferenciaLocal,
 } from './modelos';
 
@@ -28,6 +29,7 @@ export class BaseLocal extends Dexie {
   cola_sync!: Table<Operacion, string>;
   bloqueos!: Table<Bloqueo, string>;
   acceso_local!: Table<HabilitacionLocal, string>;
+  preparaciones!: Table<PreparacionCompleta, string>;
   constructor(nombre = 'puentes-offline') {
     if (typeof indexedDB !== 'undefined' && !Dexie.dependencies.indexedDB) {
       Dexie.dependencies.indexedDB = indexedDB;
@@ -39,5 +41,6 @@ export class BaseLocal extends Dexie {
     this.version(1).stores(ALMACENES_V1);
     this.version(2).stores({ ...ALMACENES_V1, bloqueos: 'propietario_id' });
     this.version(3).stores({ acceso_local: 'id' });
+    this.version(4).stores({ preparaciones: 'propietario_id' });
   }
 }
