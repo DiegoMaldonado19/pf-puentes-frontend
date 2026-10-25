@@ -74,8 +74,10 @@ queda pendiente de ejecución y registro por el equipo.
 - `IndicadorOffline`: componente standalone independiente para navegación,
   con entrada de operaciones del propietario actual y contadores computed.
 - `DiagnosticoOffline`: componente standalone reusable con entradas base,
-  propietario y motor. Cuenta entidades distintas, no filas ni intentos.
-  La ocupación/cuota corresponde al origen completo, no solo a esta base.
+  propietario y motor opcional. Cuenta entidades distintas, no filas ni intentos.
+  Sin motor consulta con `AccesoLocal.consultarPropias` y es de solo lectura; el
+  harness G1 recibe el motor simulado explícitamente. La ocupación/cuota corresponde
+  al origen completo, no solo a esta base.
 - `consultarAlmacenamiento(true)`: solicitar persistencia al entrar en captura;
   resultado/denegación/ausencia visibles. `mensajeEscritura` distingue cuota y
   validaciones. No se purgan pendientes ni blobs automáticamente.
