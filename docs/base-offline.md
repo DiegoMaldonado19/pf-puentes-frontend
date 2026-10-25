@@ -183,6 +183,24 @@ versionado permite añadir revisiones sin reconstruir IndexedDB.
 
 ## Pruebas y evidencia
 
+### Preparación incremental G5
+
+La [guía G5](pruebas-incrementales-g5.md) reúne fixtures compartidas de sesión
+para G2–G4, catálogo V01–V21 con bloqueadores y parámetros P5/#18 pendientes,
+y un adaptador de red determinista exclusivo de pruebas. Verificar herramientas:
+
+```sh
+node --test scripts/pruebas-g5/*.test.mjs
+npm run test:e2e:base -- --grep 'G5'
+```
+
+El caso G5 de navegador verifica la herramienta sobre peticiones sin mutaciones,
+no sincronización real. Solo su contexto bloquea SW para observar rutas; los
+casos PWA mantienen SW activo. No acredita corte tras bytes, respuesta perdida
+tras commit ni V05/V06/V07. No hay proyecto/job integral verde basado en omisiones.
+
+### Suite autónoma y checks
+
 ```sh
 npx prettier --check .
 npx ng lint

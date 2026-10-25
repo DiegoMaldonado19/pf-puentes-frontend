@@ -1,13 +1,5 @@
 import { expect, test } from '@playwright/test';
-import type { SesionDemo } from '../../src/app/offline/demo/sesion-demo';
-
-const propietario = '019a0000-0000-7000-8000-000000000001';
-
-declare global {
-  interface Window {
-    __sesionDemo?: SesionDemo;
-  }
-}
+import { ana as propietario, abrir, autenticarFicticiamente } from '../fixtures/sesion-offline';
 
 test('G4 — diagnóstico local G2 accesible, aislado y sin transporte que confirme la cola', async ({
   page,
@@ -19,22 +11,8 @@ test('G4 — diagnóstico local G2 accesible, aislado y sin transporte que confi
       value: async () => false,
     });
   });
-  await context.route('**/api/v1/auth/**', (route) => {
-    if (route.request().url().endsWith('cerrar-sesion')) return route.fulfill({ status: 204 });
-    return route.fulfill({
-      json: {
-        access_token: 'g4-solo-memoria',
-        token_type: 'Bearer',
-        expires_in: 900,
-        usuario: { id: propietario, nombre: 'Estudiante G4', rol: 'ESTUDIANTE' },
-      },
-    });
-  });
-  await page.goto('/offline/demo?sesion=1');
-  await expect(
-    page.getByRole('heading', { name: 'Sesión offline G2 — datos ficticios' }),
-  ).toBeVisible();
-  await page.waitForFunction(() => !!window.__sesionDemo);
+  await autenticarFicticiamente(context, () => propietario, 'g4-solo-memoria');
+  await abrir(page);
 
   const antes = await page.evaluate(async () => {
     const h = window.__sesionDemo!;
