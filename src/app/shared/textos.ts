@@ -316,6 +316,7 @@ export const TEXTOS = {
       app: 'Sistema de Gestión de Puentes',
       inventario: 'Puentes',
       mapa: 'Mapa',
+      local: 'Capturas locales',
       saltar: 'Saltar al contenido',
       principal: 'Principal',
     },
@@ -478,6 +479,16 @@ export const TEXTOS = {
     MALO: 'Malo',
     SIN_EVALUAR: 'Sin evaluar',
   },
+  accesoLocal: {
+    titulo: 'Capturas locales',
+    limite:
+      'Consulta local sin sesión remota. La edición de capturas P5 y Preparar salida aún no están integrados; esta vista no sincroniza.',
+    sinAcceso:
+      'Sin capturas habilitadas. Tras cerrar o cambiar de cuenta se requiere login online del propietario preparado.',
+    inspeccion: 'Inspección',
+    harness: 'Sesión offline G2 — datos ficticios',
+    preparar: 'Preparar captura ficticia',
+  },
   offline: {
     titulo: 'Base offline — datos ficticios',
     propietario: 'Propietario ficticio',
@@ -540,6 +551,7 @@ export const TEXTOS = {
       usuarios: 'Usuarios',
       invitaciones: 'Invitaciones',
       auditoria: 'Bitácora',
+      formularios: 'Formularios',
     },
     roles: {
       ESTUDIANTE: 'Estudiante',
@@ -751,6 +763,60 @@ export const TEXTOS = {
       siguiente: 'Siguiente',
       pagina: 'Página',
       de: 'de',
+    },
+  },
+  formulario: {
+    motor: {
+      sinDanosEnElemento: 'Sin daños en este elemento',
+      sinDanosEnGrupo: 'Sin daños en {grupo}',
+      sinDanosTodaSeccion: 'Sin daños en toda la sección',
+      sinDanosAyuda: 'Asigna calificación 0 a todas las preguntas de daño de este grupo',
+      modoLecturaAviso:
+        'Esta inspección fue capturada con la versión {codigo}. Vista de solo lectura.',
+      guardandoBorrador: 'Guardando datos en borrador local…',
+      sinEsquema: 'No se ha cargado el esquema del formulario.',
+      seccionAnterior: 'Sección anterior',
+      seccionSiguiente: 'Siguiente sección',
+      resumenSeccion: 'Resumen de la sección',
+      obligatorio: 'Este campo es obligatorio',
+      danoInvalido: 'La calificación debe estar entre 0 y 4',
+      agregarTramo: '+ Agregar Tramo',
+      eliminarTramo: 'Eliminar Tramo',
+      listadoTramos: 'Listado de Tramos (Claros del Puente)',
+      listadoTramosAyuda:
+        'Capture las dimensiones y tipología estructural de cada tramo del puente.',
+      anulacionCritica: 'Anulación Crítica',
+      anulacionCriticaAviso:
+        'Elemento crítico: Calificaciones de daño severo (3) o falla crítica (4) anulan el puente a condición Mala (RN-IC-04).',
+      escalaDanos: {
+        0: '0 - Sin daño',
+        1: '1 - Incipiente',
+        2: '2 - Moderado',
+        3: '3 - Severo',
+        4: '4 - Falla crítica',
+      },
+    },
+    admin: {
+      titulo: 'Gestión de Formularios y Versiones',
+      nuevaVersion: 'Crear nueva versión',
+      publicar: 'Publicar versión activa',
+      advertenciaInmutable:
+        'Una versión publicada no puede modificarse. Las inspecciones existentes conservarán su versión.',
+      codigo: 'Código de versión',
+      estado: 'Estado',
+      publicadaEn: 'Publicada en',
+      acciones: 'Acciones',
+      verEsquema: 'Ver esquema',
+      editarBorrador: 'Editar borrador',
+      publicarBorrador: 'Publicar como ACTIVA',
+      declararMapeo: 'Declarar mapeo de campos respecto a la versión anterior',
+      guardarBorrador: 'Guardar borrador',
+      cancelar: 'Cancelar',
+      sintaxisValida: 'Sintaxis JSON válida',
+      errorSintaxis: 'Sintaxis JSON inválida.',
+      esquemaVacio: 'El esquema JSON no puede estar vacío.',
+      esquemaRaizObjeto: 'El esquema raíz debe ser un objeto JSON.',
+      corregirAntesDePrevia: 'Sintaxis JSON inválida. Corrígela antes de abrir la vista previa.',
     },
   },
 } as const;

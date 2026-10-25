@@ -13,7 +13,17 @@ import { routes } from './app.routes';
 import { AuthService } from './core/auth/auth';
 import { authInterceptor } from './core/auth/auth.interceptor';
 import { erroresInterceptor } from './core/errores/errores.interceptor';
+import { AccesoLocal, crearAccesoLocal } from './offline/acceso-local';
 import { ROL_PUENTES } from './features/puentes/rol-puentes';
+
+export async function inicializarSesion(): Promise<void> {
+  // Suscribir revocación antes de que la hidratación pueda cambiar la identidad.
+  const acceso = inject(AccesoLocal);
+  const auth = inject(AuthService);
+  await firstValueFrom(auth.hidratarAlArrancar());
+  // Al arrancar P2 aún no tenía usuario anterior para emitir «cambio».
+  await acceso.reconciliarAlArrancar();
+}
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -26,7 +36,8 @@ export const appConfig: ApplicationConfig = {
       ]),
     ),
     provideRouter(routes, withComponentInputBinding()),
-    provideAppInitializer(() => firstValueFrom(inject(AuthService).hidratarAlArrancar())),
+    { provide: AccesoLocal, useFactory: crearAccesoLocal },
+    provideAppInitializer(inicializarSesion),
     { provide: ROL_PUENTES, useFactory: () => inject(AuthService).rol },
     provideServiceWorker('ngsw-worker.js', { enabled: !isDevMode() }),
   ],

@@ -43,7 +43,14 @@ describe('App', () => {
     const html = fixture.nativeElement as HTMLElement;
 
     expect(html.querySelector('a[href="#contenido"]')?.textContent).toContain('Saltar');
-    expect(hrefs(html)).toEqual(['/', '/puentes', '/puentes/mapa', '/login', '/registro']);
+    expect(hrefs(html)).toEqual([
+      '/',
+      '/puentes',
+      '/puentes/mapa',
+      '/offline/local',
+      '/login',
+      '/registro',
+    ]);
     expect(html.querySelector('main#contenido router-outlet')).not.toBeNull();
   });
 
@@ -53,7 +60,7 @@ describe('App', () => {
     await fixture.whenStable();
     const html = fixture.nativeElement as HTMLElement;
 
-    expect(hrefs(html)).toEqual(['/', '/puentes', '/puentes/mapa']);
+    expect(hrefs(html)).toEqual(['/', '/puentes', '/puentes/mapa', '/offline/local']);
     expect(html.textContent).not.toContain('Entrar');
   });
 
@@ -65,7 +72,7 @@ describe('App', () => {
 
     expect(html.textContent).toContain('Ana Pérez');
     expect(html.textContent).toContain('Estudiante');
-    expect(hrefs(html)).toEqual(['/', '/puentes', '/puentes/mapa', '/perfil']);
+    expect(hrefs(html)).toEqual(['/', '/puentes', '/puentes/mapa', '/offline/local', '/perfil']);
     expect(html.querySelector('button')?.textContent).toContain('Cerrar sesión');
   });
 
@@ -80,11 +87,13 @@ describe('App', () => {
       '/',
       '/puentes',
       '/puentes/mapa',
+      '/offline/local',
       '/perfil',
       '/admin/pesos',
       '/admin/usuarios',
       '/admin/invitaciones',
       '/admin/auditoria',
+      '/admin/formularios',
     ]);
   });
 

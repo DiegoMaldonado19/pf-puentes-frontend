@@ -28,6 +28,13 @@
       class="hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
       >{{ t.mapa }}</a
     >
+    <a
+      routerLink="/offline/local"
+      routerLinkActive="underline"
+      ariaCurrentWhenActive="page"
+      class="hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+      >{{ t.local }}</a
+    >
     <div class="ml-auto flex flex-wrap items-center gap-4">
       @if (auth.listo()) {
         @if (auth.autenticado()) {
@@ -72,6 +79,13 @@
               ariaCurrentWhenActive="page"
               class="hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
               >{{ n.auditoria }}</a
+            >
+            <a
+              routerLink="/admin/formularios"
+              routerLinkActive="underline"
+              ariaCurrentWhenActive="page"
+              class="hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+              >{{ n.formularios }}</a
             >
           }
           <button
