@@ -1,49 +1,24 @@
-import { expect, test, Page } from '@playwright/test';
-import type { SesionDemo } from '../../src/app/offline/demo/sesion-demo';
+import { expect, test } from '@playwright/test';
+import {
+  ana,
+  bea,
+  abrir,
+  autenticarFicticiamente,
+  esperarShellOffline,
+} from '../fixtures/sesion-offline';
 
-declare global {
-  interface Window {
-    __sesionDemo?: SesionDemo;
-  }
-}
-const ana = '019a0000-0000-7000-8000-000000000001';
-const bea = '019a0000-0000-7000-8000-000000000002';
-async function abrir(page: Page) {
-  await page.goto('/offline/demo?sesion=1');
-  await expect(
-    page.getByRole('heading', { name: 'Sesión offline G2 — datos ficticios' }),
-  ).toBeVisible();
-  await page.waitForFunction(() => !!window.__sesionDemo);
-}
 for (const causa of ['cierre', 'cambio'] as const) {
   test(`G2 — reinicio offline, edición y revocación por ${causa} entre pestañas`, async ({
     page,
     context,
   }) => {
     let propietario = ana;
-    await context.route('**/api/v1/auth/**', async (route) => {
-      if (route.request().url().endsWith('cerrar-sesion')) {
-        await route.fulfill({ status: 204 });
-        return;
-      }
-      await route.fulfill({
-        json: {
-          access_token: 'token-solo-memoria',
-          token_type: 'Bearer',
-          expires_in: 900,
-          usuario: { id: propietario, nombre: 'Estudiante', rol: 'ESTUDIANTE' },
-        },
-      });
-    });
+    await autenticarFicticiamente(context, () => propietario);
     await abrir(page);
     await page.evaluate(() => window.__sesionDemo!.entrar());
     await page.getByRole('button', { name: 'Preparar captura ficticia' }).click();
     await expect(page.getByText('"fixture":true', { exact: false })).toBeVisible();
-    await page.evaluate(async () => {
-      await navigator.serviceWorker.ready;
-      await fetch('/index.html');
-    });
-    await expect.poll(() => page.evaluate(() => !!navigator.serviceWorker.controller)).toBe(true);
+    await esperarShellOffline(page);
     await context.unroute('**/api/v1/auth/**');
     await context.setOffline(true);
     await page.close();
@@ -64,20 +39,7 @@ for (const causa of ['cierre', 'cambio'] as const) {
     expect(estado.envios).toBe(0);
     expect(estado.datos).not.toMatch(/token-solo-memoria|access_token|Authorization/);
     await context.setOffline(false);
-    await context.route('**/api/v1/auth/**', async (route) => {
-      if (route.request().url().endsWith('cerrar-sesion')) {
-        await route.fulfill({ status: 204 });
-        return;
-      }
-      await route.fulfill({
-        json: {
-          access_token: 'token-solo-memoria',
-          token_type: 'Bearer',
-          expires_in: 900,
-          usuario: { id: propietario, nombre: 'Estudiante', rol: 'ESTUDIANTE' },
-        },
-      });
-    });
+    await autenticarFicticiamente(context, () => propietario);
     const otra = await context.newPage();
     await abrir(otra);
     if (causa === 'cambio') {
@@ -100,16 +62,7 @@ for (const causa of ['cierre', 'cambio'] as const) {
     ).toEqual(estado.cola);
     await context.setOffline(false);
     propietario = ana;
-    await context.route('**/api/v1/auth/**', (route) =>
-      route.fulfill({
-        json: {
-          access_token: 'token-solo-memoria',
-          token_type: 'Bearer',
-          expires_in: 900,
-          usuario: { id: propietario, nombre: 'Estudiante', rol: 'ESTUDIANTE' },
-        },
-      }),
-    );
+    await autenticarFicticiamente(context, () => propietario);
     await reabierta.evaluate(() => window.__sesionDemo!.entrar());
     await expect(reabierta.getByText('"editada":true', { exact: false })).toBeVisible();
   });
