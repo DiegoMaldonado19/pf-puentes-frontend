@@ -5,12 +5,13 @@
       type="button"
       class="my-3 rounded border p-2"
       [attr.aria-expanded]="mostrarCampos()"
-      (click)="mostrarCampos.set(!mostrarCampos())"
+      [disabled]="operacionPendiente()"
+      (click)="alternarCampos()"
     >
       {{ mostrarCampos() ? comun.campos.cerrar : comun.campos.abrir }}
     </button>
     @if (mostrarCampos()) {
-      <app-campos-dano-pesos />
+      <app-campos-dano-pesos (creado)="reintentar()" />
     }
   }
   @if (!permitido()) {

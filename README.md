@@ -1,5 +1,15 @@
 # pf-puentes-frontend
 
+### Guardar juegos nuevos de pesos (P8, 25/10/2026)
+
+Como Administrador: `/admin/pesos` → **Consultar campos de daño del formulario** → elegir versión → **Configurar nuevo juego de pesos**. Introduce un peso para cada referencia y, si corresponde, la referencia de acta; **Guardar juego nuevo** crea una configuración completa, actualiza las consultas y conserva las anteriores. Los pesos empiezan vacíos; no se sugieren valores de calibración. Sin acta, el juego es provisional; escribir una referencia no verifica firma/calibración.
+
+Se bloquean doble envío, cambios de versión/cierre y salida durante el POST. Si se pierde la respuesta, consulta los juegos guardados antes de abrir otra configuración: no se reenvía automáticamente. La política aceptada por el responsable P8 está en el [ADR backend 0040](../pf-puentes-backend/docs/adr/0040-creacion-completa-y-versionada-de-pesos.md), dentro del repositorio compartido. [ADR frontend 0028](docs/adr/0028-creacion-de-juegos-completos-de-pesos.md). Guardado disponible; calibración y selección al publicar con P5 siguen pendientes.
+
+Verificación de creación: **595 pruebas aprobadas**, 27 nuevas; ESLint, Prettier y TypeScript estricto aprobados. La repetición aislada pasó tras timeouts de una corrida concurrente, sin modificar suites ajenas ni aumentar sus tiempos de espera.
+
+Build de producción y **siete escenarios Playwright aprobados** contra backend/BD/MinIO reales en entorno aislado. El caso nuevo guarda dos juegos completos de 19 campos, consulta tras recargar y verifica conservación del primero; el ejecutor backend confirma en SQL históricos, esquema, inspecciones y auditoría. Los pesos del recorrido son de prueba, no calibrados.
+
 ### Campos reales del formulario para pesos (P8, 24/10/2026)
 
 Como Administrador, abre `/admin/pesos` y pulsa **Consultar campos de daño del formulario**. Elige una versión por código/estado desde el listado real P4; también aparecen versiones sin pesos. El panel muestra las referencias canónicas validadas por backend, con paginación, carga/vacío/error y reintento. Cambiar de versión/página, perder sesión u ocultar el panel cancela las lecturas correspondientes. No modifica configuraciones; el guardado espera las decisiones que el usuario consultará con el grupo. [ADR 0027](docs/adr/0027-campos-reales-del-formulario-en-pesos.md).

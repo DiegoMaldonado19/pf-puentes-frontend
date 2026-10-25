@@ -1,7 +1,7 @@
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { CanActivateFn, provideRouter, Router, UrlTree } from '@angular/router';
+import { CanActivateFn, CanDeactivateFn, provideRouter, Router, UrlTree } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { routes } from '../../../app.routes';
 import { AuthService } from '../../../core/auth/auth';
@@ -119,6 +119,66 @@ describe('Acceso administrativo a pesos con sesión P2', () => {
     await estabilizar(fixture);
     expect(peticion.cancelled).toBe(true);
     expect(html().querySelector('app-campos-dano-pesos')).toBeNull();
+  });
+
+  it('crea desde el formulario real, bloquea salida y contexto mientras guarda y actualiza ambos catálogos', async () => {
+    await entrar();
+    await crear();
+    http.expectOne(catalogo).flush(pagina([]));
+    await estabilizar(fixture);
+    boton(t.campos.abrir).click();
+    await estabilizar(fixture);
+    http.expectOne('/api/v1/formularios?page=0&size=20').flush({
+      contenido: [{ ...formulario, estado: 'ACTIVA' }],
+      pagina: 0,
+      tamano: 20,
+      total_elementos: 1,
+      total_paginas: 1,
+    });
+    await estabilizar(fixture);
+    const selector = html().querySelector('select')!;
+    selector.value = formulario.id;
+    selector.dispatchEvent(new Event('change'));
+    await estabilizar(fixture);
+    http
+      .expectOne(`/api/v1/formularios/${formulario.id}/elementos-dano?page=0&size=20`)
+      .flush(pagina(['elemento.a', 'elemento.b']));
+    await estabilizar(fixture);
+    boton(t.creacion.abrir).click();
+    await estabilizar(fixture);
+    http
+      .expectOne(`/api/v1/formularios/${formulario.id}/elementos-dano?page=0&size=100`)
+      .flush({ ...pagina(['elemento.a', 'elemento.b']), size: 100 });
+    await estabilizar(fixture);
+    for (const input of html().querySelectorAll<HTMLInputElement>('input[type=number]')) {
+      input.value = '2';
+      input.dispatchEvent(new Event('input'));
+    }
+    html()
+      .querySelector('form')!
+      .dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    await estabilizar(fixture);
+    const envio = http.expectOne(`/api/v1/formularios/${formulario.id}/juegos-pesos`);
+    expect(envio.request.method).toBe('POST');
+    expect(envio.request.headers.get('Authorization')).toBe('Bearer token-prueba');
+    expect(fixture.componentInstance.operacionPendiente()).toBe(true);
+    expect(boton(t.campos.cerrar).disabled).toBe(true);
+    expect(selector.disabled).toBe(true);
+    const guardia = RUTAS_ADMIN.find((r) => r.path === 'pesos')!
+      .canDeactivate![0] as CanDeactivateFn<AccesoPesos>;
+    expect(guardia(fixture.componentInstance, null!, null!, null!)).toBe(false);
+    envio.flush({ ...juego, acta: null });
+    await estabilizar(fixture);
+    http.expectOne(catalogo).flush(pagina([formulario]));
+    http
+      .expectOne(`/api/v1/formularios/${formulario.id}/juegos-pesos?page=0&size=20`)
+      .flush(pagina([{ ...juego, acta: null }]));
+    await estabilizar(fixture);
+    expect(fixture.componentInstance.operacionPendiente()).toBe(false);
+    expect(guardia(fixture.componentInstance, null!, null!, null!)).toBe(true);
+    expect(html().textContent).toContain(t.creacion.creado);
+    expect(html().textContent).toContain(formulario.codigo);
+    expect(html().querySelector('app-creacion-pesos')).toBeNull();
   });
 
   it('presenta vacío real sin pedir ni crear configuraciones', async () => {

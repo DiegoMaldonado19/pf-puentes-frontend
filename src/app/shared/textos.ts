@@ -269,6 +269,31 @@ export const TEXTOS = {
     prioridades: { ALTA: 'Alta', MEDIA: 'Media', BAJA: 'Baja' },
   },
   pesos: {
+    creacion: {
+      abrir: 'Configurar nuevo juego de pesos',
+      cerrar: 'Cerrar configuración',
+      titulo: 'Nuevo juego de pesos',
+      descripcion:
+        'Completa un peso por cada campo de daño. Guardar crea un juego nuevo y conserva los anteriores; no cambia resultados de inspecciones ni selecciona un juego para publicación.',
+      cargando: 'Cargando todos los campos de daño…',
+      sinCampos: 'El formulario no declara campos de daño. No se puede crear un juego vacío.',
+      limites:
+        'Cada peso debe ser mayor que cero, no superar 999.999 y tener como máximo tres decimales. No se proponen valores de calibración.',
+      acta: 'Referencia de acta de calibración (opcional para pesos provisionales)',
+      aclaracionActa:
+        'Sin referencia, el juego es provisional. Escribir una referencia no certifica la firma del Catedrático ni la calibración.',
+      guardar: 'Guardar juego nuevo',
+      guardando: 'Guardando juego. Espera antes de cambiar de versión o salir.',
+      invalidos:
+        'Completa todos los pesos y revisa sus límites y la referencia de acta (máximo 300 caracteres).',
+      error: 'No se pudo guardar el juego. Revisa los datos e inténtalo de nuevo.',
+      esquemaCambio:
+        'Los campos del formulario cambiaron o son incompatibles. Cierra la configuración y vuelve a cargar los campos antes de guardar.',
+      incierto:
+        'No se pudo confirmar el resultado. Consulta los juegos guardados antes de intentar registrar otro; este envío no se repetirá automáticamente.',
+      creado: 'Juego nuevo guardado. Los anteriores y los resultados de inspecciones se conservan.',
+      consulta: 'Juegos guardados de esta versión',
+    },
     campos: {
       abrir: 'Consultar campos de daño del formulario',
       cerrar: 'Ocultar campos de daño',

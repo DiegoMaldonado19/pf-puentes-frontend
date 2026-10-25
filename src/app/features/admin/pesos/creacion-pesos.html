@@ -1,0 +1,59 @@
+<section class="my-4 rounded border border-blue-700 p-4" aria-labelledby="titulo-crear-pesos">
+  <h3 id="titulo-crear-pesos" class="text-xl font-semibold">{{ t.titulo }}</h3>
+  <p class="my-2">{{ t.descripcion }}</p>
+  @if (!permitido()) {
+    <p role="alert">{{ comun.sinPermiso }}</p>
+  } @else if (referencias.isLoading()) {
+    <p role="status">{{ t.cargando }}</p>
+  } @else if (referencias.error()) {
+    <p role="alert">{{ errorCarga() }}</p>
+  } @else if (referencias.value(); as campos) {
+    @if (!campos.length) {
+      <p role="status">{{ t.sinCampos }}</p>
+    } @else {
+      <p class="my-2">{{ t.limites }}</p>
+      <form [formGroup]="formulario" (ngSubmit)="guardar()">
+        <fieldset [disabled]="enviando() || bloqueado()">
+          <div formArrayName="pesos" class="grid gap-3">
+            @for (ref of campos; track ref; let i = $index) {
+              <div>
+                <label class="block break-words" [for]="'peso-nuevo-' + i">{{ ref }}</label>
+                <input
+                  class="w-full max-w-xs rounded border p-2"
+                  type="number"
+                  min="0.001"
+                  max="999.999"
+                  step="0.001"
+                  [id]="'peso-nuevo-' + i"
+                  [formControlName]="i"
+                  required
+                />
+              </div>
+            }
+          </div>
+          <label for="acta-nuevo-juego" class="mt-4 block">{{ t.acta }}</label>
+          <input
+            id="acta-nuevo-juego"
+            class="my-2 w-full rounded border p-2"
+            formControlName="acta"
+            aria-describedby="nota-acta-nueva"
+          />
+          <p id="nota-acta-nueva">{{ t.aclaracionActa }}</p>
+          <button
+            class="my-3 rounded bg-blue-700 p-2 text-white disabled:opacity-50"
+            type="submit"
+            [disabled]="!disponible()"
+          >
+            {{ t.guardar }}
+          </button>
+        </fieldset>
+      </form>
+    }
+  }
+  @if (enviando()) {
+    <p role="status">{{ t.guardando }}</p>
+  }
+  @if (error()) {
+    <p role="alert">{{ error() }}</p>
+  }
+</section>

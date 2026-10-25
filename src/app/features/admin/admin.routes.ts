@@ -1,10 +1,12 @@
 import { Routes } from '@angular/router';
 import { TEXTOS } from '../../shared/textos';
+import type { AccesoPesos } from './pesos/acceso-pesos';
 
 /** Administración P2 y consulta de pesos P8. La guardia Administrador está en el padre. */
 export const RUTAS_ADMIN: Routes = [
   {
     path: 'pesos',
+    canDeactivate: [(componente: AccesoPesos) => !componente.operacionPendiente()],
     title: TEXTOS.pesos.acceso.titulo,
     loadComponent: () => import('./pesos/acceso-pesos').then((m) => m.AccesoPesos),
   },

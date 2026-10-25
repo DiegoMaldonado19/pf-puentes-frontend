@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { EMPTY, expand, map, Observable, reduce } from 'rxjs';
+import { CrearJuegoPesosDTO } from './modelos';
 import { FormularioConPesosDTO, JuegoPesosDTO, PaginaPesosDTO, PesoElementoDTO } from './modelos';
 
 /** Consume la API administrativa real; la sesión corresponde a los interceptores globales de P2. */
@@ -8,6 +9,29 @@ import { FormularioConPesosDTO, JuegoPesosDTO, PaginaPesosDTO, PesoElementoDTO }
 export class PesosService {
   private readonly http = inject(HttpClient);
   private readonly base = '/api/v1';
+
+  referenciasParaCrear(id: string): Observable<readonly string[]> {
+    return this.listarElementosDano(id, 0, 100).pipe(
+      expand((pagina) =>
+        pagina.page + 1 < pagina.total_pages
+          ? this.listarElementosDano(id, pagina.page + 1, 100)
+          : EMPTY,
+      ),
+      reduce((referencias, pagina) => [...referencias, ...pagina.content], [] as string[]),
+      map((referencias) => {
+        if (new Set(referencias).size !== referencias.length)
+          throw new Error('Referencias modificadas durante la consulta.');
+        return referencias;
+      }),
+    );
+  }
+
+  crearJuego(id: string, datos: CrearJuegoPesosDTO): Observable<JuegoPesosDTO> {
+    return this.http.post<JuegoPesosDTO>(
+      `${this.base}/formularios/${encodeURIComponent(id)}/juegos-pesos`,
+      datos,
+    );
+  }
 
   listarElementosDano(
     formularioVersionId: string,

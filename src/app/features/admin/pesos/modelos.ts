@@ -11,6 +11,11 @@ export interface JuegoPesosDTO {
   readonly vigente_desde: string;
 }
 
+export interface CrearJuegoPesosDTO {
+  readonly acta: string | null;
+  readonly pesos: readonly { readonly elemento_ref: string; readonly peso: number }[];
+}
+
 export interface PesoElementoDTO {
   readonly id: string;
   readonly elemento_ref: string;

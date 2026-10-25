@@ -1,4 +1,4 @@
-import { Component, computed, inject, linkedSignal, signal } from '@angular/core';
+import { Component, computed, inject, linkedSignal, signal, viewChild } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { AuthService } from '../../../core/auth/auth';
@@ -14,6 +14,8 @@ import { CamposDanoPesos } from './campos-dano-pesos';
   templateUrl: './acceso-pesos.html',
 })
 export class AccesoPesos {
+  private readonly campos = viewChild(CamposDanoPesos);
+  readonly operacionPendiente = computed(() => this.campos()?.operacionPendiente() ?? false);
   private readonly auth = inject(AuthService);
   private readonly servicio = inject(PesosService);
   protected readonly t = TEXTOS.pesos.acceso;
@@ -70,6 +72,10 @@ export class AccesoPesos {
   }
 
   protected reintentar() {
-    if (this.permitido()) this.intento.update((v) => v + 1);
+    if (this.permitido() && !this.operacionPendiente()) this.intento.update((v) => v + 1);
+  }
+
+  protected alternarCampos() {
+    if (!this.operacionPendiente()) this.mostrarCampos.update((v) => !v);
   }
 }

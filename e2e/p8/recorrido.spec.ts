@@ -56,6 +56,66 @@ test('Administrador: campos reales del formulario sin pesos configurados', async
   await expect(referencias).toHaveCount(0);
 });
 
+test('Administrador: crea dos juegos completos reales y conserva el primero', async ({ page }) => {
+  await entrar(page, 'admin');
+  await page.goto('/admin/pesos');
+  await page
+    .getByRole('button', { name: 'Consultar campos de daño del formulario', exact: true })
+    .click();
+  const formulario = '0192b000-0000-7000-8000-000000000001';
+  await page.getByLabel('Versión del formulario', { exact: true }).selectOption(formulario);
+  const ids: string[] = [];
+  for (const [peso, acta] of [
+    ['2.125', 'Referencia de prueba del navegador'],
+    ['3.5', ''],
+  ]) {
+    await page
+      .getByRole('button', { name: 'Configurar nuevo juego de pesos', exact: true })
+      .click();
+    const editor = page.locator('app-creacion-pesos');
+    const entradas = editor.locator('input[type=number]');
+    await expect(entradas).toHaveCount(19);
+    for (const entrada of await entradas.all()) {
+      await expect(entrada).toHaveValue('');
+      await entrada.fill(peso);
+    }
+    await editor
+      .getByLabel('Referencia de acta de calibración (opcional para pesos provisionales)', {
+        exact: true,
+      })
+      .fill(acta);
+    const respuesta = await escritura(
+      page,
+      `/api/v1/formularios/${formulario}/juegos-pesos`,
+      'POST',
+      () => editor.getByRole('button', { name: 'Guardar juego nuevo', exact: true }).click(),
+    );
+    expect(respuesta.status()).toBe(201);
+    const juego = await respuesta.json();
+    ids.push(juego.id);
+    expect(juego.acta).toBe(acta || null);
+    await expect(editor).toHaveCount(0);
+    await expect(
+      page.getByRole('heading', { name: 'Juegos guardados de esta versión', exact: true }),
+    ).toBeVisible();
+  }
+  expect(ids[0]).not.toBe(ids[1]);
+  const host = page.locator('app-campos-dano-pesos');
+  await host.getByRole('button', { name: 'Ver pesos', exact: true }).first().click();
+  await expect(
+    host.getByRole('row').filter({ hasText: 'subestructura.estribo_entrada.socavacion' }),
+  ).toContainText('3.5');
+  await page.reload();
+  await page
+    .getByRole('row')
+    .filter({ hasText: 'V1.0.0' })
+    .getByRole('button', { name: /Consultar juegos/ })
+    .click();
+  await expect(
+    page.locator('app-consulta-pesos').getByRole('button', { name: 'Ver pesos', exact: true }),
+  ).toHaveCount(2);
+});
+
 test('Administrador: versión → juego → elementos, sin editar pesos', async ({ page }) => {
   await entrar(page, 'admin');
   await page.getByRole('link', { name: 'Pesos del índice de condición', exact: true }).click();
