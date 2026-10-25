@@ -1,6 +1,7 @@
-import { Component, computed, effect, input, signal } from '@angular/core';
+import { Component, computed, effect, inject, input, signal } from '@angular/core';
 import { liveQuery } from 'dexie';
 import { TEXTOS } from '../shared/textos';
+import { AccesoLocal } from './acceso-local';
 import { BaseLocal } from './base-local';
 import { consultarAlmacenamiento, EstadoAlmacenamiento } from './almacenamiento';
 import { Operacion } from './modelos';
@@ -11,21 +12,31 @@ import { IndicadorOffline } from './indicador';
   imports: [IndicadorOffline],
   selector: 'app-diagnostico-offline',
   template: `
-    <section aria-label="{{ t.lista }}">
+    <section aria-labelledby="diagnostico-offline-titulo">
+      <h2 id="diagnostico-offline-titulo">{{ t.diagnostico }}</h2>
       <app-indicador-offline [operaciones]="operaciones()" />
-      <p>{{ almacenamiento().mensaje }}</p>
+      <p role="status" aria-live="polite">
+        {{ t.estadoAlmacenamiento }}: {{ almacenamiento().mensaje }}
+      </p>
       <p>
         {{ t.ocupacion }}: {{ almacenamiento().uso ?? t.desconocido }} · {{ t.cuota }}:
         {{ almacenamiento().cuota ?? t.desconocido }}
       </p>
       <p>{{ t.ultimoIntento }}: {{ ultimoIntento() ?? t.ninguna }}</p>
-      @if (motor().pausa()) {
-        <p role="alert">{{ motor().pausa() }}</p>
+      @if (!motor()) {
+        <p>{{ t.soloLectura }}</p>
+      }
+      @if (motor(); as motor) {
+        @if (propietario()) {
+          @if (motor.pausa(); as pausa) {
+            <p role="alert">{{ pausa }}</p>
+          }
+          <button type="button" (click)="reintentar()">{{ t.sincronizar }}</button>
+        }
       }
       @if (error()) {
         <p role="alert">{{ error() }}</p>
       }
-      <button type="button" (click)="reintentar()">{{ t.sincronizar }}</button>
       <ul>
         @for (o of operaciones(); track o.id) {
           <li>
@@ -35,14 +46,16 @@ import { IndicadorOffline } from './indicador';
             @if (o.error) {
               <p role="alert">{{ o.error }}</p>
             }
-            @if (o.estado !== 'confirmada') {
-              <button
-                type="button"
-                [disabled]="o.estado === 'en_proceso'"
-                (click)="reintentar(o.id)"
-              >
-                {{ t.reintentar }}
-              </button>
+            @if (motor(); as motor) {
+              @if (propietario() && o.estado !== 'confirmada') {
+                <button
+                  type="button"
+                  [disabled]="o.estado === 'en_proceso'"
+                  (click)="reintentar(o.id)"
+                >
+                  {{ t.reintentar }}
+                </button>
+              }
             }
           </li>
         }
@@ -52,8 +65,9 @@ import { IndicadorOffline } from './indicador';
 })
 export class DiagnosticoOffline {
   readonly db = input.required<BaseLocal>();
-  readonly propietario = input.required<string>();
-  readonly motor = input.required<MotorSync>();
+  readonly propietario = input<string | null>(null);
+  /** Solo el harness instala un motor con transporte simulado; producción omite esta entrada. */
+  readonly motor = input<MotorSync>();
   readonly t = TEXTOS.offline;
   readonly operaciones = signal<Operacion[]>([]);
   readonly error = signal('');
@@ -65,24 +79,59 @@ export class DiagnosticoOffline {
   readonly ultimoIntento = computed(
     () => Math.max(0, ...this.operaciones().map((o) => o.ultimo_intento ?? 0)) || null,
   );
+  private readonly acceso = inject(AccesoLocal);
+  private revision = 0;
+
   constructor() {
     effect((onCleanup) => {
-      const db = this.db(),
-        propietario = this.propietario();
+      const db = this.db();
+      const propietario = this.propietario();
+      const motor = this.motor();
+      const revision = ++this.revision;
       this.operaciones.set([]);
-      const sub = liveQuery(() =>
-        db.cola_sync.where('propietario_id').equals(propietario).sortBy('id'),
-      ).subscribe({
-        next: (ops) => {
-          this.operaciones.set(ops);
-          void consultarAlmacenamiento().then((e) => this.almacenamiento.set(e));
+      this.error.set('');
+      if (!propietario) {
+        void this.actualizarAlmacenamiento(revision);
+        onCleanup(() => this.liberarRevision(revision));
+        return;
+      }
+      const sub = liveQuery(async () => {
+        const leer = () => db.cola_sync.where('propietario_id').equals(propietario).sortBy('id');
+        // El demo aislado conserva su identidad libre; producción pasa por la política durable G2.
+        return motor ? leer() : ((await this.acceso.consultarPropias(propietario, leer)) ?? []);
+      }).subscribe({
+        next: (operaciones) => {
+          if (revision !== this.revision) return;
+          this.operaciones.set(operaciones);
+          void this.actualizarAlmacenamiento(revision);
         },
-        error: () => this.error.set(this.t.escrituraError),
+        error: () => {
+          if (revision !== this.revision) return;
+          this.operaciones.set([]);
+          this.error.set(this.t.lecturaError);
+        },
       });
-      onCleanup(() => sub.unsubscribe());
+      onCleanup(() => {
+        this.liberarRevision(revision);
+        sub.unsubscribe();
+      });
     });
   }
-  bloqueadas(o: Operacion) {
+
+  private async actualizarAlmacenamiento(revision: number): Promise<void> {
+    try {
+      const estado = await consultarAlmacenamiento();
+      if (revision === this.revision) this.almacenamiento.set(estado);
+    } catch {
+      if (revision === this.revision) this.error.set(this.t.lecturaError);
+    }
+  }
+
+  private liberarRevision(revision: number): void {
+    if (revision === this.revision) this.revision++;
+  }
+
+  bloqueadas(o: Operacion): number {
     const confirmadas = new Set(
       this.operaciones()
         .filter((op) => op.estado === 'confirmada')
@@ -90,9 +139,13 @@ export class DiagnosticoOffline {
     );
     return o.dependencias.filter((d) => !confirmadas.has(d)).length;
   }
-  async reintentar(id?: string) {
+
+  async reintentar(id?: string): Promise<void> {
+    const motor = this.motor();
+    const propietario = this.propietario();
+    if (!motor || !propietario) return;
     try {
-      await this.motor().reintentar(this.propietario(), id);
+      await motor.reintentar(propietario, id);
     } catch {
       this.error.set(this.t.escrituraError);
     }
