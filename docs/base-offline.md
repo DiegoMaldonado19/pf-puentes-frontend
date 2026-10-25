@@ -74,8 +74,10 @@ queda pendiente de ejecución y registro por el equipo.
 - `IndicadorOffline`: componente standalone independiente para navegación,
   con entrada de operaciones del propietario actual y contadores computed.
 - `DiagnosticoOffline`: componente standalone reusable con entradas base,
-  propietario y motor. Cuenta entidades distintas, no filas ni intentos.
-  La ocupación/cuota corresponde al origen completo, no solo a esta base.
+  propietario y motor opcional. Cuenta entidades distintas, no filas ni intentos.
+  Sin motor consulta con `AccesoLocal.consultarPropias` y es de solo lectura; el
+  harness G1 recibe el motor simulado explícitamente. La ocupación/cuota corresponde
+  al origen completo, no solo a esta base.
 - `consultarAlmacenamiento(true)`: solicitar persistencia al entrar en captura;
   resultado/denegación/ausencia visibles. `mensajeEscritura` distingue cuota y
   validaciones. No se purgan pendientes ni blobs automáticamente.
@@ -140,6 +142,31 @@ simulación B01–B08; no acredita por sí sola la revocación de G2. No hay tra
 real, edición P5 productiva ni aceptación V09 completa. El acceso presupone
 control del navegador/perfil y no protege frente al acceso directo a IndexedDB.
 Decisión propuesta, sin acuerdo externo de P2: [ADR 0024](adr/0024-acceso-local-sesion-offline.md).
+
+### Diagnóstico local G4 — integración parcial de solo lectura
+
+La navegación de la aplicación muestra los conteos pendientes del propietario
+que devuelve `AccesoLocal.propietarioActual()`. `EstadoLocal` consulta la cola a
+través de `AccesoLocal.consultarPropias`, vuelve a validar las emisiones vivas y
+vacía la vista al invalidar o cambiar esa identidad; nunca toma un UUID de la UI
+ni lee la cola de otro propietario. `/offline/local` conserva la ruta G2 y
+compone las capturas autorizadas con `DiagnosticoOffline` para ese mismo dueño.
+El indicador cuenta inspecciones y archivos distintos pendientes, no filas ni
+intentos. El diagnóstico muestra estados, errores, dependencias, último intento
+y uso/cuota del origen, con estados y errores como texto accesible (no solo
+color). El estado de almacenamiento sigue visible incluso sin dueño habilitado;
+en ese caso no consulta la cola.
+
+La ruta productiva omite la entrada `MotorSync`: no muestra acciones de reintento
+ni conecta el simulador o un transporte HTTP. Las operaciones no confirmadas,
+capturas, fotos y PDF permanecen en IndexedDB; cerrar sesión o cambiar de cuenta
+solo oculta el acceso y no las purga. Se explicitan la falta de edición P5,
+Preparar salida productivo, transporte/reintento productivos, los acuerdos de
+conflictos/permisos y la política de caché privada pendiente de G11. La demo G1
+sigue pasando su motor simulado de forma explícita y mantiene sus acciones de
+prueba.
+
+Verificación G4 y escenarios observados: [validacion-diagnostico-g4.md](validacion-diagnostico-g4.md).
 
 ### Adaptadores pendientes (grupos 2..7)
 

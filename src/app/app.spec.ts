@@ -1,7 +1,12 @@
+import 'fake-indexeddb/auto';
 import { computed, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { of } from 'rxjs';
+import { v7 } from 'uuid';
+import { AccesoLocal } from './offline/acceso-local';
+import { BaseLocal } from './offline/base-local';
+import { PersistenciaOffline } from './offline/persistencia';
 import { App } from './app';
 import { AuthService } from './core/auth/auth';
 import { Rol, UsuarioSesionDTO } from './core/auth/modelos';
@@ -20,17 +25,33 @@ class AuthFalso {
 
 describe('App', () => {
   let auth: AuthFalso;
+  let db: BaseLocal;
+  let propietario: string;
 
   beforeEach(async () => {
     auth = new AuthFalso();
+    propietario = v7();
+    db = new BaseLocal(`app-${v7()}`);
+    const acceso = {
+      propietarioActual: async () => propietario,
+      consultarPropias: async <T>(id: string, leer: () => Promise<T>) =>
+        id === propietario ? leer() : undefined,
+      alInvalidar: () => () => undefined,
+    };
     await TestBed.configureTestingModule({
       imports: [App],
-      providers: [provideRouter([]), { provide: AuthService, useValue: auth }],
+      providers: [
+        provideRouter([]),
+        { provide: AuthService, useValue: auth },
+        { provide: BaseLocal, useValue: db },
+        { provide: AccesoLocal, useValue: acceso },
+      ],
     }).compileComponents();
   });
 
-  afterEach(() => {
+  afterEach(async () => {
     TestBed.resetTestingModule();
+    await db.delete();
   });
 
   function hrefs(html: HTMLElement): (string | null)[] {
@@ -52,6 +73,37 @@ describe('App', () => {
       '/registro',
     ]);
     expect(html.querySelector('main#contenido router-outlet')).not.toBeNull();
+  });
+
+  it('actualiza en navegación los conteos distintos del propietario habilitado', async () => {
+    const fixture = TestBed.createComponent(App);
+    await fixture.whenStable();
+    await vi.waitFor(() =>
+      expect(fixture.nativeElement.querySelector('nav [role="status"]')?.textContent).toContain(
+        'Inspecciones pendientes: 0 · Archivos pendientes: 0',
+      ),
+    );
+
+    const local = new PersistenciaOffline(db);
+    const captura = await local.crear(propietario, v7(), v7());
+    await local.editar(propietario, captura.id, { actualizada: true });
+    const foto = {
+      archivo: new Blob(['foto'], { type: 'image/webp' }),
+      miniatura: new Blob(['mini'], { type: 'image/webp' }),
+      latitud: null,
+      longitud: null,
+      capturada_en: '2026-10-05T00:00:00Z',
+    };
+    await local.foto(propietario, captura.id, foto, 'elemento');
+    await local.foto(propietario, captura.id, foto, 'elemento');
+    await local.crear(v7(), v7(), v7());
+
+    await vi.waitFor(() =>
+      expect(fixture.nativeElement.querySelector('nav [role="status"]')?.textContent).toContain(
+        'Inspecciones pendientes: 1 · Archivos pendientes: 2',
+      ),
+    );
+    expect(await local.operaciones(propietario)).toHaveLength(4);
   });
 
   it('no muestra entrar ni sesión hasta hidratar', async () => {
