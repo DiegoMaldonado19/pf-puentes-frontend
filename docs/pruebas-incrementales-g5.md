@@ -30,6 +30,18 @@ Los valores siguen en `null`: revisión/ACK P5, contenido de snapshot, perfiles/
 
 Ya está requerido que prevalezca el cliente solo en borrador propio editable, que snapshot y aplicación sean atómicos y que el replay devuelva código/cuerpo originales exactos. Preparar estos casos no implementa esa conducta en el servidor.
 
+## Instrumentación de red aislada
+
+`crearRedDePrueba` en `scripts/pruebas-g5/red.mjs` se conecta a `context.route(patron, route => red.atender(route))` en pruebas. Su calendario es fijo: demoras 2000/2500/3000 ms cíclicas y aborto de cada quinta petición **antes** del envío (20 % por bloque de cinco). Crear una instancia por prueba y registrar el orden real de peticiones; no usar aleatoriedad ni aplicarlo globalmente a auth o producción.
+
+`registro()` devuelve copias con orden, demora y acción, sin URL, cabeceras, cuerpos o tokens. El adaptador acepta `esperar` inyectable: las pruebas aisladas no esperan segundos reales y no acreditan V07. La prueba de navegador `instrumentacion-g5.spec.ts` comprueba cuatro respuestas 404 y un error de red sobre una sonda inexistente, sin endpoints productivos de prueba ni mutaciones. Adjunta únicamente el calendario saneado.
+
+Ese contexto de instrumentación bloquea SW para observar las rutas; **solo ese contexto**. Las pruebas PWA existentes mantienen SW activo. G12 debe aplicar degradación a la capa de red efectiva y conservar una prueba real de PWA.
+
+No implementamos corte de subida después de bytes observados ni descarte de respuesta después de commit: **V05/V06 siguen no ejecutables** hasta disponer de proxy/instrumentación y confirmación backend verificables. `route.abort()` previo no sustituye ninguna de esas pruebas. Tampoco el calendario aislado acredita la terminación remota de V07.
+
+No cambia arquitectura productiva ni configuración CI; no corresponde aceptar un ADR externo. Los ADR existentes de persistencia/Playwright siguen vigentes.
+
 ## Evidencia y siguiente paso
 
 Distinguir siempre **herramienta aislada verificada**, **escenario simulado ejecutado** y **aceptación integral no ejecutable**. Registrar comando, revisión, salida/código y reportes; no guardar cookies, JWT ni cabeceras autenticadas.
