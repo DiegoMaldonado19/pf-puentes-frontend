@@ -461,6 +461,10 @@ export const TEXTOS = {
     inspeccion: 'Inspección',
     harness: 'Sesión offline G2 — datos ficticios',
     preparar: 'Preparar captura ficticia',
+    preparacionCompleta:
+      'Preparación ficticia completa; captura local confirmada. No acredita Preparar salida productivo.',
+    preparacionIncompleta:
+      'Preparación ficticia incompleta; se conserva la última completa y no se crea otra captura.',
   },
   offline: {
     titulo: 'Base offline — datos ficticios',
