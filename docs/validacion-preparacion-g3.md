@@ -33,18 +33,58 @@ real ni aceptación integral. P4/P5 siguen sin adaptadores productivos.
   Se corrigió a 4 sin cambiar las aserciones de preservación de blobs/cola;
   ejecución posterior completa aprobada: **11/11** (B01–B08, G2 ×2 y G3).
 
-## Verificación real pendiente — S7
+## Verificación real aprobada — S7
 
-`curl --max-time 3 http://localhost:8080/api/v1/mis-asignaciones` devolvió exit 7,
-HTTP 000: no hay API escuchando en ese destino local. No se dispone de una
-sesión de estudiante activo con asignaciones acreditada para este recorrido.
-No se crearon cuentas, no se activaron pendientes ni se alteraron datos remotos.
+Ejecución del **25/10/2026, 02:19 UTC**, backend `develop`
+`f9e9a5a52cd087b77900217e23dd38d906aae526`. Se usó el origen
+`http://localhost:4200/api/v1`, proxy del frontend hacia `localhost:8080`,
+con HTTP real y sesión emitida por P2, sin sustitución de respuestas.
+El fallo de conexión anterior queda como evidencia histórica, ya resuelto.
 
-Para completar S7 hace falta un backend `develop` accesible y una sesión de
-estudiante activo con asignaciones existentes. Consultar mediante la sesión P2
-normal, recorrer las páginas desde cero y contrastar contextos con P3; registrar
-revisión, entorno, número de páginas/contextos y resultado sin guardar tokens o
-credenciales. Esta evidencia es independiente del alta/activación de cuentas.
+El usuario autorizó crear datos mínimos locales mediante APIs. Como no había
+docentes activos, estudiantes activos ni puentes, se crearon:
+
+| Recurso                                          | Identificador                          |
+| ------------------------------------------------ | -------------------------------------- |
+| Docente por invitación aceptada                  | `01a170db-7766-7a81-86ce-5d69e40a58c7` |
+| Estudiante por registro y verificación de correo | `01a170db-7977-7b85-b837-f8e37ec95c9a` |
+| Puente prueba G3 (`GT-16-1612-0001`)             | `01a170db-7a11-744c-afea-5740c29b3e80` |
+| Curso prueba G3                                  | `01a170db-7b3f-7d99-a27c-68698eae47f9` |
+| Inscripción                                      | `01a170db-7b62-7615-8e39-330d2f1a8943` |
+| Asignación                                       | `01a170db-7b7a-7eed-b0b3-8901cef48442` |
+
+### Preparación de datos, separada de la consulta de contrato
+
+Invitación y aceptación del docente, registro del estudiante, puente, curso,
+inscripción y asignación: HTTP 201. Verificación de correo: HTTP 204.
+La inscripción activó al estudiante pendiente con correo verificado mediante
+el servicio productivo existente; login del estudiante HTTP 200 con rol
+`ESTUDIANTE`, y consulta administrativa HTTP 200 con estado `ACTIVO`.
+No se usó SQL, cambio directo de roles/estado ni bypass de activación.
+
+### Resultado del contrato
+
+- `GET /mis-asignaciones?page=0&size=1`: HTTP 200. Claves exactas
+  `content`, `number`, `size`, `total_elements`, `total_pages`;
+  `number=0`, `size=1`, `total_elements=1`, `total_pages=1`.
+- El único elemento conserva los diez campos `snake_case` de P7 y los ids
+  de estudiante, curso, inscripción y puente creados, sin perder contexto.
+- `GET /mis-asignaciones?page=1&size=1`: HTTP 200, contenido vacío.
+- `GET /puentes/{id}`: HTTP 200, id y nombre coinciden con la asignación.
+- Runner HTTP: exit 0, 17 peticiones exitosas. Registro saneado en el workspace:
+  `odd/evidence/offline-referencia-g3-real.json`.
+
+Las credenciales administrativas se leyeron del `.env` en memoria. Contraseñas
+aleatorias, tokens y enlaces de correo no se imprimieron ni guardaron en los
+artefactos de evidencia. Se usó la entrega legítima de correo por consola del
+entorno local. Los recursos de prueba permanecen para trazabilidad; las cuentas
+pueden recuperarse mediante el flujo normal de restablecimiento de contraseña.
+
+Esta prueba acredita el contrato HTTP real a través del proxy, **no** un recorrido
+visual Angular ni Preparar salida productivo. El dataset mínimo real tiene una
+sola asignación; múltiples páginas no vacías, dos cursos por puente y errores
+intermedios/401/403 están acreditados por las pruebas HTTP aisladas, no por este
+dataset. P4/P5 y V01/V02/V16 completos siguen fuera de esta evidencia.
 
 ## Reproducir
 
