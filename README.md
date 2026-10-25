@@ -1,5 +1,11 @@
 # pf-puentes-frontend
 
+### Recorrido real de P8 (23/10/2026)
+
+`playwright.p8.config.ts` y `e2e/p8/` verifican aplicación de producción con login, API y almacenamiento reales, contra el backend temporal iniciado por `RecorridoP8Navegador`. Se ejecuta desde el repositorio backend, no contra `localhost:8080` del desarrollador. [Guía del equipo](../pf-puentes-backend/docs/prueba-navegador-p8.md).
+
+**Cinco escenarios aprobados:** consulta de pesos, ciclo de mantenimiento con foto real en MinIO y motivo persistido, y permisos de Catedrático/Estudiante/Profesional. Informe en `playwright-report/p8/index.html`; sin trazas de red para no guardar tokens. El harness offline y su configuración no cambian. Las listas/órdenes del recorrido son fixtures aislados, no generación automática de P4/P5.
+
 ### Consulta de pesos integrada (P8, 23/10/2026)
 
 Inicia sesión como Administrador y pulsa **Pesos del índice de condición** o abre `/admin/pesos`. La ruta diferida usa la guardia administrativa e interceptores de P2. El nuevo catálogo P8 permite elegir por código una versión con juegos guardados; después seleccionar un juego para ver elementos/pesos con acta y vigencia. Catálogo, juegos y elementos se paginan; cambios de contexto cancelan lecturas y pérdida de sesión retira datos privados.
