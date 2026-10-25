@@ -1,5 +1,11 @@
 # pf-puentes-frontend
 
+### Verificación P8 tras recibir P4 y sesión offline (24/10/2026)
+
+553 pruebas frontend aprobadas; Prettier, ESLint, TypeScript estricto y build de producción aprobados. El nuevo adaptador P4 → P8 se implementa en backend y no requiere otra pantalla. Se renumeró el ADR propio de acceso a mantenimiento de 0024 a 0026 para conservar el ADR 0024 de sesión offline P2. Creación de pesos y cálculo/publicación con respuestas reales siguen pendientes.
+
+Regresión P8 en Chrome aprobada después del merge: cinco escenarios contra backend, PostgreSQL/PostGIS y MinIO reales en contenedores aislados; pesos, mantenimiento con foto/cierre/descarte y permisos existentes. Se reutiliza el recorrido documentado abajo, sin simular respuestas ni publicar inspecciones.
+
 ### Recorrido real de P8 (23/10/2026)
 
 `playwright.p8.config.ts` y `e2e/p8/` verifican aplicación de producción con login, API y almacenamiento reales, contra el backend temporal iniciado por `RecorridoP8Navegador`. Se ejecuta desde el repositorio backend, no contra `localhost:8080` del desarrollador. [Guía del equipo](../pf-puentes-backend/docs/prueba-navegador-p8.md).
@@ -10,7 +16,7 @@
 
 Inicia sesión como Administrador y pulsa **Pesos del índice de condición** o abre `/admin/pesos`. La ruta diferida usa la guardia administrativa e interceptores de P2. El nuevo catálogo P8 permite elegir por código una versión con juegos guardados; después seleccionar un juego para ver elementos/pesos con acta y vigencia. Catálogo, juegos y elementos se paginan; cambios de contexto cancelan lecturas y pérdida de sesión retira datos privados.
 
-Si no hay configuraciones guardadas, la pantalla lo indica: no se crean datos ficticios. La consulta no modifica pesos ni acredita calibración; la creación HTTP/metadatos P4 siguen pendientes. Pesos y mantenimiento ya tienen acceso con P2. [ADR 0025](docs/adr/0025-consulta-administrativa-de-pesos-con-sesion.md). Las notas anteriores sobre su ruta pendiente quedan superadas por este incremento.
+Si no hay configuraciones guardadas, la pantalla lo indica: no se crean datos ficticios. La consulta no modifica pesos ni acredita calibración; la creación HTTP sigue pendiente. Las referencias P4 ya se extraen en backend desde el 24/10. Pesos y mantenimiento ya tienen acceso con P2. [ADR 0025](docs/adr/0025-consulta-administrativa-de-pesos-con-sesion.md). Las notas anteriores sobre su ruta pendiente quedan superadas por este incremento.
 
 Verificación local: **495 pruebas frontend aprobadas**, 16 escenarios nuevos; Prettier, ESLint, TypeScript estricto y build de producción aprobados. Paquete inicial **98.68 kB comprimidos**; acceso a pesos diferido ~3.84 kB. AuthService/interceptor/guardia reales y respuestas HTTP controladas; no acredita navegador con backend real ni CI remoto. Backend: nuevo GET y controles aprobados según su README.
 
@@ -18,7 +24,7 @@ Verificación local: **495 pruebas frontend aprobadas**, 16 escenarios nuevos; P
 
 El pull `704ddae` entregó la sesión/interceptores/guardias de P2. Ahora `/puentes/:id/mantenimiento` conecta esos contratos con las consultas y acciones existentes de P8. Inicia sesión como Catedrático/Admin, abre una ficha desde `/puentes` y pulsa **Gestionar mantenimiento**. La ruta carga de forma diferida y usa la guardia P2; el backend vuelve a autorizar cada operación.
 
-La pantalla carga el puente real, historial/detalle y seguimiento anual; otra vista ofrece propuestas y aceptación. Programación, inicio, evidencia/cierre, descarte y prioridad conservan sus reglas/estados. Cambiar de vista relee datos; durante una escritura se bloquean el cambio y la salida. Perder acceso retira datos privados. Sin órdenes existentes, las listas vacías son correctas: no se generan datos de demostración. [ADR 0024](docs/adr/0024-acceso-protegido-al-mantenimiento-por-puente.md).
+La pantalla carga el puente real, historial/detalle y seguimiento anual; otra vista ofrece propuestas y aceptación. Programación, inicio, evidencia/cierre, descarte y prioridad conservan sus reglas/estados. Cambiar de vista relee datos; durante una escritura se bloquean el cambio y la salida. Perder acceso retira datos privados. Sin órdenes existentes, las listas vacías son correctas: no se generan datos de demostración. [ADR 0026](docs/adr/0026-acceso-protegido-al-mantenimiento-por-puente.md).
 
 La integración de acceso a mantenimiento ya no espera a P2. Pesos aún necesita su ruta administrativa; P4/P5 y la presentación de avisos P9 siguen pendientes. Las secciones anteriores a este incremento conservan evidencia de piezas que entonces estaban aisladas; sus menciones a esperar P2 quedan superadas para mantenimiento.
 
@@ -28,7 +34,7 @@ Verificación local: **479 pruebas frontend aprobadas**, 19 escenarios nuevos; P
 
 `SeguimientoRutinario` consume el GET real y presenta referencia/límite, conteos globales y página de órdenes abiertas. `ConsultaOrdenes` lo incorpora mediante `[mostrarSeguimientoRutinario]="true"`, como opción del host que usa su permiso Catedrático/Admin. Seleccionar abre el detalle real; guardar fecha, iniciar o cerrar recarga el resumen, conservando permisos/estados existentes.
 
-La programación no acredita ejecución ni una fecha pasada implica incumplimiento anual automático. Los indicadores de pasada y posterior al límite pueden coincidir; la UI lo explica. Fechas civiles, paginación, bloqueos y errores respetan el contrato. No se crean propuestas/jobs ni se habilita ruta pública. Acceso P2 y conexión privada P3 integrados en la ruta de mantenimiento (ADR 0024). [ADR 0023](docs/adr/0023-seguimiento-rutinario-anual.md).
+La programación no acredita ejecución ni una fecha pasada implica incumplimiento anual automático. Los indicadores de pasada y posterior al límite pueden coincidir; la UI lo explica. Fechas civiles, paginación, bloqueos y errores respetan el contrato. No se crean propuestas/jobs ni se habilita ruta pública. Acceso P2 y conexión privada P3 integrados en la ruta de mantenimiento (ADR 0026). [ADR 0023](docs/adr/0023-seguimiento-rutinario-anual.md).
 
 Verificación: **387 unitarios aprobados**, 21 nuevos entre panel/cliente/host. Pasan lint, Prettier, compilación estricta y build (~90.73 kB iniciales, MapLibre diferido). No acredita CI remoto ni recorrido autenticado completo.
 

@@ -1,6 +1,7 @@
-# 0024. Acceso protegido al mantenimiento por puente
+# 0026. Acceso protegido al mantenimiento por puente
 
 - Fecha: 23/10/2026
+- Renumerado: 24/10/2026, para resolver la colisión con el ADR 0024 de sesión offline recibido de P2. No cambia la decisión.
 - Estado: implementado; verificación local en README
 - Trazabilidad: RN-USR-10, RN-MTO-02/04/05/06/07/09, DT-FE-02/03/04/05/06/10/11, acuerdos de permisos P8
 
