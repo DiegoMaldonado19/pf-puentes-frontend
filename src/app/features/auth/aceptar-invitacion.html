@@ -22,13 +22,13 @@
 
   @if (invitacion(); as inv) {
     @if (!cuentaActiva() && !cuentaPendiente()) {
-      <dl class="mt-3 grid grid-cols-[auto_1fr] gap-x-4 rounded bg-slate-100 p-3">
-        <dt class="font-medium">{{ campos.correo }}</dt>
-        <dd>{{ inv.correo }}</dd>
-        <dt class="font-medium">{{ campos.rol }}</dt>
-        <dd>{{ roles[inv.rol] }}</dd>
-        <dt class="font-medium">{{ t.expira }}</dt>
-        <dd>{{ inv.expira_en | date: 'dd/MM/yyyy' : '-0600' }}</dd>
+      <dl class="mt-3 grid grid-cols-[auto_1fr] gap-x-4 rounded bg-slate-100 p-3 text-slate-900">
+        <dt class="font-medium text-slate-700">{{ campos.correo }}</dt>
+        <dd class="text-slate-900">{{ inv.correo }}</dd>
+        <dt class="font-medium text-slate-700">{{ campos.rol }}</dt>
+        <dd class="text-slate-900">{{ roles[inv.rol] }}</dd>
+        <dt class="font-medium text-slate-700">{{ t.expira }}</dt>
+        <dd class="text-slate-900">{{ inv.expira_en | date: 'dd/MM/yyyy' : '-0600' }}</dd>
       </dl>
 
       <form class="mt-4 grid gap-4" [formGroup]="form" (ngSubmit)="enviar()" novalidate>

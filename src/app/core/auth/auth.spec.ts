@@ -65,6 +65,21 @@ describe('AuthService', () => {
     expect(setItem).not.toHaveBeenCalled();
   });
 
+  it('el cierre explícito invalida inmediatamente y una renovación tardía no restaura sesión', async () => {
+    const entrada = firstValueFrom(auth.iniciarSesion('ana@correo.com', 'clave'));
+    http.expectOne('/api/v1/auth/login').flush(sesion());
+    await entrada;
+    const renovacion = firstValueFrom(auth.renovar());
+    const pendiente = http.expectOne('/api/v1/auth/renovar');
+    const cierre = firstValueFrom(auth.cerrarSesion());
+    expect(auth.autenticado()).toBe(false);
+    pendiente.flush(sesion('ESTUDIANTE', 'tardio'));
+    expect(await renovacion).toBeNull();
+    http.expectOne('/api/v1/auth/cerrar-sesion').error(new ProgressEvent('error'));
+    await cierre;
+    expect(auth.usuario()).toBeNull();
+  });
+
   it('no trata al estudiante como gestor de mantenimiento', async () => {
     const respuesta = firstValueFrom(auth.iniciarSesion('ana@correo.com', 'Puentes2026ok'));
     http.expectOne('/api/v1/auth/login').flush(sesion('ESTUDIANTE'));

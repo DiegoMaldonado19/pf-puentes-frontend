@@ -13,38 +13,40 @@
   }
 
   @if (ficha.value(); as cuenta) {
-    <dl class="mt-3 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 rounded bg-slate-100 p-3">
-      <dt class="font-medium">{{ t.identificador }}</dt>
-      <dd class="font-mono">{{ cuenta.id }}</dd>
-      <dt class="font-medium">{{ t.nombre }}</dt>
-      <dd>{{ cuenta.nombre }}</dd>
-      <dt class="font-medium">{{ t.correo }}</dt>
-      <dd>{{ cuenta.correo }}</dd>
-      <dt class="font-medium">{{ t.rol }}</dt>
-      <dd>{{ roles[cuenta.rol] }}</dd>
-      <dt class="font-medium">{{ t.estado }}</dt>
-      <dd>{{ estados[cuenta.estado] }}</dd>
-      <dt class="font-medium">{{ t.verificado }}</dt>
-      <dd>{{ cuenta.correo_verificado ? t.si : t.no }}</dd>
-      <dt class="font-medium">{{ t.colegiado }}</dt>
-      <dd>{{ cuenta.numero_colegiado ?? '—' }}</dd>
-      <dt class="font-medium">{{ t.colegiadoVerificado }}</dt>
-      <dd>
+    <dl
+      class="mt-3 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 rounded bg-slate-100 p-3 text-slate-900"
+    >
+      <dt class="font-medium text-slate-700">{{ t.identificador }}</dt>
+      <dd class="font-mono text-slate-900">{{ cuenta.id }}</dd>
+      <dt class="font-medium text-slate-700">{{ t.nombre }}</dt>
+      <dd class="text-slate-900">{{ cuenta.nombre }}</dd>
+      <dt class="font-medium text-slate-700">{{ t.correo }}</dt>
+      <dd class="text-slate-900">{{ cuenta.correo }}</dd>
+      <dt class="font-medium text-slate-700">{{ t.rol }}</dt>
+      <dd class="text-slate-900">{{ roles[cuenta.rol] }}</dd>
+      <dt class="font-medium text-slate-700">{{ t.estado }}</dt>
+      <dd class="text-slate-900">{{ estados[cuenta.estado] }}</dd>
+      <dt class="font-medium text-slate-700">{{ t.verificado }}</dt>
+      <dd class="text-slate-900">{{ cuenta.correo_verificado ? t.si : t.no }}</dd>
+      <dt class="font-medium text-slate-700">{{ t.colegiado }}</dt>
+      <dd class="text-slate-900">{{ cuenta.numero_colegiado ?? '—' }}</dd>
+      <dt class="font-medium text-slate-700">{{ t.colegiadoVerificado }}</dt>
+      <dd class="text-slate-900">
         {{
           cuenta.colegiado_verificado_en
             ? (cuenta.colegiado_verificado_en | date: 'dd/MM/yyyy' : '-0600')
             : '—'
         }}
       </dd>
-      <dt class="font-medium">{{ t.creado }}</dt>
-      <dd>{{ cuenta.creado_en | date: 'dd/MM/yyyy' : '-0600' }}</dd>
+      <dt class="font-medium text-slate-700">{{ t.creado }}</dt>
+      <dd class="text-slate-900">{{ cuenta.creado_en | date: 'dd/MM/yyyy' : '-0600' }}</dd>
       @if (cuenta.desactivado_en) {
-        <dt class="font-medium">{{ t.desactivado }}</dt>
-        <dd>{{ cuenta.desactivado_en | date: 'dd/MM/yyyy' : '-0600' }}</dd>
+        <dt class="font-medium text-slate-700">{{ t.desactivado }}</dt>
+        <dd class="text-slate-900">{{ cuenta.desactivado_en | date: 'dd/MM/yyyy' : '-0600' }}</dd>
       }
       @if (cuenta.motivo_baja) {
-        <dt class="font-medium">{{ t.motivo }}</dt>
-        <dd>{{ cuenta.motivo_baja }}</dd>
+        <dt class="font-medium text-slate-700">{{ t.motivo }}</dt>
+        <dd class="text-slate-900">{{ cuenta.motivo_baja }}</dd>
       }
     </dl>
 

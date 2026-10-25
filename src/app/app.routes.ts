@@ -4,6 +4,11 @@ import { sesionGuard } from './core/auth/sesion.guard';
 import { TEXTOS } from './shared/textos';
 
 export const routes: Routes = [
+  {
+    path: 'offline/local',
+    title: TEXTOS.accesoLocal.titulo,
+    loadComponent: () => import('./offline/vista-local').then((m) => m.VistaLocal),
+  },
   // El inventario público es lo primero que ve un visitante sin sesión (RN-USR-10)
   { path: '', pathMatch: 'full', redirectTo: 'puentes' },
   {
