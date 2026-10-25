@@ -37,6 +37,7 @@ export class BandejaPropuestas {
   protected readonly confirmada = linkedSignal({ source: this.puenteId, computation: () => false });
   private readonly detalle = viewChild(AceptacionPropuesta);
   protected readonly enviando = computed(() => this.detalle()?.envioPendiente() ?? false);
+  readonly operacionPendiente = this.enviando;
   protected readonly paginaValida = computed(() => {
     const pagina = this.pagina();
     if (!pagina) return null;

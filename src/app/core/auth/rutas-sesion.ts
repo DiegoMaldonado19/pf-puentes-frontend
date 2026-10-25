@@ -11,5 +11,5 @@ export function rutaExigeSesion(url: string): boolean {
   ) {
     return true;
   }
-  return /^\/puentes\/[^/]+\/editar$/.test(path);
+  return /^\/puentes\/[^/]+\/(editar|mantenimiento)$/.test(path);
 }

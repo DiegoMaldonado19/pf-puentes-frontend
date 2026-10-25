@@ -141,6 +141,7 @@ describe('App', () => {
       '/puentes/mapa',
       '/offline/local',
       '/perfil',
+      '/admin/pesos',
       '/admin/usuarios',
       '/admin/invitaciones',
       '/admin/auditoria',

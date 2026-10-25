@@ -57,6 +57,13 @@
           >
           @if (auth.rol() === 'ADMINISTRADOR') {
             <a
+              routerLink="/admin/pesos"
+              routerLinkActive="underline"
+              ariaCurrentWhenActive="page"
+              class="hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+              >{{ tPesos }}</a
+            >
+            <a
               routerLink="/admin/usuarios"
               routerLinkActive="underline"
               ariaCurrentWhenActive="page"

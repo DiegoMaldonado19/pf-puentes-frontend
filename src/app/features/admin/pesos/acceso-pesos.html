@@ -1,0 +1,93 @@
+<section class="mx-auto max-w-6xl p-4" aria-labelledby="titulo-acceso-pesos">
+  <h1 id="titulo-acceso-pesos" class="text-2xl font-bold">{{ t.titulo }}</h1>
+  @if (permitido()) {
+    <button
+      type="button"
+      class="my-3 rounded border p-2"
+      [attr.aria-expanded]="mostrarCampos()"
+      [disabled]="operacionPendiente()"
+      (click)="alternarCampos()"
+    >
+      {{ mostrarCampos() ? comun.campos.cerrar : comun.campos.abrir }}
+    </button>
+    @if (mostrarCampos()) {
+      <app-campos-dano-pesos (creado)="reintentar()" />
+    }
+  }
+  @if (!permitido()) {
+    <p role="alert">{{ comun.sinPermiso }}</p>
+  } @else if (formularios.isLoading()) {
+    <p role="status">{{ t.cargando }}</p>
+  } @else if (formularios.error()) {
+    <p role="alert">{{ error() }}</p>
+    <button type="button" class="my-3 rounded border p-2" (click)="reintentar()">
+      {{ comun.reintentar }}
+    </button>
+  } @else if (formularios.value(); as datos) {
+    <p class="my-3">{{ t.descripcion }}</p>
+    @if (datos.content.length) {
+      <div class="overflow-x-auto" role="region" [attr.aria-label]="t.tabla" tabindex="0">
+        <table class="w-full text-left">
+          <caption class="text-left font-semibold">
+            {{
+              t.tabla
+            }}
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col" class="p-2">{{ t.codigo }}</th>
+              <th scope="col" class="p-2">{{ comun.acciones }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (formulario of datos.content; track formulario.id) {
+              <tr class="border-t border-slate-300">
+                <th scope="row" class="p-2">{{ formulario.codigo }}</th>
+                <td class="p-2">
+                  <button
+                    type="button"
+                    class="rounded border border-blue-700 p-2 text-blue-800"
+                    [attr.aria-pressed]="seleccion()?.id === formulario.id"
+                    (click)="seleccionar(formulario)"
+                  >
+                    {{ t.consultar }}<span class="sr-only">: {{ formulario.codigo }}</span>
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    } @else {
+      <p role="status">{{ t.vacia }}</p>
+    }
+    <nav class="my-4 flex items-center gap-3" [attr.aria-label]="t.paginacion">
+      <button
+        type="button"
+        class="rounded border p-2 disabled:opacity-50"
+        [disabled]="datos.page === 0"
+        (click)="cambiar(datos.page - 1)"
+      >
+        {{ comun.anterior }}
+      </button>
+      @if (datos.total_pages && datos.page < datos.total_pages) {
+        <span>{{ comun.pagina }} {{ datos.page + 1 }} {{ comun.de }} {{ datos.total_pages }}</span>
+      }
+      <button
+        type="button"
+        class="rounded border p-2 disabled:opacity-50"
+        [disabled]="datos.page + 1 >= datos.total_pages"
+        (click)="cambiar(datos.page + 1)"
+      >
+        {{ comun.siguiente }}
+      </button>
+      <button type="button" class="rounded border p-2" (click)="reintentar()">
+        {{ t.actualizar }}
+      </button>
+    </nav>
+    @if (seleccion(); as formulario) {
+      <p class="my-3 font-semibold">{{ t.codigo }}: {{ formulario.codigo }}</p>
+      <app-consulta-pesos [formularioVersionId]="formulario.id" />
+    }
+  }
+</section>
