@@ -58,7 +58,12 @@ export class MotorSync {
     const propietario = this.sesion.propietarioActual();
     if (!propietario || !this.transporte || !this.conectado() || this.pausa())
       return Promise.resolve();
+    const liberar = this.sesion.alInvalidar?.(() => {
+      this.generacion++;
+      this.controlador?.abort();
+    });
     this.activo = this.procesar(propietario, this.generacion).finally(() => {
+      liberar?.();
       this.activo = null;
     });
     return this.activo;
@@ -97,7 +102,7 @@ export class MotorSync {
         .catch(() => controlador.abort());
     }, 3000);
     try {
-      if (controlador.signal.aborted) return;
+      if (controlador.signal.aborted || this.sesion.propietarioActual() !== propietario_id) return;
       const preparada = await Promise.resolve()
         .then(() => this.sesion.preparar(propietario_id))
         .catch(() => false);
@@ -126,6 +131,8 @@ export class MotorSync {
           ) {
             resultado = { tipo: 'negocio', mensaje: TEXTOS.offline.noDisponible };
           } else {
+            if (controlador.signal.aborted || this.sesion.propietarioActual() !== propietario_id)
+              break;
             resultado = await this.transporte!.ejecutar(
               structuredClone(operacion),
               archivo,
@@ -139,8 +146,8 @@ export class MotorSync {
             mensaje: e instanceof Error ? e.message : TEXTOS.offline.errorTransporte,
           };
         }
-        if (controlador.signal.aborted) break;
-        await this.aplicar(operacion, token, resultado);
+        if (controlador.signal.aborted || this.sesion.propietarioActual() !== propietario_id) break;
+        await this.aplicar(operacion, token, resultado, controlador.signal);
         if (resultado.tipo === 'sesion') {
           this.pausa.set(resultado.mensaje);
           break;
@@ -188,8 +195,14 @@ export class MotorSync {
       return siguiente;
     });
   }
-  private async aplicar(o: Operacion, token: string, resultado: ResultadoTransporte) {
-    await this.db.transaction(
+  private async aplicar(
+    o: Operacion,
+    token: string,
+    resultado: ResultadoTransporte,
+    signal: AbortSignal,
+  ) {
+    let cancelar: (() => void) | undefined;
+    const confirmacion = this.db.transaction(
       'rw',
       [
         this.db.bloqueos,
@@ -198,9 +211,13 @@ export class MotorSync {
         this.db.fotos,
         this.db.documentos,
       ],
-      async () => {
+      async (transaccion) => {
+        cancelar = () => transaccion.abort();
+        signal.addEventListener('abort', cancelar, { once: true });
+        if (signal.aborted || this.sesion.propietarioActual() !== o.propietario_id) return;
         if (!(await this.posee(o.propietario_id, token))) return;
         const actual = await this.db.cola_sync.get(o.id);
+        if (this.sesion.propietarioActual() !== o.propietario_id) return;
         if (actual?.ejecucion !== token || actual.estado !== 'en_proceso') return;
         if (
           resultado.tipo === 'ack' &&
@@ -245,5 +262,12 @@ export class MotorSync {
         }
       },
     );
+    try {
+      await confirmacion;
+    } catch (error) {
+      if (!signal.aborted) throw error;
+    } finally {
+      if (cancelar) signal.removeEventListener('abort', cancelar);
+    }
   }
 }

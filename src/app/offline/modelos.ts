@@ -49,6 +49,11 @@ export interface Operacion extends RegistroLocal {
   ejecucion: string | null;
   resultado: Json | null;
 }
+export interface HabilitacionLocal {
+  id: 'ultima';
+  propietario_id: string;
+  revocados: string[];
+}
 export interface Bloqueo {
   propietario_id: string;
   token: string;
@@ -73,6 +78,8 @@ export interface TransporteSync {
 export interface SesionOffline {
   propietarioActual(): string | null;
   preparar(propietario_id: string): Promise<boolean>;
+  /** Cancela ejecución remota; no elimina capturas ni operaciones. */
+  alInvalidar?(cancelar: () => void): () => void;
 }
 export interface ReferenciaOffline {
   consultar(

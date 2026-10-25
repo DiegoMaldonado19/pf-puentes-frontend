@@ -47,7 +47,8 @@ queda pendiente de ejecución y registro por el equipo.
 ## API local e integración posterior
 
 - `BaseLocal`: base `puentes-offline` por defecto; versión 1 con seis almacenes
-  de dominio, versión 2 añade `bloqueos` sin borrar capturas. Cada registro
+  de dominio, versión 2 añade `bloqueos` y versión 3 añade `acceso_local`,
+  sin borrar capturas. Cada registro
   declara `modelo_version`. Referencia usa clave compuesta propietario/id.
 - `PersistenciaOffline`: `crear`, `editar`, `foto`, `documento`, `enviar`,
   `inspeccion`, `operaciones` y `guardarReferencias`. Todas reciben propietario
@@ -85,9 +86,60 @@ Los límites locales son 60 fotos, 10 PDF y 20 MiB por PDF; el contrato de P1
 garantiza el formato/dimensiones de `FotoCapturada`. El objetivo de 200–400 KB
 no es un rechazo por tamaño de una imagen simple ya comprimida por P1.
 
+### Acceso local G2 — navegación separada y sesión P2
+
+`AccesoLocal(db, auth, sesionRemota)` conserva la última identidad preparada y
+las revocaciones por propietario sin credenciales. `habilitarPreparada` requiere
+una sesión remota vigente del mismo dueño; su llamador deberá acreditar la
+preparación completa. `propietarioActual` e `inspecciones` consultan la política
+durable y devuelven únicamente capturas de ese propietario. Un UUID no desbloquea
+una revocación: hace falta login online de su dueño, no una renovación.
+
+El arranque instancia el servicio antes de hidratar P2 y después reconcilia
+la identidad inicial contra la preparada. Cierre/cambio revocan durablemente;
+fallo de red y renovación inválida no equivalen a cierre explícito. Las lecturas
+no modifican la habilitación: una pestaña antigua con otra sesión no puede
+revocar repetidamente un login legítimo del dueño, ni consultar sus capturas.
+`liveQuery` notifica cambios durables y limpia/actualiza la vista; el adaptador
+remoto comprueba revocación y cancela ejecuciones del motor existente.
+
+La navegación ofrece **Capturas locales**, ruta diferida `/offline/local`,
+independiente de roles y `AuthService.autenticado()`. Solo consulta las capturas
+del propietario preparado habilitado; no acepta UUID para desbloquear. Es una
+vista consultiva: la edición productiva espera la captura de P5. No crea
+capturas, no prepara salidas ni drena operaciones. Sin preparación real previa
+no hay capturas habilitadas; no existe un fallback ficticio productivo.
+
+#### Harness de sesión G2
+
+Abrir `/offline/demo?sesion=1` en el build `base-offline`. Usa exclusivamente
+`puentes-offline-sesion-demo`; no comparte capturas con producción ni con
+`puentes-offline-demo`. El botón **Preparar captura ficticia** exige sesión P2
+válida y reutiliza fixtures/persistencia existentes. La sesión es `AuthService`;
+Playwright sustituye sus respuestas HTTP de login/renovación/cierre. Sin ese
+HTTP de prueba, el servidor estático no proporciona una sesión ficticia.
+
+Los casos G2 cierran y reabren sin red, editan con `PersistenciaOffline`,
+comprueban que no se persisten tokens ni se drena remotamente y prueban cierre,
+cambio y recuperación por login del propietario entre pestañas. Las pruebas
+unitarias con dos sesiones/instancias de base y `TransporteSimulado` acreditan
+cancelación en vuelo: señal abortada, datos/cola conservados y ninguna operación
+siguiente enviada. Ejecutar estos casos separados con:
+
+```sh
+npm run test:e2e:base -- --grep 'G2'
+```
+
+La demo histórica sin `sesion=1` conserva selección libre de propietarios y
+simulación B01–B08; no acredita por sí sola la revocación de G2. No hay transporte
+real, edición P5 productiva ni aceptación V09 completa. El acceso presupone
+control del navegador/perfil y no protege frente al acceso directo a IndexedDB.
+Decisión propuesta, sin acuerdo externo de P2: [ADR 0024](adr/0024-acceso-local-sesion-offline.md).
+
 ### Adaptadores pendientes (grupos 2..7)
 
-P2: sesión, renovación, interrupción al cambiar cuenta, interceptores y replay.
+P2: coordinación externa del acceso local y futuro interceptor offline/replay;
+la adaptación de sesión y renovación usa ya `AuthService`.
 P3/P4/P7: descarga autorizada/paginada y preparación completa; P4: validación
 offline del formulario. P5: borrador, revisión base y transición editable/envío.
 P1: transporte HTTP/multipart con las claves y UUID originales. Los rechazos

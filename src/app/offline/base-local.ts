@@ -1,5 +1,13 @@
+import { Injectable } from '@angular/core';
 import Dexie, { Table } from 'dexie';
-import { ArchivoLocal, Bloqueo, InspeccionLocal, Operacion, ReferenciaLocal } from './modelos';
+import {
+  ArchivoLocal,
+  Bloqueo,
+  HabilitacionLocal,
+  InspeccionLocal,
+  Operacion,
+  ReferenciaLocal,
+} from './modelos';
 
 export const ALMACENES_V1 = {
   puentes: '[propietario_id+id], propietario_id',
@@ -10,6 +18,7 @@ export const ALMACENES_V1 = {
   cola_sync:
     'id, propietario_id, [propietario_id+inspeccion_id], [propietario_id+estado+proximo_intento], *dependencias',
 };
+@Injectable({ providedIn: 'root', useFactory: () => new BaseLocal() })
 export class BaseLocal extends Dexie {
   puentes!: Table<ReferenciaLocal, [string, string]>;
   esquemas_formulario!: Table<ReferenciaLocal, [string, string]>;
@@ -18,6 +27,7 @@ export class BaseLocal extends Dexie {
   documentos!: Table<ArchivoLocal, string>;
   cola_sync!: Table<Operacion, string>;
   bloqueos!: Table<Bloqueo, string>;
+  acceso_local!: Table<HabilitacionLocal, string>;
   constructor(nombre = 'puentes-offline') {
     if (typeof indexedDB !== 'undefined' && !Dexie.dependencies.indexedDB) {
       Dexie.dependencies.indexedDB = indexedDB;
@@ -28,5 +38,6 @@ export class BaseLocal extends Dexie {
     super(nombre);
     this.version(1).stores(ALMACENES_V1);
     this.version(2).stores({ ...ALMACENES_V1, bloqueos: 'propietario_id' });
+    this.version(3).stores({ acceso_local: 'id' });
   }
 }

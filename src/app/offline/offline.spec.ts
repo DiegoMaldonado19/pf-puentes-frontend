@@ -286,7 +286,7 @@ describe('base offline', () => {
     });
     expect(await migrada.cola_sync.count()).toBe(2);
     expect(await migrada.inspecciones.get(i.id)).toEqual(i);
-    expect(migrada.verno).toBe(2);
+    expect(migrada.verno).toBe(3);
     await migrada.delete();
   });
   it('informa denegación, ausencia y error de Storage API', async () => {
@@ -337,6 +337,62 @@ describe('base offline', () => {
       vi.useRealTimers();
     }
   });
+  it.each(['foto', 'documento'] as const)(
+    'revalida identidad tras esperar la lectura de %s, sin enviar ni confirmar datos ajenos',
+    async (tipo) => {
+      const i = await local.crear(propietario, v7(), v7());
+      await motor.drenar();
+      const archivo =
+        tipo === 'foto'
+          ? await local.foto(propietario, i.id, foto(), 'campo')
+          : await local.documento(
+              propietario,
+              i.id,
+              new Blob(['pdf'], { type: 'application/pdf' }),
+            );
+      const tabla = tipo === 'foto' ? db.fotos : db.documentos;
+      const archivoOriginal = await tabla.get(archivo.id);
+      const captura = await local.inspeccion(propietario, i.id);
+      const originales = await local.operaciones(propietario);
+      const leer = tabla.get.bind(tabla);
+      let iniciada!: () => void, continuar!: () => void;
+      const inicio = new Promise<void>((r) => (iniciada = r));
+      const espera = new Promise<void>((r) => (continuar = r));
+      const lectura = vi.spyOn(tabla, 'get').mockImplementationOnce((id) =>
+        leer(id).then(async (registro) => {
+          iniciada();
+          await espera;
+          return registro;
+        }),
+      );
+      let actual: string | null = propietario;
+      motor = new MotorSync(
+        db,
+        { propietarioActual: () => actual, preparar: async () => true },
+        transporte,
+        () => ahora,
+        () => true,
+      );
+      const trabajo = motor.drenar();
+      await inicio;
+      // Ambos cambios deben detectarse aunque el puerto no anuncie invalidaciones.
+      actual = tipo === 'foto' ? otro : null;
+      continuar();
+      try {
+        await trabajo;
+        expect(transporte.registro.map((o) => o.tipo)).toEqual(['datos']);
+        expect(await local.inspeccion(propietario, i.id)).toEqual(captura);
+        expect(await tabla.get(archivo.id)).toEqual(archivoOriginal);
+        expect(await local.operaciones(propietario)).toEqual(
+          originales.map((o) =>
+            o.entidad_id === archivo.id ? { ...o, ultimo_intento: ahora } : o,
+          ),
+        );
+      } finally {
+        lectura.mockRestore();
+      }
+    },
+  );
   it('detener durante adquisición no inicia transporte; fallo de preparar sesión pausa', async () => {
     await local.crear(propietario, v7(), v7());
     const trabajo = motor.drenar();

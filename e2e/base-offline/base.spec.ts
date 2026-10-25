@@ -264,7 +264,7 @@ test('B03 — cuota atómica visible, persistencia denegada y migración real', 
     return resultado;
   }, i.id);
   expect(migracion).toMatchObject({
-    version: 2,
+    version: 3,
     fotos: 'foto',
     mini: 'mini',
     cola: 2,
