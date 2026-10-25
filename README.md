@@ -1,5 +1,9 @@
 # pf-puentes-frontend
 
+### Cancelar órdenes programadas desde el detalle (P8, 25/10/2026)
+
+En `/puentes/:id/mantenimiento`, al seleccionar una orden en estado `PROGRAMADA` con cuenta activa de Catedrático o Administrador, el detalle ofrece el formulario de cancelación con motivo obligatorio (`<app-decision-con-motivo-orden operacion="cancelacion">`), consumiendo `POST /api/v1/puentes/{puenteId}/ordenes-mantenimiento/{ordenId}/cancelacion`. Mientras se envía, bloquea navegación y demás acciones de la orden; al confirmar `CANCELADA`, actualiza fila/detalle, recarga el seguimiento rutinario anual y mantiene la orden y sus evidencias previas consultables en modo solo lectura. [ADR frontend 0029](docs/adr/0029-cancelacion-con-motivo-desde-el-detalle.md) y [ADR backend 0042](../pf-puentes-backend/docs/adr/0042-cancelacion-auditada-de-ordenes-programadas.md).
+
 ### Guardar juegos nuevos de pesos (P8, 25/10/2026)
 
 Como Administrador: `/admin/pesos` → **Consultar campos de daño del formulario** → elegir versión → **Configurar nuevo juego de pesos**. Introduce un peso para cada referencia y, si corresponde, la referencia de acta; **Guardar juego nuevo** crea una configuración completa, actualiza las consultas y conserva las anteriores. Los pesos empiezan vacíos; no se sugieren valores de calibración. Sin acta, el juego es provisional; escribir una referencia no verifica firma/calibración.
