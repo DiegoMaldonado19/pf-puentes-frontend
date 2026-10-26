@@ -575,7 +575,7 @@ export const TEXTOS = {
     cuotaError: 'No hay cuota suficiente. El guardado no se realizó.',
     propietarioInvalido: 'Se requiere el UUID del propietario',
     noDisponible: 'Registro no disponible para este propietario',
-    fotoInvalida: 'La foto requiere anclaje y blobs WebP/JPEG',
+    fotoInvalida: 'La foto requiere blobs WebP/JPEG y anclaje si proviene de un grupo de daño',
     pdfInvalido: 'Se requiere PDF de hasta 20 MB',
     limiteArchivos: 'Se alcanzó el límite de archivos',
     ultimoIntento: 'Último intento',
