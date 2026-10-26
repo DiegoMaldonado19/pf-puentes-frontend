@@ -24,6 +24,7 @@ export class FichaPuente {
   /** Parámetro :id de la ruta (withComponentInputBinding). */
   readonly id = input.required<string>();
   protected readonly t = TEXTOS.puentes;
+  protected readonly textosForo = TEXTOS.foro;
   protected readonly rol = inject(ROL_PUENTES);
   protected readonly fechaSinHora = fechaSinHora;
 

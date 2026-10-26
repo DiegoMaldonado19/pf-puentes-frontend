@@ -1,0 +1,147 @@
+<div class="relative inline-block text-left">
+  <button
+    #botonCampana
+    type="button"
+    class="relative inline-flex min-h-11 items-center gap-2 rounded border border-slate-500 bg-slate-800 px-3 py-2 text-white hover:bg-slate-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+    [attr.aria-expanded]="abierto()"
+    aria-controls="panel-notificaciones"
+    [attr.aria-label]="textos.campana"
+    (click)="alternar()"
+    (keydown.escape)="cerrar()"
+  >
+    <svg
+      class="size-6"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
+      <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+    </svg>
+    <span class="hidden text-sm font-medium sm:inline">{{ textos.campana }}</span>
+    @if (servicio.noLeidas() > 0) {
+      <span
+        class="absolute -top-0.5 -right-0.5 rounded-full bg-red-600 px-1.5 py-0.5 text-xs leading-none font-semibold text-white"
+        aria-live="polite"
+      >
+        {{ servicio.noLeidas() }}
+        <span class="sr-only">{{ textos.sinLeer }}</span>
+      </span>
+    }
+  </button>
+
+  @if (abierto()) {
+    <div
+      #panel
+      id="panel-notificaciones"
+      tabindex="-1"
+      role="region"
+      [attr.aria-label]="textos.titulo"
+      (keydown.escape)="cerrar()"
+      class="absolute right-0 z-50 mt-3 max-h-[min(32rem,75vh)] w-[min(24rem,calc(100vw-2rem))] overflow-y-auto rounded border border-slate-300 bg-white p-4 text-slate-900 shadow-xl focus-visible:outline-2 focus-visible:outline-blue-700"
+    >
+      <div class="mb-3 flex items-center justify-between gap-3 border-b border-slate-200 pb-3">
+        <h2 class="text-lg font-bold">{{ textos.titulo }}</h2>
+        <button
+          type="button"
+          class="rounded border border-slate-400 px-2 py-1 text-sm hover:bg-slate-100"
+          (click)="cerrar()"
+        >
+          {{ textos.cerrar }}
+        </button>
+      </div>
+
+      @if (!servicio.sesionActiva()) {
+        @if (servicio.error(); as errorSesion) {
+          <div role="alert" class="text-sm">
+            <p class="text-red-700">{{ errorSesion }}</p>
+          </div>
+        } @else {
+          <p class="text-sm text-slate-600">{{ textos.sinSesion }}</p>
+        }
+      } @else if (servicio.cargando()) {
+        <p role="status" class="text-sm text-slate-600">{{ textos.cargando }}</p>
+      } @else if (servicio.error(); as mensajeError) {
+        <div role="alert" class="text-sm">
+          <p class="text-red-700">{{ mensajeError }}</p>
+          <button type="button" class="mt-1 underline" (click)="reintentar()">
+            {{ textos.reintentar }}
+          </button>
+        </div>
+      } @else if (servicio.notificaciones().length === 0) {
+        <p class="text-sm text-slate-600">{{ textos.vacio }}</p>
+      } @else {
+        <ul class="divide-y divide-slate-100">
+          @for (n of servicio.notificaciones(); track n.id) {
+            <li class="rounded p-3" [class.bg-blue-50]="!n.leida_en">
+              <div class="flex items-start gap-2">
+                <span
+                  class="mt-1.5 size-2 shrink-0 rounded-full"
+                  [class.bg-blue-600]="!n.leida_en"
+                  [class.bg-transparent]="!!n.leida_en"
+                  aria-hidden="true"
+                ></span>
+                <div class="min-w-0">
+                  <p class="text-sm wrap-break-word" [class.font-semibold]="!n.leida_en">
+                    {{ n.mensaje }}
+                  </p>
+                  <p class="text-xs text-slate-500">
+                    {{ fecha(n.creado_en) }} · {{ n.leida_en ? textos.leida : textos.noLeida }}
+                  </p>
+                </div>
+              </div>
+              <div class="mt-1 flex gap-3 ps-4">
+                @if (esInterno(n.enlace)) {
+                  <button type="button" class="text-sm text-blue-800 underline" (click)="ver(n)">
+                    {{ textos.ver }}
+                  </button>
+                }
+                @if (!n.leida_en) {
+                  <button
+                    type="button"
+                    class="text-sm text-slate-700 underline disabled:opacity-50"
+                    [disabled]="servicio.marcando().has(n.id)"
+                    (click)="marcar(n)"
+                  >
+                    {{ textos.marcarLeida }}
+                  </button>
+                }
+              </div>
+            </li>
+          }
+        </ul>
+        @if (servicio.totalPaginas() > 0) {
+          <nav
+            [attr.aria-label]="textos.paginacion"
+            class="mt-2 flex items-center justify-between border-t border-slate-100 pt-2 text-sm"
+          >
+            <button
+              type="button"
+              class="rounded px-2 py-1 hover:bg-slate-100 disabled:opacity-50"
+              [disabled]="servicio.pagina() === 0 || servicio.cargando()"
+              (click)="paginaAnterior()"
+            >
+              {{ textos.anterior }}
+            </button>
+            <span>
+              {{ textos.pagina }} {{ servicio.pagina() + 1 }} {{ textos.de }}
+              {{ servicio.totalPaginas() }}
+            </span>
+            <button
+              type="button"
+              class="rounded px-2 py-1 hover:bg-slate-100 disabled:opacity-50"
+              [disabled]="servicio.pagina() + 1 >= servicio.totalPaginas() || servicio.cargando()"
+              (click)="paginaSiguiente()"
+            >
+              {{ textos.siguiente }}
+            </button>
+          </nav>
+        }
+      }
+    </div>
+  }
+</div>
