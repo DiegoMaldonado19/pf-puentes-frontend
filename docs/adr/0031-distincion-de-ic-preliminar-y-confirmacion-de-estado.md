@@ -31,4 +31,3 @@
 - Pruebas unitarias completas de renderizado, accesibilidad y estados de `IcPreliminar` (`ic-preliminar.spec.ts`).
 - Pruebas unitarias completas de interacción, discrepancia, elevación crítica, validación y deshabilitación en `ConfirmacionEstado` (`confirmacion-estado.spec.ts`).
 - Formato `Prettier` y linter `ESLint` en verde.
-

@@ -86,4 +86,3 @@ export class IcPreliminar {
     return this.textos.anulaciones[causa] ?? causa;
   }
 }
-

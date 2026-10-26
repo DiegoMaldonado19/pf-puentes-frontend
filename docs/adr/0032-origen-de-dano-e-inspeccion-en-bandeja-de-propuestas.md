@@ -17,4 +17,3 @@
 
 - Pruebas unitarias actualizadas en `bandeja-propuestas.spec.ts` y `aceptacion-propuesta.spec.ts` (43 pruebas en verde).
 - Formato `Prettier` y linter `ESLint` en verde.
-
