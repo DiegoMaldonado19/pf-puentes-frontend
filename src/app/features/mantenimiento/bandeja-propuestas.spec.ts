@@ -285,4 +285,21 @@ describe('BandejaPropuestas', () => {
     expect(texto()).not.toContain(t.aceptar);
     http.expectNone(() => true);
   });
+
+  it('identifica el elemento afectado en la fila y detalle de una propuesta generada por daño publicado', () => {
+    fixture.componentRef.setInput(
+      'pagina',
+      pagina([
+        {
+          ...orden,
+          elemento_ref: 'superestructura.vigas.deformacion',
+          inspeccion_id: '019a0026-0000-7000-8000-000000000088',
+        },
+      ]),
+    );
+    fixture.detectChanges();
+    expect(texto()).toContain('superestructura.vigas.deformacion');
+    seleccionar();
+    expect(texto()).toContain('019a0026-0000-7000-8000-000000000088');
+  });
 });

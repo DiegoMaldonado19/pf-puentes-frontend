@@ -1,14 +1,18 @@
-@if (puedeConsultar() && puedeDescartar() && orden().estado === 'PROPUESTA') {
-  <section class="descarte" [attr.aria-label]="t.titulo" [attr.aria-busy]="enviando()">
-    <h3>{{ t.titulo }}</h3>
+@if (
+  puedeConsultar() &&
+  puedeDecidir() &&
+  orden().estado === (operacion() === 'descarte' ? 'PROPUESTA' : 'PROGRAMADA')
+) {
+  <section class="descarte" [attr.aria-label]="t().titulo" [attr.aria-busy]="enviando()">
+    <h3>{{ t().titulo }}</h3>
     @if (error()) {
       <p role="alert">{{ error() }}</p>
     }
     @if (!denegado()) {
-      <p>{{ t.explicacion }}</p>
-      <form (submit)="$event.preventDefault(); descartar()">
+      <p>{{ t().explicacion }}</p>
+      <form (submit)="$event.preventDefault(); decidir()">
         <label>
-          {{ t.motivo }}
+          {{ t().motivo }}
           <textarea
             rows="3"
             [formControl]="motivo"
@@ -18,7 +22,7 @@
           ></textarea>
         </label>
         <button type="submit" [disabled]="enviando() || bloqueada()">
-          {{ enviando() ? t.enviando : t.accion }}
+          {{ enviando() ? t().enviando : t().accion }}
         </button>
       </form>
     }

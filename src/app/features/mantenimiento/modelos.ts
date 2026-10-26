@@ -76,7 +76,7 @@ export interface CierreOrden {
 }
 
 /** RN-MTO-09: motivo escrito, sin cambiar un estado arbitrario desde el cliente. */
-export interface DescartarOrden {
+export interface MotivoOrden {
   readonly motivo: string;
 }
 

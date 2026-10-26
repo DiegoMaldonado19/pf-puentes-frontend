@@ -130,10 +130,11 @@ describe('Gestión de mantenimiento con la sesión P2', () => {
         consulta.puedeSubirEvidencia(),
         consulta.puedeCerrar(),
         consulta.puedeDescartar(),
+        consulta.puedeCancelar(),
         consulta.puedeAjustarPrioridad(),
         consulta.puedeProgramar(),
         consulta.mostrarSeguimientoRutinario(),
-      ]).toEqual(Array(9).fill(true));
+      ]).toEqual(Array(10).fill(true));
     },
   );
 

@@ -1,5 +1,22 @@
 # pf-puentes-frontend
 
+### Trazabilidad de daño e inspección de origen en bandeja y aceptación de propuestas (P8, 25/10/2026)
+
+En `/puentes/:id/mantenimiento`, la bandeja de propuestas (`<app-bandeja-propuestas>`) y el panel de revisión/aceptación (`<app-aceptacion-propuesta>`) muestran explícitamente la referencia del elemento con daño (`elemento_ref`) y el identificador de la inspección publicada (`inspeccion_id`) cuando la propuesta fue generada automáticamente por daño estructural (`HU-P8-MTO-02`, `RN-MTO-02/06`). [ADR frontend 0032](docs/adr/0032-origen-de-dano-e-inspeccion-en-bandeja-de-propuestas.md) y [ADR backend 0045](../pf-puentes-backend/docs/adr/0045-generacion-de-propuestas-por-dano-y-deteccion-de-anulaciones.md).
+
+### Estimación de IC preliminar y confirmación de estado con justificación (P8, 25/10/2026)
+
+Se entregan los componentes compartidos para la integración en la captura y revisión de inspecciones de P5:
+
+1. `<app-ic-preliminar>` (`src/app/shared/ic-preliminar`): muestra de forma prominente la insignia **«IC Preliminar»** con badge y texto de advertencia explícito (`RN-IC-07`), el valor del IC con badge de condición y el listado de fallas críticas detectadas, además de estado de datos incompletos.
+2. `<app-confirmacion-estado>` (`src/app/shared/confirmacion-estado`): selector de estado confirmado con detección automática de discrepancias respecto al estado calculado (`RN-IC-06`), obligando a ingresar una justificación mínima ante divergencias y emitiendo la confirmación validada `(confirmado)`.
+3. `PesosService`: añade métodos `estimarIcPreliminarPorFormulario`, `estimarIcPreliminarPorInspeccion` y `validarConfirmacionEstado`.
+   [ADR frontend 0031](docs/adr/0031-distincion-de-ic-preliminar-y-confirmacion-de-estado.md) y [ADR backend 0044](../pf-puentes-backend/docs/adr/0044-estimacion-preliminar-del-ic-y-confirmacion-con-justificacion.md).
+
+### Cancelar órdenes programadas desde el detalle (P8, 25/10/2026)
+
+En `/puentes/:id/mantenimiento`, al seleccionar una orden en estado `PROGRAMADA` con cuenta activa de Catedrático o Administrador, el detalle ofrece el formulario de cancelación con motivo obligatorio (`<app-decision-con-motivo-orden operacion="cancelacion">`), consumiendo `POST /api/v1/puentes/{puenteId}/ordenes-mantenimiento/{ordenId}/cancelacion`. Mientras se envía, bloquea navegación y demás acciones de la orden; al confirmar `CANCELADA`, actualiza fila/detalle, recarga el seguimiento rutinario anual y mantiene la orden y sus evidencias previas consultables en modo solo lectura. [ADR frontend 0029](docs/adr/0029-cancelacion-con-motivo-desde-el-detalle.md) y [ADR backend 0042](../pf-puentes-backend/docs/adr/0042-cancelacion-auditada-de-ordenes-programadas.md).
+
 ### Guardar juegos nuevos de pesos (P8, 25/10/2026)
 
 Como Administrador: `/admin/pesos` → **Consultar campos de daño del formulario** → elegir versión → **Configurar nuevo juego de pesos**. Introduce un peso para cada referencia y, si corresponde, la referencia de acta; **Guardar juego nuevo** crea una configuración completa, actualiza las consultas y conserva las anteriores. Los pesos empiezan vacíos; no se sugieren valores de calibración. Sin acta, el juego es provisional; escribir una referencia no verifica firma/calibración.
@@ -280,3 +297,7 @@ El envío se agrega a `operacionPendiente()` para bloquear selección y otras ac
 Durante el envío se bloquean selección/recargas y otras acciones de la orden. Errores de validación conservan datos; acceso denegado retira información privada; conflictos/resultados inciertos requieren relectura sin repetir escrituras. API/cliente/formulario listos; aún falta habilitar el recorrido desde la sesión/ruta protegida de P2 y el inventario P3 disponible. Ver [ADR 0022](docs/adr/0022-programacion-de-fecha-desde-el-detalle.md).
 
 Verificación del incremento de programación (21/10/2026): **366 unitarios aprobados**, 41 nuevos entre formulario, cliente y contenedor. Pasan lint, Prettier, compilación estricta de app/pruebas/plantillas y build (~90.36 kB de transferencia inicial; MapLibre diferido). Pruebas DOM/HTTP no equivalen a recorrido autenticado completo ni a CI remoto.
+
+### Comparación y solicitud de recálculo fechado del IC (P8)
+
+`<app-recalculo-ic [inspeccionId]="idPublicada" [puedeRecalcular]="permisoDeSesion" [juegosDisponibles]="juegosDeLaVersion" (recalculado)="manejarRecalculo($event)" />` consulta `GET /api/v1/inspecciones/{inspeccionId}/recalculos-ic` y presenta por separado el resultado publicado original inmutable y la tabla paginada de recálculos fechados, mostrando `<app-estado-puente>`, vigencia/acta de cada juego, fecha en `America/Guatemala` y variación firmada del IC (RN-IC-08). Con `[puedeRecalcular]="true"`, permite solicitar o recuperar un recálculo mediante `POST /api/v1/inspecciones/{inspeccionId}/recalculos-ic` sin alterar la inspección original ni el estado del puente. Ver [ADR 0030](docs/adr/0030-comparacion-y-solicitud-de-recalculo-ic.md).
