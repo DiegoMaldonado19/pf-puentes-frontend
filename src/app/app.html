@@ -39,7 +39,14 @@
     @if (estadoLocal.error()) {
       <p role="alert" class="m-0">{{ estadoLocal.error() }}</p>
     }
-    <div class="ml-auto flex flex-wrap items-center gap-4">
+    <a
+      routerLink="/foro"
+      routerLinkActive="underline"
+      ariaCurrentWhenActive="page"
+      class="hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+      >{{ t.foro }}</a
+    >
+    <div class="ml-auto flex min-w-0 flex-wrap items-center justify-end gap-3 text-sm">
       @if (auth.listo()) {
         @if (auth.autenticado()) {
           <p class="m-0">
@@ -115,6 +122,9 @@
             >{{ n.registrarse }}</a
           >
         }
+      }
+      @if (auth.listo() && auth.autenticado()) {
+        <app-campana-notificaciones />
       }
     </div>
   </nav>
