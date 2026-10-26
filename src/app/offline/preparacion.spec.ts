@@ -19,6 +19,7 @@ import { v7 } from 'uuid';
 import { AuthService } from '../core/auth/auth';
 import { AccesoLocal } from './acceso-local';
 import { ALMACENES_V1, BaseLocal } from './base-local';
+import { EsquemasP4 } from './esquemas-p4';
 import { ReferenciaLocal } from './modelos';
 import { PersistenciaOffline } from './persistencia';
 import { PreparacionLocal, ProveedoresPreparacion, ProgresoPreparacion } from './preparacion';
@@ -411,6 +412,98 @@ describe('preparación completa por propietario', () => {
     expect(await db.esquemas_formulario.get([ana, version])).toEqual(esquema());
     expect(await local.inspeccion(ana, captura.id)).toEqual(captura);
     expect(await local.operaciones(ana)).toEqual(cola);
+  });
+  describe('integración HTTP P4 aislada G9.1', () => {
+    const dto = {
+      id: version,
+      codigo: 'V1.0.0',
+      estado: 'ACTIVA',
+      esquema: { type: 'object', properties: {}, 'x-unidad': 'm' },
+      mapeo: { anterior: { campo: 'nuevo' } },
+      publicada_en: fecha,
+      creado_en: fecha,
+      actualizado_en: fecha,
+      metadatos_futuros: { conservar: true },
+    };
+    beforeEach(() => {
+      proveedores.esquema = TestBed.inject(EsquemasP4);
+    });
+    async function conP4(datos: unknown = dto, status = 200) {
+      // Aislar la autorización remota; acceso, commit y lecturas G2 siguen siendo reales.
+      const permiso = vi.spyOn(sesion, 'preparar').mockResolvedValue(true);
+      const descarga = proveedores.esquema!.descargar.bind(proveedores.esquema);
+      const spy = vi.spyOn(proveedores.esquema!, 'descargar').mockImplementation(async (owner) => {
+        const pendiente = descarga(owner);
+        await Promise.resolve();
+        http.expectOne('/api/v1/formularios/activo').flush(datos as object, {
+          status,
+          statusText: status === 200 ? 'OK' : 'Error',
+        });
+        return pendiente;
+      });
+      try {
+        return await preparar();
+      } finally {
+        spy.mockRestore();
+        permiso.mockRestore();
+      }
+    }
+    it('publica el DTO íntegro en G3 y reabre sin red con aislamiento', async () => {
+      expect((await conP4()).completa).toBe(true);
+      const lectura = await servicio.consultar(ana);
+      expect(lectura.preparacion?.formulario_version_id).toBe(version);
+      expect(lectura.esquemas_formulario).toEqual([
+        {
+          id: version,
+          propietario_id: ana,
+          modelo_version: 1,
+          preparada_en: expect.any(String),
+          datos: dto,
+        },
+      ]);
+      expect(await db.esquemas_formulario.get(['sistema', version])).toBeUndefined();
+      acceso.detener();
+      db.close();
+      await db.open();
+      auth.accessToken.set(null);
+      auth.usuario.set(null);
+      acceso = new AccesoLocal(db, auth, sesion);
+      servicio = new PreparacionLocal(db, acceso, sesion, {});
+      expect(await servicio.consultar(ana)).toEqual(lectura);
+      expect(await servicio.consultar(bea)).toEqual({ puentes: [], esquemas_formulario: [] });
+    });
+    it.each(['404', 'parcial', 'fallo'] as const)(
+      'P4 %s conserva snapshot y cola anteriores',
+      async (caso) => {
+        expect((await conP4()).completa).toBe(true);
+        const anterior = await servicio.consultar(ana);
+        const local = new PersistenciaOffline(db);
+        const captura = await local.crear(ana, puente, version);
+        const cola = await local.operaciones(ana);
+        const datos =
+          caso === '404'
+            ? { type: 'https://sgp.cunoc.usac.edu.gt/errores/formulario-activo-no-encontrado' }
+            : caso === 'parcial'
+              ? { ...dto, esquema: null }
+              : {};
+        const resultado = await conP4(datos, caso === '404' ? 404 : caso === 'fallo' ? 503 : 200);
+        expect(resultado.completa).toBe(false);
+        expect(resultado.proveedores.esquema).toBe(caso === '404' ? 'sin_esquema' : 'fallo');
+        expect(await servicio.consultar(ana)).toEqual(anterior);
+        expect(await local.inspeccion(ana, captura.id)).toEqual(captura);
+        expect(await local.operaciones(ana)).toEqual(cola);
+      },
+    );
+    it('P5 ausente no equivale a ausencia válida de publicación ni sustituye la completa', async () => {
+      expect((await conP4()).completa).toBe(true);
+      const anterior = await servicio.consultar(ana);
+      proveedores.publicacion = undefined;
+      const resultado = await preparar();
+      expect(resultado.completa).toBe(false);
+      expect(resultado.proveedores.publicacion).toBe('ausente');
+      expect(await servicio.consultar(ana)).toEqual(anterior);
+      http.expectNone('/api/v1/formularios/activo');
+    });
   });
   it('migra v3 con capturas, blobs, operaciones y referencias intactos sin acreditar preparación', async () => {
     const local = new PersistenciaOffline(db);

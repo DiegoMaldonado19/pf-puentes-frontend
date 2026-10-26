@@ -188,7 +188,8 @@ P2: coordinación externa del acceso local y futuro interceptor offline/replay;
 la adaptación de sesión y renovación usa ya `AuthService`.
 P3/P7: consumidores disponibles; ver [referencia-offline.md](referencia-offline.md).
 G3: coordinación durable disponible; ver [preparacion-local.md](preparacion-local.md).
-P4/P5: faltan proveedores productivos de esquema activo y última publicación;
+P4: `EsquemasP4` disponible por propietario (G9.1, contrato HTTP probado en aislamiento).
+P5: falta el proveedor real de última publicación; su ausencia impide completar preparación;
 P4: validación offline del formulario. P5: borrador, revisión base y transición editable/envío.
 P1: transporte HTTP/multipart con las claves y UUID originales. Los rechazos
 de editabilidad conservarán las versiones nuevas locales; esta base no fuerza
