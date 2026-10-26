@@ -1,0 +1,40 @@
+<section class="rounded border border-gray-200 p-2" [attr.aria-label]="etiquetaSeccion()">
+  <p class="mb-1 text-xs text-gray-600">
+    {{ textos.titulo }}: <code>{{ elementoRef() }}</code>
+  </p>
+
+  @switch (estado()) {
+    @case ('CARGANDO') {
+      <p role="status" class="text-sm text-gray-600">{{ textos.cargando }}</p>
+    }
+    @case ('VACIO') {
+      <p class="text-sm text-gray-600">{{ textos.vacio }}</p>
+    }
+    @case ('ERROR') {
+      <p role="alert" class="text-sm text-red-700">{{ mensajeError() }}</p>
+    }
+    @case ('NO_INTEGRADO') {
+      <p class="text-sm text-gray-600">{{ textos.noIntegrado }}</p>
+    }
+    @case ('SIN_PERMISOS') {
+      <p role="alert" class="text-sm text-gray-700">{{ textos.sinPermisos }}</p>
+    }
+    @case ('LISTO') {
+      <ul class="flex flex-wrap gap-1" [attr.aria-label]="textos.titulo">
+        @for (marca of marcasValidas(); track marca.id) {
+          <li>
+            <button
+              type="button"
+              class="rounded bg-amber-50 px-2 py-1 text-sm hover:bg-amber-100"
+              [attr.aria-label]="textos.abrir + ': ' + marca.etiqueta"
+              (click)="abrirMarca(marca)"
+            >
+              <span class="text-xs text-gray-600">[{{ marca.tipo }}]</span>
+              {{ marca.etiqueta }}
+            </button>
+          </li>
+        }
+      </ul>
+    }
+  }
+</section>

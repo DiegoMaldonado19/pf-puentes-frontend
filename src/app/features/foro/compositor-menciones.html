@@ -1,0 +1,84 @@
+<section class="rounded-lg border border-gray-200 p-3" [attr.aria-label]="textos.titulo">
+  <label class="mb-1 block text-sm font-medium" for="menciones-busqueda">
+    {{ textos.titulo }}
+  </label>
+  <p id="menciones-ayuda" class="mb-2 text-xs text-gray-600">{{ textos.ayuda }}</p>
+  <input
+    id="menciones-busqueda"
+    type="search"
+    autocomplete="off"
+    class="w-full rounded border border-gray-300 px-3 py-2 disabled:opacity-50"
+    [value]="busqueda()"
+    [disabled]="!puedeBuscar()"
+    [attr.aria-describedby]="'menciones-ayuda'"
+    [attr.aria-expanded]="mostrarLista()"
+    aria-controls="menciones-opciones"
+    (input)="buscar($event)"
+  />
+
+  @switch (estado()) {
+    @case ('CARGANDO') {
+      <p role="status" class="mt-2 text-sm text-gray-600">{{ textos.cargando }}</p>
+    }
+    @case ('ERROR') {
+      <p role="alert" class="mt-2 text-sm text-red-700">{{ textos.error }}</p>
+    }
+    @case ('SIN_SESION') {
+      <p class="mt-2 text-sm text-gray-600">{{ textos.sinSesion }}</p>
+    }
+    @case ('SIN_PERMISOS') {
+      <p role="alert" class="mt-2 text-sm text-gray-700">{{ textos.sinPermisos }}</p>
+    }
+    @case ('NO_INTEGRADO') {
+      <p class="mt-2 text-sm text-gray-600">{{ textos.noIntegrado }}</p>
+    }
+    @case ('SIN_OPCIONES') {
+      <p class="mt-2 text-sm text-gray-600">{{ textos.sinOpciones }}</p>
+    }
+    @case ('LISTO') {
+      @if (!consultaValida()) {
+        <p class="mt-2 text-sm text-gray-600">{{ textos.empieza }}</p>
+      } @else if (coincidencias().length === 0) {
+        <p class="mt-2 text-sm text-gray-600">{{ textos.sinCoincidencias }}</p>
+      } @else {
+        <ul id="menciones-opciones" class="mt-2 space-y-1" [attr.aria-label]="textos.titulo">
+          @for (persona of coincidencias(); track persona.id) {
+            <li>
+              <button
+                type="button"
+                class="w-full rounded px-2 py-2 text-left text-sm hover:bg-gray-100 disabled:opacity-50"
+                [disabled]="yaSeleccionada(persona.id)"
+                [attr.aria-pressed]="yaSeleccionada(persona.id)"
+                [attr.aria-label]="textos.opcion + ': ' + persona.etiqueta"
+                (click)="seleccionar(persona)"
+              >
+                &#64;{{ persona.etiqueta }}
+              </button>
+            </li>
+          }
+        </ul>
+      }
+    }
+  }
+
+  @if (seleccionadas().length > 0) {
+    <div class="mt-3">
+      <h3 class="text-sm font-medium">{{ textos.seleccionadas }}</h3>
+      <ul class="mt-1 flex flex-wrap gap-2" [attr.aria-label]="textos.seleccionadas">
+        @for (persona of seleccionadas(); track persona.id) {
+          <li class="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2 py-1 text-sm">
+            <span>&#64;{{ persona.etiqueta }}</span>
+            <button
+              type="button"
+              class="rounded px-1 text-gray-700 hover:bg-blue-100"
+              [attr.aria-label]="textos.quitar + ': ' + persona.etiqueta"
+              (click)="quitar(persona.id)"
+            >
+              ×
+            </button>
+          </li>
+        }
+      </ul>
+    </div>
+  }
+</section>
