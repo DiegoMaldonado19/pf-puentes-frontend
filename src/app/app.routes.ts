@@ -9,8 +9,25 @@ export const routes: Routes = [
     title: TEXTOS.accesoLocal.titulo,
     loadComponent: () => import('./offline/vista-local').then((m) => m.VistaLocal),
   },
-  // El inventario público es lo primero que ve un visitante sin sesión (RN-USR-10)
   { path: '', pathMatch: 'full', redirectTo: 'puentes' },
+  {
+    path: 'foro',
+    title: TEXTOS.foro.titulo,
+    loadComponent: () => import('./features/foro/foros-puentes').then((m) => m.ForosPuentes),
+  },
+  {
+    path: 'puentes/:puenteId/foro',
+    loadComponent: () => import('./features/foro/listado-hilos').then((m) => m.ListadoHilos),
+  },
+  {
+    path: 'puentes/:puenteId/foro/:hiloId',
+    loadComponent: () => import('./features/foro/detalle-hilo').then((m) => m.DetalleHilo),
+  },
+  {
+    path: 'inspecciones/:inspeccionId/foro',
+    loadComponent: () =>
+      import('./features/foro/discusion-inspeccion').then((m) => m.DiscusionInspeccion),
+  },
   {
     path: 'puentes',
     loadChildren: () => import('./features/puentes/puentes.routes').then((m) => m.RUTAS_PUENTES),

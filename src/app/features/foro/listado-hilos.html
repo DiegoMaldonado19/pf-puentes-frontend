@@ -1,0 +1,217 @@
+<section class="mx-auto max-w-5xl p-4 text-slate-900" aria-labelledby="titulo-foro-puente">
+  <nav class="mb-4 flex flex-wrap gap-4 text-sm" [attr.aria-label]="textos.titulo">
+    <a routerLink="/foro" class="text-blue-800 underline">← {{ textos.volverForos }}</a>
+    <a [routerLink]="['/puentes', puenteId()]" class="text-blue-800 underline">{{
+      textos.verPuente
+    }}</a>
+  </nav>
+  <h1 id="titulo-foro-puente" class="text-2xl font-bold">{{ textos.tituloListado }}</h1>
+  <p class="mt-2 mb-6 text-slate-700">
+    {{ servicio.sesionActiva() ? textos.accesoParticipante : textos.accesoPublico }}
+  </p>
+
+  @if (invalido() || lectura.listadoNoEncontrado()) {
+    <p role="alert" class="mt-4 text-red-700">{{ textos.noEncontrado }}</p>
+  } @else {
+    <div class="mt-4 flex flex-wrap items-center justify-between gap-4">
+      <div class="flex flex-wrap items-center gap-2">
+        <label class="text-sm font-medium" for="filtro-categoria">{{
+          textos.filtroCategoria
+        }}</label>
+        <select
+          id="filtro-categoria"
+          class="rounded border border-slate-400 bg-white px-2 py-1 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700"
+          [value]="filtro() ?? ''"
+          (change)="alFiltrar($any($event.target).value)"
+        >
+          <option value="">{{ textos.todasCategorias }}</option>
+          @for (c of categorias; track c) {
+            <option [value]="c">{{ textos.etiquetas[c] }}</option>
+          }
+        </select>
+      </div>
+
+      @if (servicio.sesionActiva()) {
+        <button
+          type="button"
+          aria-haspopup="dialog"
+          class="rounded bg-blue-700 px-4 py-2 font-medium text-white hover:bg-blue-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-900"
+          (click)="abrirCreacion()"
+        >
+          {{ textos.crearHilo }}
+        </button>
+
+        <dialog
+          #dialogoCreacion
+          class="fixed inset-0 m-auto max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-lg overflow-y-auto rounded-lg border border-slate-300 bg-white p-6 text-slate-900 shadow-xl backdrop:bg-slate-950/50"
+          aria-labelledby="titulo-crear-hilo"
+          (cancel)="cancelarCreacion($event)"
+        >
+          <h2 id="titulo-crear-hilo" class="mb-4 text-xl font-bold">{{ textos.crearHilo }}</h2>
+          <form (submit)="publicar($event)" novalidate>
+            <fieldset [disabled]="servicio.creandoHilo()">
+              <div class="mb-3">
+                <label class="mb-1 block text-sm font-medium" for="hilo-titulo">{{
+                  textos.formTitulo
+                }}</label>
+                <input
+                  id="hilo-titulo"
+                  type="text"
+                  class="w-full rounded border border-slate-400 bg-white p-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700"
+                  [attr.maxlength]="limiteTitulo"
+                  [value]="borradorTitulo()"
+                  (input)="borradorTitulo.set($any($event.target).value)"
+                />
+              </div>
+              <div class="mb-3">
+                <label class="mb-1 block text-sm font-medium" for="hilo-categoria">{{
+                  textos.formCategoria
+                }}</label>
+                <select
+                  id="hilo-categoria"
+                  class="w-full rounded border border-slate-400 bg-white p-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700"
+                  [value]="borradorCategoria()"
+                  (change)="borradorCategoria.set($any($event.target).value)"
+                >
+                  <option value="">{{ textos.seleccionarCategoria }}</option>
+                  @for (c of categorias; track c) {
+                    <option [value]="c">{{ textos.etiquetas[c] }}</option>
+                  }
+                </select>
+              </div>
+              @if (errorFormulario(); as errorForm) {
+                <p role="alert" class="mb-2 text-sm text-red-700">{{ errorForm }}</p>
+              }
+              @if (servicio.errorEscritura(); as errorServidor) {
+                <p role="alert" class="mb-2 text-sm text-red-700">{{ errorServidor }}</p>
+              }
+              <div class="mt-5 flex flex-wrap justify-end gap-3">
+                <button
+                  type="button"
+                  class="rounded border border-slate-400 px-4 py-2 font-medium hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700 disabled:opacity-50"
+                  (click)="cerrarCreacion()"
+                >
+                  {{ textos.cancelar }}
+                </button>
+                <button
+                  type="submit"
+                  class="rounded bg-blue-700 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-900 disabled:opacity-50"
+                  [disabled]="servicio.creandoHilo()"
+                >
+                  {{ servicio.creandoHilo() ? textos.publicandoHilo : textos.publicarHilo }}
+                </button>
+              </div>
+            </fieldset>
+          </form>
+        </dialog>
+      }
+    </div>
+
+    @if (!servicio.sesionActiva()) {
+      <p class="mt-4 rounded border border-slate-300 bg-slate-100 p-3 text-sm text-slate-700">
+        {{ textos.sinSesion }} ·
+        <a routerLink="/login" class="font-medium text-blue-800 underline">{{
+          textos.iniciarSesion
+        }}</a>
+      </p>
+      @if (servicio.errorEscritura(); as errorSesion) {
+        <p role="alert" class="mt-1 text-sm text-red-700">{{ errorSesion }}</p>
+      }
+    }
+
+    @if (lectura.cargandoHilos()) {
+      <p role="status" class="mt-4 text-sm text-slate-600">{{ textos.cargandoHilos }}</p>
+    } @else if (lectura.errorHilos(); as errorHilos) {
+      <div role="alert" class="mt-4 text-sm">
+        <p class="text-red-700">{{ errorHilos }}</p>
+        <button type="button" class="mt-2 underline" (click)="reintentar()">
+          {{ textos.reintentar }}
+        </button>
+      </div>
+    } @else if (lectura.hilos().length === 0) {
+      <p class="mt-4 text-sm text-slate-600">{{ textos.vacioHilos }}</p>
+    } @else {
+      <ul class="mt-6 space-y-3" [attr.aria-label]="textos.tituloListado">
+        @for (h of lectura.hilos(); track h.id) {
+          <li class="rounded border border-slate-300 bg-white p-4">
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-800">
+                {{ textos.etiquetas[h.categoria] }}
+              </span>
+              @if (h.cerrado) {
+                <span class="rounded bg-slate-200 px-2 py-0.5 text-xs text-slate-700">
+                  {{ textos.hiloCerrado }}
+                </span>
+              }
+            </div>
+            <a
+              class="mt-1 block font-medium text-blue-800 underline"
+              [routerLink]="['/puentes', puenteId(), 'foro', h.id]"
+            >
+              {{ h.titulo }}
+            </a>
+            <p class="mt-1 text-xs text-slate-500">
+              {{ textos.autor }}:
+              {{ h.autor_nombre || (h.autor_id ? textos.autorNoDisponible : textos.autorSistema) }}
+              · {{ textos.publicadoEl }}
+              {{ fechaUtc(h.creado_en) }}
+            </p>
+            @if (servicio.puedeModerar() && !h.cerrado) {
+              <button
+                type="button"
+                class="mt-1 text-sm text-red-700 underline disabled:opacity-50"
+                [disabled]="enCurso('cerrar:' + h.id)"
+                (click)="abrirCierre(h)"
+              >
+                {{ textos.cerrarHilo }}
+              </button>
+            }
+          </li>
+        }
+      </ul>
+
+      @if (lectura.totalPaginasHilos() > 1) {
+        <nav
+          aria-label="Paginación de hilos"
+          class="mt-4 flex items-center justify-between border-t border-slate-100 pt-3 text-sm"
+        >
+          <button
+            type="button"
+            class="rounded px-3 py-1 hover:bg-slate-100 disabled:opacity-50"
+            [disabled]="lectura.paginaHilos() === 0 || lectura.cargandoHilos()"
+            (click)="paginaAnterior()"
+          >
+            {{ textos.anterior }}
+          </button>
+          <span
+            >{{ textos.pagina }} {{ lectura.paginaHilos() + 1 }} {{ textos.de }}
+            {{ lectura.totalPaginasHilos() }}</span
+          >
+          <button
+            type="button"
+            class="rounded px-3 py-1 hover:bg-slate-100 disabled:opacity-50"
+            [disabled]="
+              lectura.paginaHilos() + 1 >= lectura.totalPaginasHilos() || lectura.cargandoHilos()
+            "
+            (click)="paginaSiguiente()"
+          >
+            {{ textos.siguiente }}
+          </button>
+        </nav>
+      }
+    }
+  }
+
+  @if (dialogoModeracion(); as dialogo) {
+    <app-dialogo-moderacion
+      [titulo]="dialogo.titulo"
+      [motivo]="motivoModeracion()"
+      [errorMotivo]="errorMotivo()"
+      [errorServidor]="servicio.errorEscritura()"
+      [enCurso]="moderacionEnCurso()"
+      (cambioMotivo)="actualizarMotivo($event)"
+      (cancelar)="cerrarDialogoModeracion()"
+      (confirmar)="confirmarModeracion()"
+    />
+  }
+</section>

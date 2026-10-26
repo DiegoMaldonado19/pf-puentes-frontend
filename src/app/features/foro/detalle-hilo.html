@@ -1,0 +1,297 @@
+<section class="mx-auto max-w-5xl p-4 text-slate-900">
+  <a class="text-sm text-blue-800 underline" [routerLink]="['/puentes', puenteId(), 'foro']">{{
+    textos.volverAlForo
+  }}</a>
+
+  @if (invalido() || lectura.detalleNoEncontrado()) {
+    <p role="alert" class="mt-4 text-red-700">{{ textos.noEncontrado }}</p>
+  } @else {
+    @if (lectura.cargandoHilo()) {
+      <p role="status" class="mt-4 text-sm text-slate-600">{{ textos.cargandoDetalle }}</p>
+    } @else if (lectura.errorHilo(); as errorHilo) {
+      <div role="alert" class="mt-4 text-sm">
+        <p class="text-red-700">{{ errorHilo }}</p>
+        <button type="button" class="mt-1 underline" (click)="lectura.reintentarDetalle()">
+          {{ textos.reintentar }}
+        </button>
+      </div>
+    } @else if (lectura.hilo(); as hilo) {
+      <header class="mt-4 rounded border border-slate-300 bg-slate-100 p-4">
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-800">
+            {{ textos.etiquetas[hilo.categoria] }}
+          </span>
+          @if (hilo.cerrado) {
+            <span class="rounded bg-slate-200 px-2 py-0.5 text-xs text-slate-700">
+              {{ textos.hiloCerrado }}
+            </span>
+          }
+        </div>
+        <h1 class="mt-2 text-2xl font-bold">{{ hilo.titulo }}</h1>
+        <p class="mt-1 text-xs text-slate-500">
+          {{ textos.autor }}:
+          {{
+            hilo.autor_nombre || (hilo.autor_id ? textos.autorNoDisponible : textos.autorSistema)
+          }}
+          · {{ textos.publicadoEl }}
+          {{ fechaUtc(hilo.creado_en) }}
+        </p>
+        @if (servicio.puedeModerar() && !hilo.cerrado) {
+          <button
+            type="button"
+            class="mt-2 text-sm text-red-700 underline disabled:opacity-50"
+            [disabled]="enCurso('cerrar:' + hilo.id)"
+            (click)="abrirCierre(hilo)"
+          >
+            {{ textos.cerrarHilo }}
+          </button>
+        }
+      </header>
+    }
+
+    <section class="mt-4" [attr.aria-label]="textos.comentarios">
+      <div class="flex flex-wrap items-center justify-between gap-4">
+        <h2 class="text-lg font-semibold">{{ textos.comentarios }}</h2>
+
+        @if (servicio.sesionActiva()) {
+          @if (lectura.hilo()?.cerrado) {
+            <p role="alert" class="text-sm text-slate-700">{{ textos.hiloCerrado }}</p>
+          } @else if (lectura.hilo()) {
+            <button
+              type="button"
+              aria-haspopup="dialog"
+              class="rounded bg-blue-700 px-4 py-2 font-medium text-white hover:bg-blue-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-900"
+              (click)="abrirComentario()"
+            >
+              {{ textos.comentar }}
+            </button>
+            <dialog
+              #dialogoParticipacion
+              class="fixed inset-0 m-auto max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-lg overflow-y-auto rounded-lg border border-slate-300 bg-white p-6 text-slate-900 shadow-xl backdrop:bg-slate-950/50"
+              aria-labelledby="titulo-participacion"
+              (cancel)="cancelarParticipacion($event)"
+            >
+              <h2 id="titulo-participacion" class="mb-4 text-xl font-bold">
+                {{ respondiendoRaiz() ? textos.responder : textos.comentar }}
+              </h2>
+              @if (respuestaObjetivo(); as objetivo) {
+                <blockquote
+                  class="mb-4 rounded border-l-4 border-blue-700 bg-slate-100 p-3 text-sm"
+                >
+                  <p class="font-medium">{{ objetivo.autor_nombre || textos.autorNoDisponible }}</p>
+                  <p class="mt-1 max-h-28 overflow-y-auto whitespace-pre-wrap break-words">
+                    {{ objetivo.texto }}
+                  </p>
+                </blockquote>
+              }
+              <form (submit)="enviarParticipacion($event)" novalidate>
+                <fieldset [disabled]="participacionEnCurso()">
+                  <label class="mb-1 block text-sm font-medium" for="participacion-texto">{{
+                    respondiendoRaiz() ? textos.formRespuesta : textos.formTexto
+                  }}</label>
+                  <textarea
+                    id="participacion-texto"
+                    rows="5"
+                    class="w-full rounded border border-slate-400 bg-white p-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700"
+                    [value]="borradorParticipacion()"
+                    (input)="borradorParticipacion.set($any($event.target).value)"
+                  ></textarea>
+                  @if (errorFormulario(); as errorForm) {
+                    <p role="alert" class="mt-2 text-sm text-red-700">{{ errorForm }}</p>
+                  }
+                  @if (servicio.errorEscritura(); as errorServidor) {
+                    <p role="alert" class="mt-2 text-sm text-red-700">{{ errorServidor }}</p>
+                  }
+                  <div class="mt-5 flex flex-wrap justify-end gap-3">
+                    <button
+                      type="button"
+                      class="rounded border border-slate-400 px-4 py-2 font-medium hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700 disabled:opacity-50"
+                      (click)="cerrarParticipacion()"
+                    >
+                      {{ textos.cancelar }}
+                    </button>
+                    <button
+                      type="submit"
+                      class="rounded bg-blue-700 px-4 py-2 font-medium text-white hover:bg-blue-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-900 disabled:opacity-50"
+                    >
+                      {{
+                        participacionEnCurso()
+                          ? textos.publicandoHilo
+                          : respondiendoRaiz()
+                            ? textos.responder
+                            : textos.comentar
+                      }}
+                    </button>
+                  </div>
+                </fieldset>
+              </form>
+            </dialog>
+          }
+        }
+      </div>
+
+      @if (!servicio.sesionActiva()) {
+        <p class="mt-3 rounded border border-slate-300 bg-slate-100 p-3 text-sm text-slate-700">
+          {{ textos.sinSesion }} ·
+          <a routerLink="/login" class="font-medium text-blue-800 underline">{{
+            textos.iniciarSesion
+          }}</a>
+        </p>
+        @if (servicio.errorEscritura(); as errorSesion) {
+          <p role="alert" class="mt-1 text-sm text-red-700">{{ errorSesion }}</p>
+        }
+      }
+
+      @if (lectura.cargandoComentarios()) {
+        <p role="status" class="mt-3 text-sm text-slate-600">{{ textos.cargandoComentarios }}</p>
+      } @else if (lectura.errorComentarios(); as errorComentarios) {
+        <div role="alert" class="mt-3 text-sm">
+          <p class="text-red-700">{{ errorComentarios }}</p>
+          <button type="button" class="mt-1 underline" (click)="lectura.reintentarComentarios()">
+            {{ textos.reintentar }}
+          </button>
+        </div>
+      } @else if (lectura.comentarios().length === 0) {
+        <p class="mt-3 text-sm text-slate-600">{{ textos.vacioComentarios }}</p>
+      } @else {
+        <ul class="mt-3 space-y-3">
+          @for (c of lectura.comentarios(); track c.id) {
+            <li class="rounded border border-slate-300 bg-white p-4">
+              <app-item-comentario
+                [comentario]="c"
+                [esRaiz]="true"
+                [hiloCerrado]="!!lectura.hilo()?.cerrado"
+                [respuestasAbiertas]="respuestasAbiertas().has(c.id)"
+                [editando]="editandoId() === c.id"
+                [borradorEdicion]="borradorEdicion()"
+                [errorFormulario]="errorFormulario()"
+                (alternarRespuestas)="alternarRespuestas(c)"
+                (responder)="iniciarRespuesta(c)"
+                (iniciarEdicion)="iniciarEdicion(c)"
+                (cambioBorrador)="borradorEdicion.set($event)"
+                (guardarEdicion)="guardarEdicion(c, $event)"
+                (cancelarEdicion)="cancelarEdicion()"
+                (eliminar)="eliminar(c)"
+                (ocultar)="abrirOcultamiento(c)"
+              />
+
+              @if (respuestasAbiertas().has(c.id)) {
+                @let estado = lectura.estadoRespuestas(c.id);
+                <div class="mt-2 ms-6 border-s-2 border-slate-200 ps-3">
+                  <h3 class="text-sm font-medium">{{ textos.respuestas }}</h3>
+                  @if (estado.cargando) {
+                    <p role="status" class="text-sm text-slate-600">
+                      {{ textos.cargandoRespuestas }}
+                    </p>
+                  } @else if (estado.error; as errorResp) {
+                    <div role="alert" class="text-sm">
+                      <p class="text-red-700">{{ errorResp }}</p>
+                      <button
+                        type="button"
+                        class="mt-1 underline"
+                        (click)="lectura.reintentarRespuestas(c.id)"
+                      >
+                        {{ textos.reintentar }}
+                      </button>
+                    </div>
+                  } @else if (estado.contenido.length === 0) {
+                    <p class="text-sm text-slate-600">{{ textos.sinRespuestas }}</p>
+                  } @else {
+                    <ul class="mt-3 space-y-3">
+                      @for (r of estado.contenido; track r.id) {
+                        <li class="py-2">
+                          <app-item-comentario
+                            [comentario]="r"
+                            [editando]="editandoId() === r.id"
+                            [borradorEdicion]="borradorEdicion()"
+                            [errorFormulario]="errorFormulario()"
+                            (iniciarEdicion)="iniciarEdicion(r)"
+                            (cambioBorrador)="borradorEdicion.set($event)"
+                            (guardarEdicion)="guardarEdicion(r, $event)"
+                            (cancelarEdicion)="cancelarEdicion()"
+                            (eliminar)="eliminar(r)"
+                            (ocultar)="abrirOcultamiento(r)"
+                          />
+                        </li>
+                      }
+                    </ul>
+                    @if (estado.totalPaginas > 1) {
+                      <nav
+                        [attr.aria-label]="textos.respuestas"
+                        class="mt-1 flex items-center justify-between border-t border-slate-100 pt-1 text-xs"
+                      >
+                        <button
+                          type="button"
+                          class="rounded px-2 py-1 hover:bg-slate-100 disabled:opacity-50"
+                          [disabled]="estado.pagina === 0 || estado.cargando"
+                          (click)="paginaRespuestas(c.id, estado.pagina - 1)"
+                        >
+                          {{ textos.anterior }}
+                        </button>
+                        <span
+                          >{{ textos.pagina }} {{ estado.pagina + 1 }} {{ textos.de }}
+                          {{ estado.totalPaginas }}</span
+                        >
+                        <button
+                          type="button"
+                          class="rounded px-2 py-1 hover:bg-slate-100 disabled:opacity-50"
+                          [disabled]="estado.pagina + 1 >= estado.totalPaginas || estado.cargando"
+                          (click)="paginaRespuestas(c.id, estado.pagina + 1)"
+                        >
+                          {{ textos.siguiente }}
+                        </button>
+                      </nav>
+                    }
+                  }
+                </div>
+              }
+            </li>
+          }
+        </ul>
+        @if (lectura.totalPaginasComentarios() > 1) {
+          <nav
+            aria-label="Paginación de comentarios"
+            class="mt-2 flex items-center justify-between border-t border-slate-100 pt-2 text-sm"
+          >
+            <button
+              type="button"
+              class="rounded px-2 py-1 hover:bg-slate-100 disabled:opacity-50"
+              [disabled]="lectura.paginaComentarios() === 0 || lectura.cargandoComentarios()"
+              (click)="paginaAnterior()"
+            >
+              {{ textos.anterior }}
+            </button>
+            <span
+              >{{ textos.pagina }} {{ lectura.paginaComentarios() + 1 }} {{ textos.de }}
+              {{ lectura.totalPaginasComentarios() }}</span
+            >
+            <button
+              type="button"
+              class="rounded px-2 py-1 hover:bg-slate-100 disabled:opacity-50"
+              [disabled]="
+                lectura.paginaComentarios() + 1 >= lectura.totalPaginasComentarios() ||
+                lectura.cargandoComentarios()
+              "
+              (click)="paginaSiguiente()"
+            >
+              {{ textos.siguiente }}
+            </button>
+          </nav>
+        }
+      }
+    </section>
+  }
+
+  @if (dialogoModeracion(); as dialogo) {
+    <app-dialogo-moderacion
+      [titulo]="dialogo.titulo"
+      [motivo]="motivoModeracion()"
+      [errorMotivo]="errorMotivo()"
+      [errorServidor]="servicio.errorEscritura()"
+      [enCurso]="moderacionEnCurso()"
+      (cambioMotivo)="actualizarMotivo($event)"
+      (cancelar)="cerrarDialogoModeracion()"
+      (confirmar)="confirmarModeracion()"
+    />
+  }
+</section>
