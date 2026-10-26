@@ -70,3 +70,41 @@ export interface ComparacionRecalculoIcDTO {
 export interface SolicitarRecalculoIcDTO {
   readonly version_pesos_id: string;
 }
+
+export interface EstimacionPreliminarIcDTO {
+  readonly indice_condicion: number;
+  readonly estado_calculado: EstadoCondicion;
+  readonly anulaciones: readonly AnulacionIc[];
+  readonly version_pesos_id: string;
+  readonly preliminar: boolean;
+  readonly rotulo: string;
+  readonly advertencia: string;
+}
+
+export interface SolicitudEstimacionPreliminarDTO {
+  readonly version_pesos_id?: string | null;
+  readonly datos: Record<string, unknown>;
+  readonly condiciones_criticas?: {
+    readonly socavacion_con_cimentacion_expuesta_en_estribo_o_pila?: boolean;
+    readonly asentamiento_de_estructura?: boolean;
+    readonly portante_cortado_o_con_perdida_de_seccion?: boolean;
+    readonly ausencia_total_de_portante?: boolean;
+  } | null;
+}
+
+export interface ConfirmacionEstadoDTO {
+  readonly estado_calculado: EstadoCondicion;
+  readonly estado_confirmado: EstadoCondicion;
+  readonly justificacion_estado?: string | null;
+  readonly anulacion?: AnulacionIc | null;
+}
+
+export interface ResultadoConfirmacionEstadoDTO {
+  readonly estado_calculado: EstadoCondicion;
+  readonly estado_confirmado: EstadoCondicion;
+  readonly justificacion_estado: string | null;
+  readonly anulacion: AnulacionIc | null;
+  readonly tiene_discrepancia: boolean;
+  readonly es_elevacion_de_anulacion_critica: boolean;
+  readonly estado_efectivo: EstadoCondicion;
+}

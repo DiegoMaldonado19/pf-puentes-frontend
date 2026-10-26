@@ -1,5 +1,14 @@
 # pf-puentes-frontend
 
+### Estimación de IC preliminar y confirmación de estado con justificación (P8, 25/10/2026)
+
+Se entregan los componentes compartidos para la integración en la captura y revisión de inspecciones de P5:
+
+1. `<app-ic-preliminar>` (`src/app/shared/ic-preliminar`): muestra de forma prominente la insignia **«IC Preliminar»** con badge y texto de advertencia explícito (`RN-IC-07`), el valor del IC con badge de condición y el listado de fallas críticas detectadas, además de estado de datos incompletos.
+2. `<app-confirmacion-estado>` (`src/app/shared/confirmacion-estado`): selector de estado confirmado con detección automática de discrepancias respecto al estado calculado (`RN-IC-06`), obligando a ingresar una justificación mínima ante divergencias y emitiendo la confirmación validada `(confirmado)`.
+3. `PesosService`: añade métodos `estimarIcPreliminarPorFormulario`, `estimarIcPreliminarPorInspeccion` y `validarConfirmacionEstado`.
+   [ADR frontend 0031](docs/adr/0031-distincion-de-ic-preliminar-y-confirmacion-de-estado.md) y [ADR backend 0044](../pf-puentes-backend/docs/adr/0044-estimacion-preliminar-del-ic-y-confirmacion-con-justificacion.md).
+
 ### Cancelar órdenes programadas desde el detalle (P8, 25/10/2026)
 
 En `/puentes/:id/mantenimiento`, al seleccionar una orden en estado `PROGRAMADA` con cuenta activa de Catedrático o Administrador, el detalle ofrece el formulario de cancelación con motivo obligatorio (`<app-decision-con-motivo-orden operacion="cancelacion">`), consumiendo `POST /api/v1/puentes/{puenteId}/ordenes-mantenimiento/{ordenId}/cancelacion`. Mientras se envía, bloquea navegación y demás acciones de la orden; al confirmar `CANCELADA`, actualiza fila/detalle, recarga el seguimiento rutinario anual y mantiene la orden y sus evidencias previas consultables en modo solo lectura. [ADR frontend 0029](docs/adr/0029-cancelacion-con-motivo-desde-el-detalle.md) y [ADR backend 0042](../pf-puentes-backend/docs/adr/0042-cancelacion-auditada-de-ordenes-programadas.md).

@@ -191,4 +191,76 @@ describe('PesosService', () => {
     peticion.flush(recalculo);
     expect(await respuesta).toEqual(recalculo);
   });
+
+  it('estima el IC preliminar por formulario mediante POST (RN-IC-07)', async () => {
+    const solicitud = {
+      version_pesos_id: juegoId,
+      datos: { a: 0, b: 2 },
+    };
+    const respuesta = firstValueFrom(
+      servicio.estimarIcPreliminarPorFormulario(formulario, solicitud),
+    );
+    const peticion = http.expectOne(`/api/v1/formularios/${formulario}/ic-preliminar`);
+    expect(peticion.request.method).toBe('POST');
+    expect(peticion.request.body).toEqual(solicitud);
+
+    const estimacion = {
+      indice_condicion: 75.0,
+      estado_calculado: 'BUENO' as const,
+      anulaciones: [],
+      version_pesos_id: juegoId,
+      preliminar: true,
+      rotulo: 'IC PRELIMINAR',
+      advertencia: 'Estimación preliminar',
+    };
+    peticion.flush(estimacion);
+    expect(await respuesta).toEqual(estimacion);
+  });
+
+  it('estima el IC preliminar para un borrador de inspección mediante POST', async () => {
+    const inspeccionId = '019a0040-0000-7000-8000-000000000022';
+    const respuesta = firstValueFrom(
+      servicio.estimarIcPreliminarPorInspeccion(inspeccionId, juegoId),
+    );
+    const peticion = http.expectOne(
+      `/api/v1/inspecciones/${inspeccionId}/ic-preliminar?versionPesosId=${juegoId}`,
+    );
+    expect(peticion.request.method).toBe('POST');
+
+    const estimacion = {
+      indice_condicion: 100.0,
+      estado_calculado: 'BUENO' as const,
+      anulaciones: [],
+      version_pesos_id: juegoId,
+      preliminar: true,
+      rotulo: 'IC PRELIMINAR',
+      advertencia: 'Estimación preliminar',
+    };
+    peticion.flush(estimacion);
+    expect(await respuesta).toEqual(estimacion);
+  });
+
+  it('valida la confirmación de estado con justificación mediante POST (RN-IC-06)', async () => {
+    const solicitud = {
+      estado_calculado: 'BUENO' as const,
+      estado_confirmado: 'REGULAR' as const,
+      justificacion_estado: 'Criterio técnico evaluador',
+    };
+    const respuesta = firstValueFrom(servicio.validarConfirmacionEstado(solicitud));
+    const peticion = http.expectOne('/api/v1/inspecciones/confirmacion-estado/validacion');
+    expect(peticion.request.method).toBe('POST');
+    expect(peticion.request.body).toEqual(solicitud);
+
+    const resultado = {
+      estado_calculado: 'BUENO' as const,
+      estado_confirmado: 'REGULAR' as const,
+      justificacion_estado: 'Criterio técnico evaluador',
+      anulacion: null,
+      tiene_discrepancia: true,
+      es_elevacion_de_anulacion_critica: false,
+      estado_efectivo: 'REGULAR' as const,
+    };
+    peticion.flush(resultado);
+    expect(await respuesta).toEqual(resultado);
+  });
 });

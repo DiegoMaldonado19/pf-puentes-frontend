@@ -414,6 +414,35 @@ export const TEXTOS = {
       incierto:
         'No se pudo confirmar el recálculo. Actualiza la comparación para comprobar si quedó registrado.',
     },
+    icPreliminar: {
+      rotulo: 'IC preliminar',
+      avisoBorrador:
+        'Estimación preliminar de borrador (RN-IC-07). No oficial: no altera el inventario ni el mapa.',
+      datosIncompletos:
+        'Faltan datos de daño en el formulario para estimar el índice de condición.',
+      anulaciones: {
+        SOCAVACION: 'Socavación con exposición de cimentación en estribo o pila',
+        ASENTAMIENTO: 'Asentamiento de estructura',
+        PERDIDA_SECCION: 'Elemento portante cortado o con pérdida de sección',
+        AUSENCIA_PORTANTE: 'Ausencia total de elemento portante',
+      },
+      advertenciaAnulacion: 'Estado forzado a Malo por condición crítica estructural (RN-IC-05).',
+    },
+    confirmacionEstado: {
+      titulo: 'Confirmación del estado de condición',
+      explicacion:
+        'El evaluador puede confirmar el estado calculado automáticamente o modificarlo mediante justificación por escrito (RN-IC-06).',
+      estadoCalculado: 'Estado calculado automáticamente',
+      estadoConfirmado: 'Estado de condición confirmado',
+      justificacion: 'Justificación por escrito del cambio de estado',
+      justificacionRequerida:
+        'Se requiere una justificación por escrito cuando el estado confirmado difiere del calculado.',
+      justificacionPlaceholder:
+        'Explica las razones técnicas por las que el estado de condición difiere del cálculo automático…',
+      advertenciaElevacion:
+        'Atención: La inspección presenta una condición crítica de anulación (RN-IC-05). Elevar el estado a Regular o Bueno requiere sustento técnico detallado.',
+      coincide: 'El estado confirmado coincide con el cálculo automático.',
+    },
   },
   puentes: {
     nav: {

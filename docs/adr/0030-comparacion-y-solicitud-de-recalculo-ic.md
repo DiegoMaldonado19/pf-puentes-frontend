@@ -19,4 +19,3 @@ Se amplía `PesosService` (`consultarRecalculos` y `recalcularIc`) con los contr
 ## Verificación
 
 Pruebas unitarias y de integración DOM/HTTP en `pesos.service.spec.ts` y `recalculo-ic.spec.ts` cubriendo consulta comparativa, solicitud de recálculo, variación positiva y negativa, anulaciones críticas, paginación, actualización y manejo de errores `401/403/404/409/422`.
-

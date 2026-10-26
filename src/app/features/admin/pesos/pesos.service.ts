@@ -3,13 +3,17 @@ import { inject, Injectable } from '@angular/core';
 import { EMPTY, expand, map, Observable, reduce } from 'rxjs';
 import {
   ComparacionRecalculoIcDTO,
+  ConfirmacionEstadoDTO,
   CrearJuegoPesosDTO,
+  EstimacionPreliminarIcDTO,
   FormularioConPesosDTO,
   JuegoPesosDTO,
   PaginaPesosDTO,
   PesoElementoDTO,
   RecalculoIcDTO,
+  ResultadoConfirmacionEstadoDTO,
   SolicitarRecalculoIcDTO,
+  SolicitudEstimacionPreliminarDTO,
 } from './modelos';
 
 /** Consume la API administrativa real; la sesión corresponde a los interceptores globales de P2. */
@@ -96,6 +100,40 @@ export class PesosService {
     return this.http.post<RecalculoIcDTO>(
       `${this.base}/inspecciones/${encodeURIComponent(inspeccionId)}/recalculos-ic`,
       datos,
+    );
+  }
+
+  estimarIcPreliminarPorFormulario(
+    formularioId: string,
+    solicitud: SolicitudEstimacionPreliminarDTO,
+  ): Observable<EstimacionPreliminarIcDTO> {
+    return this.http.post<EstimacionPreliminarIcDTO>(
+      `${this.base}/formularios/${encodeURIComponent(formularioId)}/ic-preliminar`,
+      solicitud,
+    );
+  }
+
+  estimarIcPreliminarPorInspeccion(
+    inspeccionId: string,
+    versionPesosId?: string | null,
+  ): Observable<EstimacionPreliminarIcDTO> {
+    const params: Record<string, string> = {};
+    if (versionPesosId) {
+      params['versionPesosId'] = versionPesosId;
+    }
+    return this.http.post<EstimacionPreliminarIcDTO>(
+      `${this.base}/inspecciones/${encodeURIComponent(inspeccionId)}/ic-preliminar`,
+      null,
+      { params },
+    );
+  }
+
+  validarConfirmacionEstado(
+    solicitud: ConfirmacionEstadoDTO,
+  ): Observable<ResultadoConfirmacionEstadoDTO> {
+    return this.http.post<ResultadoConfirmacionEstadoDTO>(
+      `${this.base}/inspecciones/confirmacion-estado/validacion`,
+      solicitud,
     );
   }
 }
