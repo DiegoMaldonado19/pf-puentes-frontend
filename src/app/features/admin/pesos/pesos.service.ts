@@ -1,8 +1,16 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { EMPTY, expand, map, Observable, reduce } from 'rxjs';
-import { CrearJuegoPesosDTO } from './modelos';
-import { FormularioConPesosDTO, JuegoPesosDTO, PaginaPesosDTO, PesoElementoDTO } from './modelos';
+import {
+  ComparacionRecalculoIcDTO,
+  CrearJuegoPesosDTO,
+  FormularioConPesosDTO,
+  JuegoPesosDTO,
+  PaginaPesosDTO,
+  PesoElementoDTO,
+  RecalculoIcDTO,
+  SolicitarRecalculoIcDTO,
+} from './modelos';
 
 /** Consume la API administrativa real; la sesión corresponde a los interceptores globales de P2. */
 @Injectable({ providedIn: 'root' })
@@ -70,6 +78,24 @@ export class PesosService {
     return this.http.get<PaginaPesosDTO<PesoElementoDTO>>(
       `${this.base}/juegos-pesos/${encodeURIComponent(juegoId)}/pesos`,
       { params: { page, size } },
+    );
+  }
+
+  consultarRecalculos(
+    inspeccionId: string,
+    page = 0,
+    size = 20,
+  ): Observable<ComparacionRecalculoIcDTO> {
+    return this.http.get<ComparacionRecalculoIcDTO>(
+      `${this.base}/inspecciones/${encodeURIComponent(inspeccionId)}/recalculos-ic`,
+      { params: { page, size } },
+    );
+  }
+
+  recalcularIc(inspeccionId: string, datos: SolicitarRecalculoIcDTO): Observable<RecalculoIcDTO> {
+    return this.http.post<RecalculoIcDTO>(
+      `${this.base}/inspecciones/${encodeURIComponent(inspeccionId)}/recalculos-ic`,
+      datos,
     );
   }
 }

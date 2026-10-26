@@ -372,6 +372,48 @@ export const TEXTOS = {
     sinSesion: 'Tu sesión no está disponible. Inicia sesión para continuar.',
     sinPermiso: 'No tienes permiso para consultar los pesos.',
     noEncontrado: 'No se encontró el formulario o juego de pesos solicitado.',
+    recalculo: {
+      titulo: 'Comparación y recálculos fechados del IC',
+      descripcion:
+        'Compara el resultado publicado original con recálculos bajo otros juegos de pesos sin alterar la inspección histórica ni el estado vigente del puente.',
+      original: 'Resultado original publicado (inmutable)',
+      publicadaEn: 'Fecha de publicación',
+      indiceOriginal: 'IC publicado',
+      estadoCalculado: 'Estado calculado',
+      estadoConfirmado: 'Estado confirmado',
+      justificacionConfirmado: 'Justificación del estado confirmado',
+      sinJustificacion: 'Sin cambio justificado sobre el estado calculado',
+      anulacion: 'Condición crítica de anulación',
+      sinAnulacion: 'Sin anulación crítica',
+      anulaciones: {
+        SOCAVACION: 'Socavación con exposición de cimentación',
+        ASENTAMIENTO: 'Asentamiento de estructura',
+        PERDIDA_SECCION: 'Elemento portante cortado o con pérdida de sección',
+        AUSENCIA_PORTANTE: 'Ausencia total de elemento portante',
+      },
+      solicitarTitulo: 'Registrar o consultar recálculo con otro juego de pesos',
+      juegoPesos: 'Juego de pesos de la versión del formulario',
+      elegirJuego: 'Selecciona un juego de pesos',
+      ejecutar: 'Calcular o recuperar recálculo',
+      ejecutando: 'Calculando recálculo…',
+      confirmado:
+        'Recálculo disponible. La inspección publicada original y los campos del puente permanecen intactos.',
+      tabla: 'Recálculos fechados registrados',
+      fechaRecalculo: 'Fecha del recálculo',
+      indiceRecalculado: 'IC recalculado',
+      diferenciaIc: 'Variación respecto al original',
+      vacia: 'Esta inspección publicada aún no tiene recálculos registrados.',
+      cargando: 'Consultando resultado original y recálculos…',
+      actualizar: 'Actualizar comparación',
+      paginacion: 'Páginas de recálculos fechados',
+      noPublicada:
+        'Solo las inspecciones publicadas permiten consultar o registrar recálculos comparables.',
+      noEncontrada: 'La inspección o el juego de pesos solicitado no existe.',
+      incompatible:
+        'El juego de pesos o las respuestas de daño son incompatibles con la versión de la inspección.',
+      incierto:
+        'No se pudo confirmar el recálculo. Actualiza la comparación para comprobar si quedó registrado.',
+    },
   },
   puentes: {
     nav: {

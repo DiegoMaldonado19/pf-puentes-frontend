@@ -24,4 +24,3 @@ Se unifica el formulario de descarte y cancelación en `DecisionConMotivoOrden` 
 ## Verificación
 
 Pruebas unitarias y de integración DOM/HTTP en `decision-con-motivo-orden.spec.ts`, `consulta-ordenes.spec.ts`, `gestion-mantenimiento.spec.ts` y `mantenimiento.service.spec.ts`, además del recorrido E2E de Playwright (`e2e/p8/recorrido.spec.ts`) verificando cancelación para Administrador (con foto previa conservada en solo lectura) y Catedrático, y rechazo `403` para Estudiante y Profesional.
-
