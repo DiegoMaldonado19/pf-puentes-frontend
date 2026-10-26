@@ -22,6 +22,11 @@ export interface InspeccionLocal extends RegistroLocal {
   intencion_envio_en: string | null;
   estado_remoto: Json;
 }
+/** El consumidor declara el contexto; P4/P5 validarán el elemento real del daño. */
+export interface ContextoFoto {
+  origen: 'general' | 'grupo_dano';
+  elemento_ref?: string | null;
+}
 export interface ArchivoLocal extends RegistroLocal {
   inspeccion_id: string;
   archivo: Blob;

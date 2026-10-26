@@ -2,7 +2,14 @@ import { v7, validate } from 'uuid';
 import { FotoCapturada } from '../shared/captura-foto/captura-foto';
 import { TEXTOS } from '../shared/textos';
 import { BaseLocal } from './base-local';
-import { ArchivoLocal, InspeccionLocal, Json, Operacion, ReferenciaLocal } from './modelos';
+import {
+  ArchivoLocal,
+  ContextoFoto,
+  InspeccionLocal,
+  Json,
+  Operacion,
+  ReferenciaLocal,
+} from './modelos';
 
 export class PersistenciaOffline {
   constructor(readonly db: BaseLocal) {}
@@ -136,10 +143,13 @@ export class PersistenciaOffline {
     propietario_id: string,
     inspeccion_id: string,
     foto: FotoCapturada,
-    elemento_ref: string,
+    contexto: ContextoFoto | string = { origen: 'general' },
   ) {
+    // Compatibilidad: el anclaje posicional histórico mantiene su validación obligatoria.
+    const { origen, elemento_ref = null } =
+      typeof contexto === 'string' ? { origen: 'grupo_dano', elemento_ref: contexto } : contexto;
     if (
-      !elemento_ref.trim() ||
+      (origen === 'grupo_dano' && !elemento_ref?.trim()) ||
       !['image/webp', 'image/jpeg'].includes(foto.archivo.type) ||
       !['image/webp', 'image/jpeg'].includes(foto.miniatura.type)
     )

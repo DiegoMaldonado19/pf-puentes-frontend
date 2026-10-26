@@ -56,6 +56,20 @@ queda pendiente de ejecución y registro por el equipo.
   en la misma transacción. Cada edición/archivo incrementa `version_local`;
   nunca modifica una operación ya encolada. Una nueva intención pertenece a
   esa versión. Los esquemas con id existente no se sobrescriben.
+- `foto(propietario_id, inspeccion_id, captura, contexto?)` recibe `FotoCapturada`
+  sin recomprimirla. Omitir contexto equivale a `{ origen: 'general' }`: guarda
+  `elemento_ref: null`, sin anclajes ficticios. Para un grupo de daño, pasar
+  `{ origen: 'grupo_dano', elemento_ref: 'subestructura.estribo.material' }`;
+  rechaza anclaje ausente, nulo, vacío o solo espacios antes de modificar datos,
+  versión local, intención de envío o cola. El contexto lo declara el consumidor:
+  no se deduce de un campo vacío ni valida todavía el elemento real de P4/P5.
+  Una foto general también puede conservar un `elemento_ref` proporcionado.
+  El cuarto argumento histórico de tipo `string` conserva su comportamiento
+  de anclaje obligatorio. Ambos flujos validan blobs WebP/JPEG y comparten el
+  límite de 60 fotos por inspección y la misma transacción captura/cola.
+  No requiere migración: `ArchivoLocal.elemento_ref` ya admite `null` y no está
+  indexado. Se mantiene Dexie v4 y `modelo_version: 1`; no se reescriben capturas,
+  blobs, PDF ni operaciones previas. Esto no acredita B02 completo ni captura P5.
 - Respuestas y metadatos son JSON opaco ligado a `formulario_version_id`;
   no se impone un formulario de P4. P5 podrá proporcionar creación/GPS/autor/
   dispositivo en `metadatos`. No se renombran propiedades JSON.
@@ -174,7 +188,8 @@ P2: coordinación externa del acceso local y futuro interceptor offline/replay;
 la adaptación de sesión y renovación usa ya `AuthService`.
 P3/P7: consumidores disponibles; ver [referencia-offline.md](referencia-offline.md).
 G3: coordinación durable disponible; ver [preparacion-local.md](preparacion-local.md).
-P4/P5: faltan proveedores productivos de esquema activo y última publicación;
+P4: `EsquemasP4` disponible por propietario (G9.1, contrato HTTP probado en aislamiento).
+P5: falta el proveedor real de última publicación; su ausencia impide completar preparación;
 P4: validación offline del formulario. P5: borrador, revisión base y transición editable/envío.
 P1: transporte HTTP/multipart con las claves y UUID originales. Los rechazos
 de editabilidad conservarán las versiones nuevas locales; esta base no fuerza
