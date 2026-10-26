@@ -231,4 +231,17 @@ describe('AceptacionPropuesta', () => {
     expect(peticion.cancelled).toBe(true);
     expect(evento).not.toHaveBeenCalled();
   });
+
+  it('muestra la referencia del elemento y la inspección de origen cuando la propuesta proviene de daños publicados', () => {
+    fixture.componentRef.setInput('orden', {
+      ...orden,
+      elemento_ref: 'subestructura.estribo_entrada.socavacion',
+      inspeccion_id: '019a0025-0000-7000-8000-000000000099',
+    });
+    fixture.detectChanges();
+    expect(texto()).toContain(t.historial.elemento);
+    expect(texto()).toContain('subestructura.estribo_entrada.socavacion');
+    expect(texto()).toContain(t.historial.origen);
+    expect(texto()).toContain('019a0025-0000-7000-8000-000000000099');
+  });
 });
