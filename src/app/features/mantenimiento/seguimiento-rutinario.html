@@ -1,0 +1,91 @@
+<section [attr.aria-busy]="estado().cargando" [attr.aria-label]="t.titulo">
+  <h2>{{ t.titulo }}</h2>
+  @if (!puedeConsultar()) {
+    <p role="alert">{{ t.sinPermiso }}</p>
+  } @else if (estado().cargando) {
+    <p role="status">{{ t.cargando }}</p>
+  } @else if (estado().error !== null) {
+    <p role="alert">{{ mensaje(estado().error!) }}</p>
+    @if (estado().error !== 401 && estado().error !== 403) {
+      <button type="button" [disabled]="bloqueada()" (click)="consultar()">
+        {{ t.actualizar }}
+      </button>
+    }
+  } @else if (estado().datos; as datos) {
+    <dl>
+      <dt>{{ t.evaluacion }}</dt>
+      <dd>{{ fecha(datos.fecha_evaluacion) }}</dd>
+      <dt>{{ t.referencia }}</dt>
+      <dd>{{ fecha(datos.fecha_referencia) }} — {{ t.origenes[datos.origen_referencia] }}</dd>
+      <dt>{{ t.limite }}</dt>
+      <dd>{{ fecha(datos.fecha_limite) }}</dd>
+      <dt>{{ t.enPlazo }}</dt>
+      <dd>{{ datos.programadas_en_plazo }}</dd>
+      <dt>{{ t.sinFecha }}</dt>
+      <dd>{{ datos.sin_fecha }}</dd>
+      <dt>{{ t.pasadas }}</dt>
+      <dd>{{ datos.fechas_pasadas }}</dd>
+      <dt>{{ t.posteriores }}</dt>
+      <dd>{{ datos.posteriores_al_limite }}</dd>
+    </dl>
+    <p>{{ t.explicacion }}</p>
+    @if (datos.programadas_en_plazo === 0) {
+      <p role="status">{{ t.sinProgramacion }}</p>
+    }
+    @if (datos.ordenes.content.length) {
+      <div class="tabla" role="region" [attr.aria-label]="t.tabla" tabindex="0">
+        <table>
+          <caption>
+            {{
+              t.tabla
+            }}
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col">{{ t.intervencion }}</th>
+              <th scope="col">{{ t.estado }}</th>
+              <th scope="col">{{ t.fecha }}</th>
+              <th scope="col">{{ t.consulta }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (orden of datos.ordenes.content; track orden.id) {
+              <tr>
+                <th scope="row">{{ orden.descripcion }}</th>
+                <td>{{ estados[orden.estado] }}</td>
+                <td>{{ fecha(orden.fecha_programada) }}</td>
+                <td>
+                  <button type="button" [disabled]="bloqueada()" (click)="seleccionar(orden)">
+                    {{ t.ver }}
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    } @else {
+      <p>{{ datos.ordenes.total_elements ? t.paginaVacia : t.sinOrdenes }}</p>
+    }
+    <nav [attr.aria-label]="t.paginacion">
+      <button
+        type="button"
+        [disabled]="bloqueada() || datos.ordenes.page === 0"
+        (click)="consultar(datos.ordenes.page - 1)"
+      >
+        {{ t.anterior }}
+      </button>
+      <span>{{ datos.ordenes.page + 1 }} / {{ datos.ordenes.total_pages || 1 }}</span>
+      <button
+        type="button"
+        [disabled]="bloqueada() || datos.ordenes.page + 1 >= datos.ordenes.total_pages"
+        (click)="consultar(datos.ordenes.page + 1)"
+      >
+        {{ t.siguiente }}
+      </button>
+      <button type="button" [disabled]="bloqueada()" (click)="consultar(0)">
+        {{ t.actualizar }}
+      </button>
+    </nav>
+  }
+</section>

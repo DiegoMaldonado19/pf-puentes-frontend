@@ -264,12 +264,101 @@ test('B03 — cuota atómica visible, persistencia denegada y migración real', 
     return resultado;
   }, i.id);
   expect(migracion).toMatchObject({
-    version: 2,
+    version: 4,
     fotos: 'foto',
     mini: 'mini',
     cola: 2,
     i: { id: i.id },
   });
+});
+
+test('G1.2 — fotos generales y daño preservan blobs y cola tras reapertura v4', async ({
+  page,
+}) => {
+  const i = await crear(page);
+  const esperado = await page.evaluate(async (id) => {
+    const { persistencia: local, db, propietario } = window.__offlineDemo!;
+    const p = propietario();
+    const foto = {
+      archivo: new Blob(['foto original'], { type: 'image/jpeg' }),
+      miniatura: new Blob(['miniatura original'], { type: 'image/jpeg' }),
+      latitud: null,
+      longitud: null,
+      capturada_en: '2026-10-05T00:00:00Z',
+    };
+    const anterior = await local.foto(p, id, foto, 'campo.anterior');
+    await local.documento(p, id, new Blob(['%PDF original'], { type: 'application/pdf' }));
+    await local.enviar(p, id);
+    const colaAnterior = await local.operaciones(p, id);
+    db.close();
+    await db.open();
+    const general = await local.foto(p, id, foto);
+    const dano = await local.foto(p, id, foto, {
+      origen: 'grupo_dano',
+      elemento_ref: 'campo.dano',
+    });
+    const captura = await local.inspeccion(p, id);
+    const cola = await local.operaciones(p, id);
+    const fotos = await db.fotos.count();
+    for (const elemento_ref of [undefined, null, '', '   ']) {
+      let error = '';
+      try {
+        await local.foto(p, id, foto, { origen: 'grupo_dano', elemento_ref });
+      } catch (e) {
+        error = (e as Error).message;
+      }
+      if (error !== 'La foto requiere blobs WebP/JPEG y anclaje si proviene de un grupo de daño')
+        throw new Error(`Rechazo incorrecto: ${error}`);
+    }
+    return {
+      ids: [anterior.id, general.id, dano.id],
+      cola,
+      captura,
+      intacta:
+        JSON.stringify(await local.operaciones(p, id)) === JSON.stringify(cola) &&
+        JSON.stringify(await local.inspeccion(p, id)) === JSON.stringify(captura) &&
+        (await db.fotos.count()) === fotos,
+      anterioresIntactas:
+        JSON.stringify(cola.slice(0, colaAnterior.length)) === JSON.stringify(colaAnterior),
+    };
+  }, i.id);
+  expect(esperado.intacta).toBe(true);
+  expect(esperado.anterioresIntactas).toBe(true);
+  await abrir(page);
+  const actual = await page.evaluate(
+    async ({ ids, id }) => {
+      const { db, persistencia: local, propietario } = window.__offlineDemo!;
+      const fotos = await Promise.all(
+        ids.map(async (id) => {
+          const f = (await db.fotos.get(id))!;
+          return {
+            anclaje: f.elemento_ref,
+            archivo: await f.archivo.text(),
+            miniatura: await f.miniatura!.text(),
+          };
+        }),
+      );
+      return {
+        fotos,
+        cola: await local.operaciones(propietario(), id),
+        captura: await local.inspeccion(propietario(), id),
+        version: db.verno,
+        pdf: await (await db.documentos.toArray())[0].archivo.text(),
+      };
+    },
+    { ids: esperado.ids, id: i.id },
+  );
+  expect(actual.version).toBe(4);
+  expect(actual.cola).toEqual(esperado.cola);
+  expect(actual.captura).toEqual(esperado.captura);
+  expect(actual.pdf).toBe('%PDF original');
+  expect(actual.fotos).toEqual(
+    ['campo.anterior', null, 'campo.dano'].map((anclaje) => ({
+      anclaje,
+      archivo: 'foto original',
+      miniatura: 'miniatura original',
+    })),
+  );
 });
 
 test('B04 — cinco fallos persistidos, recarga y reintento con clave original', async ({ page }) => {
@@ -374,8 +463,9 @@ test('B06 — indicador cuenta entidades y diagnóstico accesible coincide con I
     h.transporte.resultado = 'negocio';
     await h.motor.drenar();
   }, i.id);
+  const diagnostico = page.getByRole('region', { name: 'Diagnóstico local de sincronización' });
   await expect(
-    page
+    diagnostico
       .getByRole('status')
       .filter({ hasText: 'Inspecciones pendientes: 1 · Archivos pendientes: 1' }),
   ).toBeVisible();
@@ -385,14 +475,17 @@ test('B06 — indicador cuenta entidades y diagnóstico accesible coincide con I
   await page.evaluate(() => (window.__offlineDemo!.transporte.resultado = 'ack'));
   await page.getByRole('button', { name: 'Sincronizar simulación' }).click();
   await expect(
-    page
+    diagnostico
       .getByRole('status')
       .filter({ hasText: 'Inspecciones pendientes: 0 · Archivos pendientes: 0' }),
   ).toBeVisible();
   expect(
-    await page.evaluate(async () =>
-      (await window.__offlineDemo!.db.cola_sync.toArray()).every((o) => o.estado === 'confirmada'),
-    ),
+    await page.evaluate(async () => {
+      const h = window.__offlineDemo!;
+      return (await h.persistencia.operaciones(h.propietario())).every(
+        (operacion) => operacion.estado === 'confirmada',
+      );
+    }),
   ).toBe(true);
 });
 

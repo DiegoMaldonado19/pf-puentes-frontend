@@ -1,0 +1,97 @@
+@if (puedeConsultar() && !denegado()) {
+  <section
+    class="evidencia"
+    [attr.aria-label]="t.titulo"
+    [attr.aria-busy]="cargando() || envioPendiente()"
+  >
+    <h3>{{ t.titulo }}</h3>
+    @if (aviso()) {
+      <p role="status">{{ aviso() }}</p>
+    }
+    @if (cargando()) {
+      <p role="status">{{ t.cargando }}</p>
+    }
+    @if (errorConsulta()) {
+      <p role="alert">{{ errorConsulta() }}</p>
+    }
+    @if (pagina(); as pagina) {
+      <p>{{ t.guardadas }} {{ pagina.total_elements }}</p>
+      @if (!pagina.total_elements) {
+        <p>{{ t.vacia }}</p>
+      }
+      <ul class="fotos">
+        @for (foto of pagina.content; track foto.id) {
+          <li>
+            @if (foto.url; as url) {
+              <a [href]="url" target="_blank" rel="noopener noreferrer">
+                @if (foto.url_miniatura; as miniatura) {
+                  <img [src]="miniatura" [alt]="t.miniatura" loading="lazy" />
+                }
+                {{ t.foto }}
+              </a>
+            }
+          </li>
+        }
+      </ul>
+      <nav [attr.aria-label]="t.paginacion">
+        <button
+          type="button"
+          [disabled]="envioPendiente() || bloqueada() || pagina.page === 0"
+          (click)="consultar(pagina.page - 1)"
+        >
+          {{ t.anterior }}
+        </button>
+        <button
+          type="button"
+          [disabled]="envioPendiente() || bloqueada() || pagina.page + 1 >= pagina.total_pages"
+          (click)="consultar(pagina.page + 1)"
+        >
+          {{ t.siguiente }}
+        </button>
+      </nav>
+    }
+    <button
+      type="button"
+      [disabled]="envioPendiente() || bloqueada() || cargando()"
+      (click)="consultar(0)"
+    >
+      {{ t.actualizar }}
+    </button>
+    @if (editable() && puedeSubir()) {
+      <p>{{ t.descripcion }}</p>
+      <fieldset [disabled]="envioPendiente() || bloqueada()">
+        <!-- Se destruye la captura al cambiar de orden: una compresión tardía no cruza padres. -->
+        @for (id of [orden().id]; track id) {
+          <app-captura-foto (capturada)="capturar($event)" />
+        }
+        @if (foto()) {
+          <p>{{ t.elegida }}</p>
+        }
+        <button
+          type="button"
+          [disabled]="!foto() || envioPendiente() || bloqueada()"
+          (click)="subir()"
+        >
+          {{ enviando() === 'foto' ? t.guardando : t.guardar }}
+        </button>
+      </fieldset>
+    }
+    @if (orden().estado === 'EN_EJECUCION' && puedeCerrar()) {
+      <h3>{{ t.cierre }}</h3>
+      <p>{{ t.requisitos }}</p>
+      <form [formGroup]="formulario" (ngSubmit)="cerrar()">
+        <fieldset [disabled]="envioPendiente() || bloqueada()">
+          <label
+            >{{ t.fecha }} <input type="date" formControlName="fecha_ejecucion" required
+          /></label>
+          <label
+            >{{ t.responsable }} <input type="text" formControlName="responsable" required
+          /></label>
+          <button type="submit" [disabled]="envioPendiente() || bloqueada() || cargando()">
+            {{ enviando() === 'cierre' ? t.cerrando : t.cerrar }}
+          </button>
+        </fieldset>
+      </form>
+    }
+  </section>
+}

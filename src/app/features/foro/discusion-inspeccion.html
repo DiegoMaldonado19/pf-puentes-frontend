@@ -1,0 +1,63 @@
+<main class="mx-auto max-w-3xl p-4" aria-labelledby="titulo-foro-inspeccion">
+  <h1 id="titulo-foro-inspeccion" class="mb-4 text-2xl font-semibold">
+    {{ textos.titulo }}
+  </h1>
+
+  @switch (estado()) {
+    @case ('CARGANDO') {
+      <p role="status" class="text-sm text-slate-600">{{ textos.cargando }}</p>
+    }
+    @case ('NO_INTEGRADO') {
+      <p class="text-sm text-slate-600">{{ textos.noIntegrado }}</p>
+    }
+    @case ('NO_PUBLICADA') {
+      <p class="text-sm text-slate-700">{{ textos.noPublicada }}</p>
+    }
+    @case ('SIN_PERMISOS') {
+      <p role="alert" class="text-sm text-slate-700">{{ textos.sinPermisos }}</p>
+    }
+    @case ('ERROR') {
+      <div role="alert" class="text-sm">
+        <p class="text-red-700">{{ textos.error }}</p>
+        @if (mensajeError()) {
+          <p class="mt-1 text-slate-700">{{ mensajeError() }}</p>
+        }
+        <button type="button" class="mt-2 underline" (click)="reintentar()">
+          {{ textos.reintentar }}
+        </button>
+      </div>
+    }
+    @case ('PUBLICADA') {
+      @if (contexto(); as contexto) {
+        <p class="mb-3 text-sm text-slate-700">
+          {{ textos.contexto }}: {{ contexto.inspeccionId }} · {{ textos.puente }}:
+          {{ contexto.puenteId }}
+        </p>
+      }
+      <section class="mt-4" [attr.aria-label]="textos.titulo">
+        @if (comentarios().length === 0) {
+          <p class="text-sm text-slate-600">{{ textos.sinComentarios }}</p>
+        } @else {
+          <ul class="space-y-3">
+            @for (comentario of comentarios(); track comentario.id) {
+              <li class="rounded-lg border border-slate-200 p-3">
+                <p class="text-sm wrap-break-word">{{ comentario.texto }}</p>
+                <p class="mt-1 text-xs text-slate-600">
+                  {{ textos.autor }}: {{ comentario.autorNombre || textos.autorNoDisponible }} ·
+                  {{ textos.publicadoEl }}
+                  {{ fechaUtc(comentario.creadoEn) }}
+                </p>
+                @if (comentario.elementoRef) {
+                  <p class="mt-1 text-xs text-slate-600">
+                    {{ textos.anclaje }}: <code>{{ comentario.elementoRef }}</code>
+                  </p>
+                }
+              </li>
+            }
+          </ul>
+        }
+        <p class="mt-4 text-xs text-slate-600">{{ textos.soloLectura }}</p>
+      </section>
+    }
+  }
+</main>

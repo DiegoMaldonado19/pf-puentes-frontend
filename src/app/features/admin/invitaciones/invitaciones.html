@@ -1,0 +1,118 @@
+<section class="mx-auto max-w-6xl p-4" aria-labelledby="titulo-invitaciones">
+  <h1 id="titulo-invitaciones" class="text-2xl font-bold">{{ t.titulo }}</h1>
+  <p class="text-slate-700">{{ t.descripcion }}</p>
+
+  @if (error()) {
+    <p role="alert" [class]="claseAlerta">{{ error() }}</p>
+  }
+  @if (hecho()) {
+    <p role="status" [class]="claseHecho">{{ t.hecha }}</p>
+  }
+
+  <form class="mt-4 grid gap-4 sm:grid-cols-3" [formGroup]="form" (ngSubmit)="enviar()" novalidate>
+    <div class="flex flex-col">
+      <label for="correo" class="font-medium">{{ t.correo }}</label>
+      <input
+        id="correo"
+        type="email"
+        formControlName="correo"
+        autocomplete="email"
+        maxlength="254"
+        [class]="claseCampo"
+        [attr.aria-invalid]="campoInvalido('correo')"
+        [attr.aria-describedby]="campoInvalido('correo') ? 'error-correo' : null"
+      />
+      @if (campoInvalido('correo')) {
+        <p id="error-correo" class="text-sm text-red-800">{{ mensaje('correo') }}</p>
+      }
+    </div>
+    <div class="flex flex-col">
+      <label for="rol" class="font-medium">{{ t.rol }}</label>
+      <select id="rol" formControlName="rol" [class]="claseCampo">
+        @for (rol of rolesInvitables; track rol) {
+          <option [value]="rol">{{ roles[rol] }}</option>
+        }
+      </select>
+    </div>
+    <div class="flex items-end">
+      <button type="submit" [class]="claseBoton" [disabled]="enviando()">
+        {{ enviando() ? t.enviando : t.crear }}
+      </button>
+    </div>
+  </form>
+
+  <div class="mt-6 flex flex-col">
+    <label for="filtro-estado" class="font-medium">{{ t.estado }}</label>
+    <select
+      id="filtro-estado"
+      class="mt-1 max-w-xs"
+      [class]="claseCampo"
+      [value]="estado()"
+      (change)="filtrarEstado($event)"
+    >
+      <option value="">{{ t.todos }}</option>
+      @for (item of estados; track item) {
+        <option [value]="item">{{ t.estados[item] }}</option>
+      }
+    </select>
+  </div>
+
+  <div class="mt-4" [attr.aria-busy]="resultado.isLoading()">
+    @if (resultado.isLoading() && !resultado.hasValue()) {
+      <p role="status">{{ t.cargando }}</p>
+    } @else if (errorLista()) {
+      <p role="alert" [class]="claseAlerta">{{ errorLista() }}</p>
+    } @else if (resultado.value(); as lista) {
+      @if (lista.content.length === 0) {
+        <p role="status" class="rounded bg-slate-100 p-4 text-slate-800 font-medium">
+          {{ t.vacia }}
+        </p>
+      } @else {
+        <div class="overflow-x-auto">
+          <table class="w-full border-collapse text-left">
+            <caption class="sr-only">
+              {{
+                t.titulo
+              }}
+            </caption>
+            <thead class="border-b-2 border-slate-400">
+              <tr>
+                <th scope="col" class="p-2">{{ t.correo }}</th>
+                <th scope="col" class="p-2">{{ t.rol }}</th>
+                <th scope="col" class="p-2">{{ t.estado }}</th>
+                <th scope="col" class="p-2">{{ t.expira }}</th>
+                <th scope="col" class="p-2">{{ t.invito }}</th>
+                <th scope="col" class="p-2">{{ t.creado }}</th>
+                <th scope="col" class="p-2">{{ t.revocar }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (inv of lista.content; track inv.id) {
+                <tr class="border-b border-slate-200">
+                  <td class="p-2">{{ inv.correo }}</td>
+                  <td class="p-2">{{ roles[inv.rol] }}</td>
+                  <td class="p-2">{{ t.estados[inv.estado] }}</td>
+                  <td class="p-2">{{ inv.expira_en | date: 'dd/MM/yyyy' : '-0600' }}</td>
+                  <td class="p-2">{{ inv.administrador_nombre }}</td>
+                  <td class="p-2">{{ inv.creado_en | date: 'dd/MM/yyyy' : '-0600' }}</td>
+                  <td class="p-2">
+                    @if (inv.estado === 'ABIERTA') {
+                      <button type="button" [class]="clasePeligro" (click)="revocar(inv)">
+                        {{ t.revocar }}
+                      </button>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        <app-paginacion-admin
+          [pagina]="lista.number"
+          [totalPaginas]="lista.total_pages"
+          (cambiar)="pagina.set($event)"
+        />
+      }
+    }
+  </div>
+</section>

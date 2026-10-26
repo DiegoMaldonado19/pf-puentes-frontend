@@ -47,7 +47,8 @@ queda pendiente de ejecución y registro por el equipo.
 ## API local e integración posterior
 
 - `BaseLocal`: base `puentes-offline` por defecto; versión 1 con seis almacenes
-  de dominio, versión 2 añade `bloqueos` sin borrar capturas. Cada registro
+  de dominio, versión 2 añade `bloqueos`, versión 3 añade `acceso_local` y
+  versión 4 añade snapshots completos `preparaciones`, sin borrar capturas. Cada registro
   declara `modelo_version`. Referencia usa clave compuesta propietario/id.
 - `PersistenciaOffline`: `crear`, `editar`, `foto`, `documento`, `enviar`,
   `inspeccion`, `operaciones` y `guardarReferencias`. Todas reciben propietario
@@ -55,6 +56,20 @@ queda pendiente de ejecución y registro por el equipo.
   en la misma transacción. Cada edición/archivo incrementa `version_local`;
   nunca modifica una operación ya encolada. Una nueva intención pertenece a
   esa versión. Los esquemas con id existente no se sobrescriben.
+- `foto(propietario_id, inspeccion_id, captura, contexto?)` recibe `FotoCapturada`
+  sin recomprimirla. Omitir contexto equivale a `{ origen: 'general' }`: guarda
+  `elemento_ref: null`, sin anclajes ficticios. Para un grupo de daño, pasar
+  `{ origen: 'grupo_dano', elemento_ref: 'subestructura.estribo.material' }`;
+  rechaza anclaje ausente, nulo, vacío o solo espacios antes de modificar datos,
+  versión local, intención de envío o cola. El contexto lo declara el consumidor:
+  no se deduce de un campo vacío ni valida todavía el elemento real de P4/P5.
+  Una foto general también puede conservar un `elemento_ref` proporcionado.
+  El cuarto argumento histórico de tipo `string` conserva su comportamiento
+  de anclaje obligatorio. Ambos flujos validan blobs WebP/JPEG y comparten el
+  límite de 60 fotos por inspección y la misma transacción captura/cola.
+  No requiere migración: `ArchivoLocal.elemento_ref` ya admite `null` y no está
+  indexado. Se mantiene Dexie v4 y `modelo_version: 1`; no se reescriben capturas,
+  blobs, PDF ni operaciones previas. Esto no acredita B02 completo ni captura P5.
 - Respuestas y metadatos son JSON opaco ligado a `formulario_version_id`;
   no se impone un formulario de P4. P5 podrá proporcionar creación/GPS/autor/
   dispositivo en `metadatos`. No se renombran propiedades JSON.
@@ -73,8 +88,10 @@ queda pendiente de ejecución y registro por el equipo.
 - `IndicadorOffline`: componente standalone independiente para navegación,
   con entrada de operaciones del propietario actual y contadores computed.
 - `DiagnosticoOffline`: componente standalone reusable con entradas base,
-  propietario y motor. Cuenta entidades distintas, no filas ni intentos.
-  La ocupación/cuota corresponde al origen completo, no solo a esta base.
+  propietario y motor opcional. Cuenta entidades distintas, no filas ni intentos.
+  Sin motor consulta con `AccesoLocal.consultarPropias` y es de solo lectura; el
+  harness G1 recibe el motor simulado explícitamente. La ocupación/cuota corresponde
+  al origen completo, no solo a esta base.
 - `consultarAlmacenamiento(true)`: solicitar persistencia al entrar en captura;
   resultado/denegación/ausencia visibles. `mensajeEscritura` distingue cuota y
   validaciones. No se purgan pendientes ni blobs automáticamente.
@@ -85,17 +102,119 @@ Los límites locales son 60 fotos, 10 PDF y 20 MiB por PDF; el contrato de P1
 garantiza el formato/dimensiones de `FotoCapturada`. El objetivo de 200–400 KB
 no es un rechazo por tamaño de una imagen simple ya comprimida por P1.
 
+### Acceso local G2 — navegación separada y sesión P2
+
+`AccesoLocal(db, auth, sesionRemota)` conserva la última identidad preparada y
+las revocaciones por propietario sin credenciales. `habilitarPreparada` requiere
+una sesión remota vigente del mismo dueño; su llamador deberá acreditar la
+preparación completa. `propietarioActual` e `inspecciones` consultan la política
+durable y devuelven únicamente capturas de ese propietario. Un UUID no desbloquea
+una revocación: hace falta login online de su dueño, no una renovación.
+
+El arranque instancia el servicio antes de hidratar P2 y después reconcilia
+la identidad inicial contra la preparada. Cierre/cambio revocan durablemente;
+fallo de red y renovación inválida no equivalen a cierre explícito. Las lecturas
+no modifican la habilitación: una pestaña antigua con otra sesión no puede
+revocar repetidamente un login legítimo del dueño, ni consultar sus capturas.
+`liveQuery` notifica cambios durables y limpia/actualiza la vista; el adaptador
+remoto comprueba revocación y cancela ejecuciones del motor existente.
+
+La navegación ofrece **Capturas locales**, ruta diferida `/offline/local`,
+independiente de roles y `AuthService.autenticado()`. Solo consulta las capturas
+del propietario preparado habilitado; no acepta UUID para desbloquear. Es una
+vista consultiva: la edición productiva espera la captura de P5. No crea
+capturas, no prepara salidas ni drena operaciones. Sin preparación real previa
+no hay capturas habilitadas; no existe un fallback ficticio productivo.
+
+#### Harness de sesión G2
+
+Abrir `/offline/demo?sesion=1` en el build `base-offline`. Usa exclusivamente
+`puentes-offline-sesion-demo`; no comparte capturas con producción ni con
+`puentes-offline-demo`. El botón **Preparar captura ficticia** exige sesión P2
+válida y coordina los tres proveedores ficticios mediante `PreparacionLocal`.
+La captura consume puente, contexto de asignación y versión exacta del snapshot
+completo; no crea otra captura si la preparación falla. Muestra progreso por
+proveedor y un resultado explícitamente ficticio. Los dos contextos de curso se
+conservan aunque compartan puente; no tener publicación previa es válido.
+La sesión es `AuthService`;
+Playwright sustituye sus respuestas HTTP de login/renovación/cierre. Sin ese
+HTTP de prueba, el servidor estático no proporciona una sesión ficticia.
+
+Los casos G2 cierran y reabren sin red, editan con `PersistenciaOffline`,
+comprueban que no se persisten tokens ni se drena remotamente y prueban cierre,
+cambio y recuperación por login del propietario entre pestañas. Las pruebas
+unitarias con dos sesiones/instancias de base y `TransporteSimulado` acreditan
+cancelación en vuelo: señal abortada, datos/cola conservados y ninguna operación
+siguiente enviada. Ejecutar estos casos separados con:
+
+```sh
+npm run test:e2e:base -- --grep 'G2'
+```
+
+La demo histórica sin `sesion=1` conserva selección libre de propietarios y
+simulación B01–B08; no acredita por sí sola la revocación de G2. No hay transporte
+real, edición P5 productiva ni aceptación V09 completa. El acceso presupone
+control del navegador/perfil y no protege frente al acceso directo a IndexedDB.
+Decisión propuesta, sin acuerdo externo de P2: [ADR 0024](adr/0024-acceso-local-sesion-offline.md).
+
+### Diagnóstico local G4 — integración parcial de solo lectura
+
+La navegación de la aplicación muestra los conteos pendientes del propietario
+que devuelve `AccesoLocal.propietarioActual()`. `EstadoLocal` consulta la cola a
+través de `AccesoLocal.consultarPropias`, vuelve a validar las emisiones vivas y
+vacía la vista al invalidar o cambiar esa identidad; nunca toma un UUID de la UI
+ni lee la cola de otro propietario. `/offline/local` conserva la ruta G2 y
+compone las capturas autorizadas con `DiagnosticoOffline` para ese mismo dueño.
+El indicador cuenta inspecciones y archivos distintos pendientes, no filas ni
+intentos. El diagnóstico muestra estados, errores, dependencias, último intento
+y uso/cuota del origen, con estados y errores como texto accesible (no solo
+color). El estado de almacenamiento sigue visible incluso sin dueño habilitado;
+en ese caso no consulta la cola.
+
+La ruta productiva omite la entrada `MotorSync`: no muestra acciones de reintento
+ni conecta el simulador o un transporte HTTP. Las operaciones no confirmadas,
+capturas, fotos y PDF permanecen en IndexedDB; cerrar sesión o cambiar de cuenta
+solo oculta el acceso y no las purga. Se explicitan la falta de edición P5,
+Preparar salida productivo, transporte/reintento productivos, los acuerdos de
+conflictos/permisos y la política de caché privada pendiente de G11. La demo G1
+sigue pasando su motor simulado de forma explícita y mantiene sus acciones de
+prueba.
+
+Verificación G4 y escenarios observados: [validacion-diagnostico-g4.md](validacion-diagnostico-g4.md).
+
 ### Adaptadores pendientes (grupos 2..7)
 
-P2: sesión, renovación, interrupción al cambiar cuenta, interceptores y replay.
-P3/P4/P7: descarga autorizada/paginada y preparación completa; P4: validación
-offline del formulario. P5: borrador, revisión base y transición editable/envío.
+P2: coordinación externa del acceso local y futuro interceptor offline/replay;
+la adaptación de sesión y renovación usa ya `AuthService`.
+P3/P7: consumidores disponibles; ver [referencia-offline.md](referencia-offline.md).
+G3: coordinación durable disponible; ver [preparacion-local.md](preparacion-local.md).
+P4: `EsquemasP4` disponible por propietario (G9.1, contrato HTTP probado en aislamiento).
+P5: falta el proveedor real de última publicación; su ausencia impide completar preparación;
+P4: validación offline del formulario. P5: borrador, revisión base y transición editable/envío.
 P1: transporte HTTP/multipart con las claves y UUID originales. Los rechazos
 de editabilidad conservarán las versiones nuevas locales; esta base no fuerza
 una transición remota ni sustituye la máquina de estados de P5. El ACK JSON
 versionado permite añadir revisiones sin reconstruir IndexedDB.
 
 ## Pruebas y evidencia
+
+### Preparación incremental G5
+
+La [guía G5](pruebas-incrementales-g5.md) reúne fixtures compartidas de sesión
+para G2–G4, catálogo V01–V21 con bloqueadores y parámetros P5/#18 pendientes,
+y un adaptador de red determinista exclusivo de pruebas. Verificar herramientas:
+
+```sh
+node --test scripts/pruebas-g5/*.test.mjs
+npm run test:e2e:base -- --grep 'G5'
+```
+
+El caso G5 de navegador verifica la herramienta sobre peticiones sin mutaciones,
+no sincronización real. Solo su contexto bloquea SW para observar rutas; los
+casos PWA mantienen SW activo. No acredita corte tras bytes, respuesta perdida
+tras commit ni V05/V06/V07. No hay proyecto/job integral verde basado en omisiones.
+
+### Suite autónoma y checks
 
 ```sh
 npx prettier --check .

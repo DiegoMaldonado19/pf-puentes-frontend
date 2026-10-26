@@ -6,7 +6,8 @@ export const PROPIETARIOS = [
 export const PUENTE = '019a0000-0000-7000-8000-000000000003';
 export const FORMULARIO = '019a0000-0000-7000-8000-000000000004';
 export async function prepararFixtures(db: BaseLocal) {
-  if (db.name !== 'puentes-offline-demo') throw new Error('Fixtures solo en la base demo');
+  if (!['puentes-offline-demo', 'puentes-offline-sesion-demo'].includes(db.name))
+    throw new Error('Fixtures solo en la base demo');
   await db.transaction('rw', db.puentes, db.esquemas_formulario, async () => {
     for (const propietario_id of PROPIETARIOS) {
       await db.puentes.put({

@@ -1,0 +1,46 @@
+<section class="propuesta" [attr.aria-busy]="enviando()">
+  <h2>{{ t.titulo }}</h2>
+  @if (mostrada(); as registro) {
+    <p class="intervencion">{{ registro.descripcion }}</p>
+    <dl>
+      <dt>{{ t.tipo }}</dt>
+      <dd>{{ t.tipos[registro.tipo] }}</dd>
+      <dt>{{ t.estado }}</dt>
+      <dd>{{ t.estados[registro.estado] }}</dd>
+      @if (registro.elemento_ref) {
+        <dt>{{ t.historial.elemento }}</dt>
+        <dd>{{ registro.elemento_ref }}</dd>
+      }
+      @if (registro.inspeccion_id) {
+        <dt>{{ t.historial.origen }}</dt>
+        <dd>{{ registro.inspeccion_id }}</dd>
+      }
+      <dt>{{ t.sugerida }}</dt>
+      <dd>
+        {{
+          registro.prioridad_sugerida ? t.prioridades[registro.prioridad_sugerida] : t.sinSugerencia
+        }}
+      </dd>
+      <dt>{{ t.vigente }}</dt>
+      <dd>{{ t.prioridades[registro.prioridad] }}</dd>
+      @if (registro.justificacion_prioridad) {
+        <dt>{{ t.justificacion }}</dt>
+        <dd>{{ registro.justificacion_prioridad }}</dd>
+      }
+      <dt>{{ t.fecha }}</dt>
+      <dd>{{ fechaProgramada() }}</dd>
+    </dl>
+    @if (registro.estado === 'PROPUESTA' && puedeAceptar()) {
+      <p>{{ t.explicacion }}</p>
+      <button type="button" [disabled]="!habilitada()" (click)="aceptar()">
+        {{ enviando() ? (intentoActual() ? t.enviando : t.otroEnvio) : t.aceptar }}
+      </button>
+    }
+  }
+  @if (intentoActual()?.resultado) {
+    <p role="status">{{ t.confirmada }}</p>
+  }
+  @if (intentoActual()?.error; as error) {
+    <p role="alert">{{ error }}</p>
+  }
+</section>

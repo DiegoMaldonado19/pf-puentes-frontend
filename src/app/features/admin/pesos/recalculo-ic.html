@@ -1,0 +1,128 @@
+<section class="recalculos-ic" aria-labelledby="titulo-recalculos" [attr.aria-busy]="cargando()">
+  <header>
+    <h2 id="titulo-recalculos">{{ tr.titulo }}</h2>
+    <p>{{ tr.descripcion }}</p>
+    <button type="button" [disabled]="cargando() || enviando()" (click)="actualizar()">
+      {{ tr.actualizar }}
+    </button>
+  </header>
+
+  @if (cargando()) {
+    <p role="status">{{ tr.cargando }}</p>
+  } @else if (errorConsulta()) {
+    <p role="alert">{{ errorConsulta() }}</p>
+  } @else if (comparacion(); as vista) {
+    <section aria-labelledby="titulo-original-ic">
+      <h3 id="titulo-original-ic">{{ tr.original }}</h3>
+      <dl>
+        <dt>{{ tr.publicadaEn }}</dt>
+        <dd>{{ vista.original.publicada_en | date: 'dd/MM/yyyy' : '-0600' }}</dd>
+        <dt>{{ t.vigencia }}</dt>
+        <dd>{{ vista.original.vigente_desde | date: 'dd/MM/yyyy' : '-0600' }}</dd>
+        <dt>{{ t.acta }}</dt>
+        <dd>{{ vista.original.acta ?? t.sinActa }}</dd>
+        <dt>{{ tr.indiceOriginal }}</dt>
+        <dd>{{ vista.original.indice_condicion | number: '1.2-2' }}</dd>
+        <dt>{{ tr.estadoCalculado }}</dt>
+        <dd><app-estado-puente [estado]="vista.original.estado_calculado" /></dd>
+        <dt>{{ tr.estadoConfirmado }}</dt>
+        <dd><app-estado-puente [estado]="vista.original.estado_confirmado" /></dd>
+        <dt>{{ tr.justificacionConfirmado }}</dt>
+        <dd>{{ vista.original.justificacion_estado ?? tr.sinJustificacion }}</dd>
+        <dt>{{ tr.anulacion }}</dt>
+        <dd>{{ etiquetaAnulacion(vista.original.anulacion) }}</dd>
+      </dl>
+    </section>
+
+    @if (puedeRecalcular() && juegosDisponibles().length) {
+      <section aria-labelledby="titulo-solicitar-recalculo" [attr.aria-busy]="enviando()">
+        <h3 id="titulo-solicitar-recalculo">{{ tr.solicitarTitulo }}</h3>
+        <form [formGroup]="formulario" (ngSubmit)="solicitarRecalculo()">
+          <label for="selector-juego-recalculo">{{ tr.juegoPesos }}</label>
+          <select id="selector-juego-recalculo" formControlName="versionPesosId">
+            <option value="">{{ tr.elegirJuego }}</option>
+            @for (juego of juegosDisponibles(); track juego.id) {
+              <option [value]="juego.id">
+                {{ juego.vigente_desde | date: 'dd/MM/yyyy' : '-0600' }} —
+                {{ juego.acta ?? t.sinActa }}
+              </option>
+            }
+          </select>
+          <button type="submit" [disabled]="enviando()">
+            {{ enviando() ? tr.ejecutando : tr.ejecutar }}
+          </button>
+        </form>
+        @if (confirmacion()) {
+          <p role="status">{{ confirmacion() }}</p>
+        }
+        @if (errorEnvio()) {
+          <p role="alert">{{ errorEnvio() }}</p>
+        }
+      </section>
+    }
+
+    <section aria-labelledby="titulo-tabla-recalculos">
+      <h3 id="titulo-tabla-recalculos">{{ tr.tabla }}</h3>
+      @if (vista.recalculos.content.length) {
+        <div class="tabla" role="region" [attr.aria-label]="tr.tabla" tabindex="0">
+          <table>
+            <caption>
+              {{
+                tr.tabla
+              }}
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">{{ tr.fechaRecalculo }}</th>
+                <th scope="col">{{ t.vigencia }}</th>
+                <th scope="col">{{ t.acta }}</th>
+                <th scope="col">{{ tr.indiceRecalculado }}</th>
+                <th scope="col">{{ tr.diferenciaIc }}</th>
+                <th scope="col">{{ tr.estadoCalculado }}</th>
+                <th scope="col">{{ tr.anulacion }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (item of vista.recalculos.content; track item.id) {
+                <tr>
+                  <td>{{ item.creado_en | date: 'dd/MM/yyyy' : '-0600' }}</td>
+                  <td>{{ item.vigente_desde | date: 'dd/MM/yyyy' : '-0600' }}</td>
+                  <td>{{ item.acta ?? t.sinActa }}</td>
+                  <td>{{ item.indice_condicion | number: '1.2-2' }}</td>
+                  <td>
+                    {{ variacionRespectoOriginal(item) > 0 ? '+' : ''
+                    }}{{ variacionRespectoOriginal(item) | number: '1.2-2' }}
+                  </td>
+                  <td><app-estado-puente [estado]="item.estado_calculado" /></td>
+                  <td>{{ etiquetaAnulacion(item.anulacion) }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        <nav [attr.aria-label]="tr.paginacion">
+          <button
+            type="button"
+            [disabled]="enviando() || vista.recalculos.page === 0"
+            (click)="cambiarPagina(vista.recalculos.page - 1)"
+          >
+            {{ t.anterior }}
+          </button>
+          <span aria-live="polite">
+            {{ t.pagina }} {{ vista.recalculos.page + 1 }} {{ t.de }}
+            {{ vista.recalculos.total_pages }}
+          </span>
+          <button
+            type="button"
+            [disabled]="enviando() || vista.recalculos.page + 1 >= vista.recalculos.total_pages"
+            (click)="cambiarPagina(vista.recalculos.page + 1)"
+          >
+            {{ t.siguiente }}
+          </button>
+        </nav>
+      } @else {
+        <p role="status">{{ tr.vacia }}</p>
+      }
+    </section>
+  }
+</section>

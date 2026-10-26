@@ -9,6 +9,9 @@ import { TransporteSimulado } from './demo/transporte-simulado';
 import { TransporteSync } from './modelos';
 import { consultarAlmacenamiento } from './almacenamiento';
 
+Dexie.dependencies.indexedDB = indexedDB;
+Dexie.dependencies.IDBKeyRange = IDBKeyRange;
+
 describe('base offline', () => {
   let db: BaseLocal, local: PersistenciaOffline, transporte: TransporteSimulado, motor: MotorSync;
   const propietario = v7(),
@@ -39,6 +42,63 @@ describe('base offline', () => {
     longitud: -91,
     capturada_en: '2026-10-05T00:00:00Z',
   });
+  it('guarda fotos generales sin anclaje y de daño con contexto explícito', async () => {
+    const i = await local.crear(propietario, v7(), v7());
+    const general = await local.foto(propietario, i.id, foto());
+    const dano = await local.foto(propietario, i.id, foto(), {
+      origen: 'grupo_dano',
+      elemento_ref: 'subestructura.estribo.material',
+    });
+    expect(general.elemento_ref).toBeNull();
+    expect(dano.elemento_ref).toBe('subestructura.estribo.material');
+    expect(general.latitud).toBe(14);
+    expect(general.longitud).toBe(-91);
+    expect(general.capturada_en).toBe('2026-10-05T00:00:00Z');
+    expect(await general.archivo.text()).toBe('foto');
+    expect(await general.miniatura!.text()).toBe('mini');
+    expect((await local.inspeccion(propietario, i.id)).version_local).toBe(3);
+    const operaciones = await local.operaciones(propietario, i.id);
+    expect(operaciones.map((o) => o.tipo)).toEqual(['datos', 'foto', 'foto']);
+    expect(operaciones[2].dependencias).toEqual(operaciones.slice(0, 2).map((o) => o.id));
+    db.close();
+    await db.open();
+    // fake-indexeddb no conserva Blob de jsdom; los bytes se verifican en Chromium.
+    for (const f of [general, dano]) {
+      expect(await db.fotos.get(f.id)).toMatchObject({
+        id: f.id,
+        elemento_ref: f.elemento_ref,
+        latitud: f.latitud,
+        longitud: f.longitud,
+        capturada_en: f.capturada_en,
+        mime: f.mime,
+        tamano: f.tamano,
+        propietario_id: propietario,
+        inspeccion_id: i.id,
+        modelo_version: 1,
+        confirmado: false,
+      });
+    }
+    expect(await local.operaciones(propietario, i.id)).toEqual(operaciones);
+  });
+  it.each([undefined, null, '', '   '])(
+    'rechaza daño sin anclaje (%s) sin modificar captura ni cola',
+    async (elemento_ref) => {
+      const i = await local.crear(propietario, v7(), v7());
+      await local.foto(propietario, i.id, foto(), 'campo');
+      await local.enviar(propietario, i.id);
+      const antes = await local.inspeccion(propietario, i.id);
+      const cola = await local.operaciones(propietario, i.id);
+      const fotos = await db.fotos.toArray();
+      await expect(
+        local.foto(propietario, i.id, foto(), { origen: 'grupo_dano', elemento_ref }),
+      ).rejects.toThrow(
+        'La foto requiere blobs WebP/JPEG y anclaje si proviene de un grupo de daño',
+      );
+      expect(await local.inspeccion(propietario, i.id)).toEqual(antes);
+      expect(await local.operaciones(propietario, i.id)).toEqual(cola);
+      expect(await db.fotos.toArray()).toEqual(fotos);
+    },
+  );
   it('conserva clave y backoff tras recarga y detiene el quinto fallo', async () => {
     const i = await local.crear(propietario, v7(), v7());
     const original = (await local.operaciones(propietario, i.id))[0];
@@ -240,8 +300,18 @@ describe('base offline', () => {
     ).drenar();
     expect(transporte.registro).toHaveLength(0);
     expect((await local.operaciones(propietario, i.id))[0].intentos).toBe(0);
-    for (let n = 0; n < 60; n++) await local.foto(propietario, i.id, foto(), 'campo');
-    await expect(local.foto(propietario, i.id, foto(), 'campo')).rejects.toThrow();
+    for (let n = 0; n < 60; n++)
+      await local.foto(propietario, i.id, foto(), n % 2 ? 'campo' : { origen: 'general' });
+    await local.enviar(propietario, i.id);
+    const captura = await local.inspeccion(propietario, i.id);
+    const cola = await local.operaciones(propietario, i.id);
+    for (const contexto of ['campo', { origen: 'general' } as const]) {
+      await expect(local.foto(propietario, i.id, foto(), contexto)).rejects.toThrow(
+        'Se alcanzó el límite de archivos',
+      );
+      expect(await local.inspeccion(propietario, i.id)).toEqual(captura);
+      expect(await local.operaciones(propietario, i.id)).toEqual(cola);
+    }
     await expect(
       local.documento(
         propietario,
@@ -283,7 +353,7 @@ describe('base offline', () => {
     });
     expect(await migrada.cola_sync.count()).toBe(2);
     expect(await migrada.inspecciones.get(i.id)).toEqual(i);
-    expect(migrada.verno).toBe(2);
+    expect(migrada.verno).toBe(4);
     await migrada.delete();
   });
   it('informa denegación, ausencia y error de Storage API', async () => {
@@ -334,6 +404,62 @@ describe('base offline', () => {
       vi.useRealTimers();
     }
   });
+  it.each(['foto', 'documento'] as const)(
+    'revalida identidad tras esperar la lectura de %s, sin enviar ni confirmar datos ajenos',
+    async (tipo) => {
+      const i = await local.crear(propietario, v7(), v7());
+      await motor.drenar();
+      const archivo =
+        tipo === 'foto'
+          ? await local.foto(propietario, i.id, foto(), 'campo')
+          : await local.documento(
+              propietario,
+              i.id,
+              new Blob(['pdf'], { type: 'application/pdf' }),
+            );
+      const tabla = tipo === 'foto' ? db.fotos : db.documentos;
+      const archivoOriginal = await tabla.get(archivo.id);
+      const captura = await local.inspeccion(propietario, i.id);
+      const originales = await local.operaciones(propietario);
+      const leer = tabla.get.bind(tabla);
+      let iniciada!: () => void, continuar!: () => void;
+      const inicio = new Promise<void>((r) => (iniciada = r));
+      const espera = new Promise<void>((r) => (continuar = r));
+      const lectura = vi.spyOn(tabla, 'get').mockImplementationOnce((id) =>
+        leer(id).then(async (registro) => {
+          iniciada();
+          await espera;
+          return registro;
+        }),
+      );
+      let actual: string | null = propietario;
+      motor = new MotorSync(
+        db,
+        { propietarioActual: () => actual, preparar: async () => true },
+        transporte,
+        () => ahora,
+        () => true,
+      );
+      const trabajo = motor.drenar();
+      await inicio;
+      // Ambos cambios deben detectarse aunque el puerto no anuncie invalidaciones.
+      actual = tipo === 'foto' ? otro : null;
+      continuar();
+      try {
+        await trabajo;
+        expect(transporte.registro.map((o) => o.tipo)).toEqual(['datos']);
+        expect(await local.inspeccion(propietario, i.id)).toEqual(captura);
+        expect(await tabla.get(archivo.id)).toEqual(archivoOriginal);
+        expect(await local.operaciones(propietario)).toEqual(
+          originales.map((o) =>
+            o.entidad_id === archivo.id ? { ...o, ultimo_intento: ahora } : o,
+          ),
+        );
+      } finally {
+        lectura.mockRestore();
+      }
+    },
+  );
   it('detener durante adquisición no inicia transporte; fallo de preparar sesión pausa', async () => {
     await local.crear(propietario, v7(), v7());
     const trabajo = motor.drenar();

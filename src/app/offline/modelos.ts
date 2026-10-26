@@ -1,3 +1,5 @@
+import type { AsignacionP7DTO } from './asignaciones-p7';
+
 export type Json = null | boolean | number | string | Json[] | { [clave: string]: Json };
 export interface RegistroLocal {
   id: string;
@@ -19,6 +21,11 @@ export interface InspeccionLocal extends RegistroLocal {
   modificada_en: string;
   intencion_envio_en: string | null;
   estado_remoto: Json;
+}
+/** El consumidor declara el contexto; P4/P5 validarán el elemento real del daño. */
+export interface ContextoFoto {
+  origen: 'general' | 'grupo_dano';
+  elemento_ref?: string | null;
 }
 export interface ArchivoLocal extends RegistroLocal {
   inspeccion_id: string;
@@ -49,6 +56,11 @@ export interface Operacion extends RegistroLocal {
   ejecucion: string | null;
   resultado: Json | null;
 }
+export interface HabilitacionLocal {
+  id: 'ultima';
+  propietario_id: string;
+  revocados: string[];
+}
 export interface Bloqueo {
   propietario_id: string;
   token: string;
@@ -73,9 +85,22 @@ export interface TransporteSync {
 export interface SesionOffline {
   propietarioActual(): string | null;
   preparar(propietario_id: string): Promise<boolean>;
+  /** Cancela ejecución remota; no elimina capturas ni operaciones. */
+  alInvalidar?(cancelar: () => void): () => void;
+}
+export interface PreparacionCompleta extends RegistroLocal {
+  preparada_en: string;
+  formulario_version_id: string;
+  asignaciones: AsignacionP7DTO[];
+  publicaciones: { puente_id: string; publicacion: ReferenciaLocal | null }[];
+  puentes: ReferenciaLocal[];
+  esquemas_formulario: ReferenciaLocal[];
+}
+export interface LecturaReferencia {
+  puentes: ReferenciaLocal[];
+  esquemas_formulario: ReferenciaLocal[];
+  preparacion?: PreparacionCompleta;
 }
 export interface ReferenciaOffline {
-  consultar(
-    propietario_id: string,
-  ): Promise<{ puentes: ReferenciaLocal[]; esquemas_formulario: ReferenciaLocal[] }>;
+  consultar(propietario_id: string): Promise<LecturaReferencia>;
 }
