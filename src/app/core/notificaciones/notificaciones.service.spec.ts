@@ -2,6 +2,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { NotificacionesService } from './notificaciones.service';
+import { Notificacion } from './modelos';
 
 describe('NotificacionesService', () => {
   let servicio: NotificacionesService;
@@ -77,5 +78,51 @@ describe('NotificacionesService', () => {
       });
     http.expectOne('/api/v1/notificaciones/no-leidas/conteo').flush({ total: 0 });
     expect(servicio.error()).toBeNull();
+  });
+
+  it('marca una notificación como leída y actualiza la bandeja y el contador', () => {
+    const aviso: Notificacion = {
+      id: 'aviso-prueba',
+      tipo: 'MENCION',
+      mensaje: 'Aviso ficticio',
+      enlace: null,
+      creado_en: '2020-01-01T12:00:00Z',
+      leida_en: null,
+    };
+    servicio.establecerUsuario('usuario-prueba');
+    http.expectOne('/api/v1/notificaciones/no-leidas/conteo').flush({ total: 1 });
+    servicio.cargar();
+    http
+      .expectOne((r) => r.url === '/api/v1/notificaciones')
+      .flush({
+        contenido: [aviso],
+        pagina: 0,
+        tamano: 20,
+        total_elementos: 1,
+        total_paginas: 1,
+      });
+    servicio.marcarLeida(aviso.id);
+    const peticion = http.expectOne(`/api/v1/notificaciones/${aviso.id}/lectura`);
+    expect(peticion.request.method).toBe('PATCH');
+    expect(servicio.marcando().has(aviso.id)).toBe(true);
+    servicio.marcarLeida(aviso.id);
+    http.expectNone((r) => r.method === 'PATCH');
+    const leida = { ...aviso, leida_en: '2020-01-01T12:05:00Z' };
+    peticion.flush(leida);
+    http
+      .expectOne((r) => r.url === '/api/v1/notificaciones')
+      .flush({
+        contenido: [leida],
+        pagina: 0,
+        tamano: 20,
+        total_elementos: 1,
+        total_paginas: 1,
+      });
+    http.expectOne('/api/v1/notificaciones/no-leidas/conteo').flush({ total: 0 });
+    expect(servicio.notificaciones()[0].leida_en).toBe(leida.leida_en);
+    expect(servicio.noLeidas()).toBe(0);
+    expect(servicio.marcando().size).toBe(0);
+    servicio.marcarLeida(aviso.id);
+    http.expectNone(() => true);
   });
 });
