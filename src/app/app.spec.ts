@@ -10,6 +10,7 @@ import { PersistenciaOffline } from './offline/persistencia';
 import { App } from './app';
 import { AuthService } from './core/auth/auth';
 import { Rol, UsuarioSesionDTO } from './core/auth/modelos';
+import { NotificacionesService } from './core/notificaciones/notificaciones.service';
 
 class AuthFalso {
   readonly usuario = signal<UsuarioSesionDTO | null>(null);
@@ -27,9 +28,16 @@ describe('App', () => {
   let auth: AuthFalso;
   let db: BaseLocal;
   let propietario: string;
+  const notificaciones = {
+    generacion: signal(0),
+    sesionActiva: signal(false),
+    noLeidas: signal(0),
+    establecerUsuario: vi.fn(),
+  };
 
   beforeEach(async () => {
     auth = new AuthFalso();
+    notificaciones.establecerUsuario.mockClear();
     propietario = v7();
     db = new BaseLocal(`app-${v7()}`);
     const acceso = {
@@ -45,6 +53,7 @@ describe('App', () => {
         { provide: AuthService, useValue: auth },
         { provide: BaseLocal, useValue: db },
         { provide: AccesoLocal, useValue: acceso },
+        { provide: NotificacionesService, useValue: notificaciones },
       ],
     }).compileComponents();
   });
@@ -58,6 +67,22 @@ describe('App', () => {
     return [...html.querySelectorAll('nav a')].map((a) => a.getAttribute('href'));
   }
 
+  it('sincroniza las notificaciones al iniciar y terminar la sesion', async () => {
+    auth.entrar('ESTUDIANTE');
+    const fixture = TestBed.createComponent(App);
+    await fixture.whenStable();
+
+    expect(notificaciones.establecerUsuario).toHaveBeenLastCalledWith('u1');
+    const html = fixture.nativeElement as HTMLElement;
+    expect(html.querySelector('app-campana-notificaciones')).not.toBeNull();
+    expect(html.querySelectorAll('router-outlet')).toHaveLength(1);
+
+    auth.usuario.set(null);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(notificaciones.establecerUsuario).toHaveBeenLastCalledWith(null);
+  });
+
   it('ofrece un enlace para saltar al contenido y la navegación al inventario y al mapa', async () => {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();
@@ -69,10 +94,12 @@ describe('App', () => {
       '/puentes',
       '/puentes/mapa',
       '/offline/local',
+      '/foro',
       '/login',
       '/registro',
     ]);
     expect(html.querySelector('main#contenido router-outlet')).not.toBeNull();
+    expect(html.querySelector('app-campana-notificaciones')).toBeNull();
   });
 
   it('actualiza en navegación los conteos distintos del propietario habilitado', async () => {
@@ -112,7 +139,7 @@ describe('App', () => {
     await fixture.whenStable();
     const html = fixture.nativeElement as HTMLElement;
 
-    expect(hrefs(html)).toEqual(['/', '/puentes', '/puentes/mapa', '/offline/local']);
+    expect(hrefs(html)).toEqual(['/', '/puentes', '/puentes/mapa', '/offline/local', '/foro']);
     expect(html.textContent).not.toContain('Entrar');
   });
 
@@ -124,7 +151,14 @@ describe('App', () => {
 
     expect(html.textContent).toContain('Ana Pérez');
     expect(html.textContent).toContain('Estudiante');
-    expect(hrefs(html)).toEqual(['/', '/puentes', '/puentes/mapa', '/offline/local', '/perfil']);
+    expect(hrefs(html)).toEqual([
+      '/',
+      '/puentes',
+      '/puentes/mapa',
+      '/offline/local',
+      '/foro',
+      '/perfil',
+    ]);
     expect(html.querySelector('button')?.textContent).toContain('Cerrar sesión');
   });
 
@@ -140,6 +174,7 @@ describe('App', () => {
       '/puentes',
       '/puentes/mapa',
       '/offline/local',
+      '/foro',
       '/perfil',
       '/admin/pesos',
       '/admin/usuarios',
