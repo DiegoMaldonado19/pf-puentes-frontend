@@ -1,4 +1,13 @@
-import { ChangeDetectionStrategy, Component, ElementRef, effect, inject, HostListener, signal, viewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  effect,
+  inject,
+  HostListener,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { Router } from '@angular/router';
 import { Notificacion } from '../../core/notificaciones/modelos';
 import { NotificacionesService } from '../../core/notificaciones/notificaciones.service';

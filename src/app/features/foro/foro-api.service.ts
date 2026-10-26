@@ -1,7 +1,15 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { CategoriaHilo, Comentario, Hilo, Pagina, PeticionCrearComentario, PeticionCrearHilo, PuenteForo } from './modelos';
+import {
+  CategoriaHilo,
+  Comentario,
+  Hilo,
+  Pagina,
+  PeticionCrearComentario,
+  PeticionCrearHilo,
+  PuenteForo,
+} from './modelos';
 
 const API = '/api/v1';
 

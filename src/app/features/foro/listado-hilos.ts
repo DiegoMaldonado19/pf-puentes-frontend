@@ -1,11 +1,27 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, effect, inject, signal, viewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  ElementRef,
+  effect,
+  inject,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { TEXTOS } from '../../shared/textos';
 import { ForoService } from './foro.service';
 import { ForoLecturaService } from './foro-lectura.service';
 import { DialogoModeracion } from './dialogo-moderacion';
-import { CATEGORIAS_HILO, CategoriaHilo, Hilo, LIMITE_TITULO, esUuid, formatearFechaUtc } from './modelos';
+import {
+  CATEGORIAS_HILO,
+  CategoriaHilo,
+  Hilo,
+  LIMITE_TITULO,
+  esUuid,
+  formatearFechaUtc,
+} from './modelos';
 
 @Component({
   selector: 'app-listado-hilos',

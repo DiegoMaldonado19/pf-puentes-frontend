@@ -1,4 +1,12 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, output, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  input,
+  output,
+  signal,
+} from '@angular/core';
 import { TEXTOS } from '../../shared/textos';
 import { esUuid } from './modelos';
 import { MENCIONES_P2, PersonaMencion, SESION_P2 } from './puertos';

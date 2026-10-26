@@ -196,7 +196,7 @@ export class ForoLecturaService {
     this.api.listarRespuestas(raizId, page, size).subscribe({
       next: (resp) => {
         if (this.ultimoRespuestas[raizId] !== carga) {
-          return; 
+          return;
         }
         this.actualizarRespuestas(raizId, {
           contenido: resp.contenido,

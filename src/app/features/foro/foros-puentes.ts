@@ -27,9 +27,7 @@ export class ForosPuentes {
   protected readonly error = computed(() =>
     this.datos.error() ? mensajeDeError(this.datos.error(), this.textos.errorListadoPuentes) : '',
   );
-  protected readonly moderador = computed(() =>
-    tieneRolModeracion([this.auth.rol() ?? '']),
-  );
+  protected readonly moderador = computed(() => tieneRolModeracion([this.auth.rol() ?? '']));
 
   protected buscar(evento: SubmitEvent): void {
     evento.preventDefault();

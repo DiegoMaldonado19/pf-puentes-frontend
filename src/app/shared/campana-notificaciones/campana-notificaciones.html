@@ -134,9 +134,7 @@
             <button
               type="button"
               class="rounded px-2 py-1 hover:bg-slate-100 disabled:opacity-50"
-              [disabled]="
-                servicio.pagina() + 1 >= servicio.totalPaginas() || servicio.cargando()
-              "
+              [disabled]="servicio.pagina() + 1 >= servicio.totalPaginas() || servicio.cargando()"
               (click)="paginaSiguiente()"
             >
               {{ textos.siguiente }}

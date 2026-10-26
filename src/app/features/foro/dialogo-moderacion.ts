@@ -1,4 +1,12 @@
-import { ChangeDetectionStrategy, Component, ElementRef, effect, input, output, viewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  effect,
+  input,
+  output,
+  viewChild,
+} from '@angular/core';
 import { TEXTOS } from '../../shared/textos';
 
 @Component({

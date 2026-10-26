@@ -1,9 +1,21 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { TEXTOS } from '../../shared/textos';
 import { esUuid, formatearFechaUtc } from './modelos';
-import { ComentarioForoInspeccion, ContextoForoInspeccion, FORO_INSPECCION_API, ResultadoLecturaForoInspeccion } from './puertos';
+import {
+  ComentarioForoInspeccion,
+  ContextoForoInspeccion,
+  FORO_INSPECCION_API,
+  ResultadoLecturaForoInspeccion,
+} from './puertos';
 
 type EstadoVista =
   'CARGANDO' | 'PUBLICADA' | 'NO_PUBLICADA' | 'SIN_PERMISOS' | 'ERROR' | 'NO_INTEGRADO';
