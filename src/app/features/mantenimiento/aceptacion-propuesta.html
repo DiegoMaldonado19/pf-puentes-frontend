@@ -7,6 +7,14 @@
       <dd>{{ t.tipos[registro.tipo] }}</dd>
       <dt>{{ t.estado }}</dt>
       <dd>{{ t.estados[registro.estado] }}</dd>
+      @if (registro.elemento_ref) {
+        <dt>{{ t.historial.elemento }}</dt>
+        <dd>{{ registro.elemento_ref }}</dd>
+      }
+      @if (registro.inspeccion_id) {
+        <dt>{{ t.historial.origen }}</dt>
+        <dd>{{ registro.inspeccion_id }}</dd>
+      }
       <dt>{{ t.sugerida }}</dt>
       <dd>
         {{

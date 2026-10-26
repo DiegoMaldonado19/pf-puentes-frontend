@@ -1,0 +1,136 @@
+.panel-confirmacion {
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 1.25rem;
+  background-color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  font-family: inherit;
+}
+
+.titulo {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.explicacion {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #4b5563;
+  line-height: 1.4;
+}
+
+.fila-calculado {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  background-color: #f9fafb;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+}
+
+.control-confirmacion {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.etiqueta {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.etiqueta.obligatoria {
+  color: #1f2937;
+}
+
+.requerido {
+  color: #dc2626;
+  font-weight: 700;
+}
+
+.selector-estado {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.9375rem;
+  color: #111827;
+  background-color: #ffffff;
+  max-width: 250px;
+}
+
+.selector-estado:focus {
+  outline: 2px solid #2563eb;
+  outline-offset: 1px;
+}
+
+.grupo-justificacion {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  padding: 0.875rem;
+  background-color: #fffbeb;
+  border: 1px solid #fef3c7;
+  border-radius: 6px;
+}
+
+.campo-texto {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 0.875rem;
+  resize: vertical;
+}
+
+.campo-texto:focus {
+  outline: 2px solid #2563eb;
+  outline-offset: 1px;
+}
+
+.campo-texto.invalido {
+  border-color: #dc2626;
+  background-color: #fef2f2;
+}
+
+.error-validacion {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: #b91c1c;
+  font-weight: 500;
+}
+
+.alerta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.625rem 0.875rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+}
+
+.alerta-anulacion {
+  background-color: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+.alerta-advertencia {
+  background-color: #fff7ed;
+  color: #9a3412;
+  border: 1px solid #fed7aa;
+}
+
+.nota-coincide {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #065f46;
+  font-weight: 500;
+}

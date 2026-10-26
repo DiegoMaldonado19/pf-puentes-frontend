@@ -1,6 +1,6 @@
 # ADR 0024 — Habilitación local durable separada de P2
 
-Estado: propuesto; coordinación con P2 pendiente (G6).
+Estado: acordado previamente con P2, según confirmación de la persona usuaria en la conversación vigente; no se aportaron fecha ni evidencia externa independiente. G2 implementa el acceso local consultivo. Esto no acredita aprobación externa de la implementación ni completa el interceptor offline, la edición P5 o el drenaje real.
 
 ## Decisión
 

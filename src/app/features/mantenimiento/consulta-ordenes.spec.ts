@@ -4,7 +4,7 @@ import { By } from '@angular/platform-browser';
 import { CapturaFoto } from '../../shared/captura-foto/captura-foto';
 import { AjustePrioridadOrden } from './ajuste-prioridad-orden';
 import { ProgramacionOrden } from './programacion-orden';
-import { DescartePropuesta } from './descarte-propuesta';
+import { DecisionConMotivoOrden } from './decision-con-motivo-orden';
 import { EvidenciaYCierre } from './evidencia-y-cierre';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TEXTOS } from '../../shared/textos';
@@ -636,19 +636,85 @@ describe('ConsultaOrdenes', () => {
   }
   function enviarDescarte(motivo = 'Intervención duplicada') {
     const campo = (fixture.nativeElement as HTMLElement).querySelector(
-      'app-descarte-propuesta textarea',
+      'app-decision-con-motivo-orden textarea',
     ) as HTMLTextAreaElement;
     campo.value = motivo;
     campo.dispatchEvent(new Event('input'));
     (fixture.nativeElement as HTMLElement)
-      .querySelector('app-descarte-propuesta form')!
+      .querySelector('app-decision-con-motivo-orden form')!
       .dispatchEvent(new Event('submit', { cancelable: true }));
     fixture.detectChanges();
   }
 
+  function abrirParaCancelar(permiso = true, estado: EstadoOrden = 'PROGRAMADA') {
+    fixture.componentRef.setInput('puedeCancelar', permiso);
+    const actual = { ...orden, estado, motivo: null };
+    cargar([actual, segunda]);
+    abrir();
+    http.expectOne(rutaDetalle()).flush(actual);
+    fixture.detectChanges();
+    return actual;
+  }
+
+  it('cancelar exige su permiso y no lo deduce del descarte', () => {
+    fixture.componentRef.setInput('puedeDescartar', true);
+    abrirParaCancelar(false);
+    expect(fixture.debugElement.query(By.directive(DecisionConMotivoOrden))).toBeNull();
+    http.expectNone((req) => req.method !== 'GET');
+  });
+
+  it('cancelación confirmada conserva motivo, emite y deja la orden terminal en el historial', () => {
+    const actual = abrirParaCancelar();
+    const cancelada = vi.fn();
+    const descartada = vi.fn();
+    fixture.componentInstance.cancelada.subscribe(cancelada);
+    fixture.componentInstance.descartada.subscribe(descartada);
+    enviarDescarte('Cancelación documentada');
+    expect(fixture.componentInstance.operacionPendiente()).toBe(true);
+    expect(boton(h.ver).disabled).toBe(true);
+    const resultado = { ...actual, estado: 'CANCELADA', motivo: 'Cancelación documentada' };
+    http.expectOne(`${rutaDetalle()}/cancelacion`).flush(resultado);
+    fixture.detectChanges();
+    expect(cancelada).toHaveBeenCalledExactlyOnceWith(resultado);
+    expect(descartada).not.toHaveBeenCalled();
+    expect(texto()).toContain(TEXTOS.mantenimiento.cancelacion.confirmada);
+    expect(texto()).toContain(resultado.motivo);
+    expect(fixture.componentInstance.operacionPendiente()).toBe(false);
+    expect(fixture.debugElement.query(By.directive(DecisionConMotivoOrden))).toBeNull();
+  });
+
+  it.each<EstadoOrden>(['PROPUESTA', 'EN_EJECUCION', 'EJECUTADA', 'DESCARTADA', 'CANCELADA'])(
+    'no ofrece cancelación desde %s',
+    (estado) => {
+      abrirParaCancelar(true, estado);
+      expect(fixture.debugElement.query(By.directive(DecisionConMotivoOrden))).toBeNull();
+      http.expectNone((req) => req.method !== 'GET');
+    },
+  );
+
+  it.each([401, 403])('cancelación rechazada por acceso %s retira datos privados', (status) => {
+    abrirParaCancelar();
+    enviarDescarte();
+    http.expectOne(`${rutaDetalle()}/cancelacion`).flush({}, { status, statusText: 'Denied' });
+    fixture.detectChanges();
+    expect((fixture.nativeElement as HTMLElement).querySelector('table')).toBeNull();
+    expect(fixture.debugElement.query(By.directive(DecisionConMotivoOrden))).toBeNull();
+  });
+
+  it.each([404, 409, 500])('fallo de cancelación %s relee sin repetir el POST', (status) => {
+    abrirParaCancelar();
+    enviarDescarte();
+    http.expectOne(`${rutaDetalle()}/cancelacion`).flush({}, { status, statusText: 'Error' });
+    fixture.detectChanges();
+    http.expectOne(ruta()).flush(pagina([{ ...orden, estado: 'EN_EJECUCION' }]));
+    fixture.detectChanges();
+    expect(fixture.debugElement.query(By.directive(DecisionConMotivoOrden))).toBeNull();
+    http.expectNone((req) => req.method === 'POST');
+  });
+
   it('no habilita descarte con el permiso de lectura por sí solo', () => {
     abrirParaDescarte(false);
-    expect(fixture.debugElement.query(By.directive(DescartePropuesta))).toBeNull();
+    expect(fixture.debugElement.query(By.directive(DecisionConMotivoOrden))).toBeNull();
     http.expectNone((req) => req.method !== 'GET');
   });
 
@@ -667,7 +733,7 @@ describe('ConsultaOrdenes', () => {
     expect(descartada).toHaveBeenCalledExactlyOnceWith(resultado);
     expect(texto()).toContain(TEXTOS.mantenimiento.descarte.confirmada);
     expect(texto()).toContain(motivo);
-    expect(fixture.debugElement.query(By.directive(DescartePropuesta))).toBeNull();
+    expect(fixture.debugElement.query(By.directive(DecisionConMotivoOrden))).toBeNull();
     expect(fixture.componentInstance.operacionPendiente()).toBe(false);
     http.expectNone((req) => req.method !== 'GET');
   });
@@ -678,7 +744,7 @@ describe('ConsultaOrdenes', () => {
     http.expectOne(`${rutaDetalle()}/descarte`).flush({}, { status, statusText: 'Denied' });
     fixture.detectChanges();
     expect((fixture.nativeElement as HTMLElement).querySelector('table')).toBeNull();
-    expect(fixture.debugElement.query(By.directive(DescartePropuesta))).toBeNull();
+    expect(fixture.debugElement.query(By.directive(DecisionConMotivoOrden))).toBeNull();
   });
 
   it.each([404, 409, 500])(
@@ -690,7 +756,7 @@ describe('ConsultaOrdenes', () => {
       fixture.detectChanges();
       http.expectOne(ruta()).flush(pagina([{ ...orden, estado: 'PROGRAMADA' }]));
       fixture.detectChanges();
-      expect(fixture.debugElement.query(By.directive(DescartePropuesta))).toBeNull();
+      expect(fixture.debugElement.query(By.directive(DecisionConMotivoOrden))).toBeNull();
       http.expectNone((req) => req.method === 'POST');
     },
   );
@@ -841,47 +907,64 @@ describe('ConsultaOrdenes', () => {
     http.expectNone((req) => req.url.endsWith('/rutinario-anual'));
   });
 
-  it('abre el detalle de la rutina seleccionada y refresca el seguimiento tras programarla', () => {
-    fixture.componentRef.setInput('mostrarSeguimientoRutinario', true);
-    fixture.componentRef.setInput('puedeProgramar', true);
-    const actual = {
-      ...orden,
-      tipo: 'RUTINARIO' as const,
-      estado: 'PROGRAMADA' as const,
-      motivo: null,
-    };
-    const anual = {
-      puente_id: puente,
-      fecha_evaluacion: '2026-10-21',
-      fecha_referencia: '2026-01-01',
-      origen_referencia: 'EJECUCION_RUTINARIA',
-      fecha_limite: '2027-01-01',
-      programadas_en_plazo: 0,
-      sin_fecha: 1,
-      fechas_pasadas: 0,
-      posteriores_al_limite: 0,
-      ordenes: pagina([actual]),
-    };
-    const rutaAnual = `/api/v1/puentes/${puente}/ordenes-mantenimiento/rutinario-anual?page=0&size=20`;
-    cargar([actual]);
-    http.expectOne(rutaAnual).flush(anual);
-    fixture.detectChanges();
-    boton(TEXTOS.mantenimiento.rutinarioAnual.ver).click();
-    fixture.detectChanges();
-    http.expectOne(rutaDetalle()).flush(actual);
-    fixture.detectChanges();
-    enviarProgramacion();
-    expect(boton(TEXTOS.mantenimiento.rutinarioAnual.actualizar).disabled).toBe(true);
-    const guardada = { ...actual, fecha_programada: '2026-11-02' };
-    http.expectOne(`${rutaDetalle()}/fecha-programada`).flush(guardada);
-    fixture.detectChanges();
-    http
-      .expectOne(rutaAnual)
-      .flush({ ...anual, programadas_en_plazo: 1, sin_fecha: 0, ordenes: pagina([guardada]) });
-    fixture.detectChanges();
-    expect(texto()).toContain('02/11/2026');
-    expect(boton(TEXTOS.mantenimiento.rutinarioAnual.actualizar).disabled).toBe(false);
-  });
+  it.each(['programar', 'cancelar'] as const)(
+    'refresca el seguimiento de la rutina tras %s',
+    (operacion) => {
+      fixture.componentRef.setInput('mostrarSeguimientoRutinario', true);
+      fixture.componentRef.setInput(
+        operacion === 'programar' ? 'puedeProgramar' : 'puedeCancelar',
+        true,
+      );
+      const actual = {
+        ...orden,
+        tipo: 'RUTINARIO' as const,
+        estado: 'PROGRAMADA' as const,
+        motivo: null,
+      };
+      const anual = {
+        puente_id: puente,
+        fecha_evaluacion: '2026-10-21',
+        fecha_referencia: '2026-01-01',
+        origen_referencia: 'EJECUCION_RUTINARIA',
+        fecha_limite: '2027-01-01',
+        programadas_en_plazo: 0,
+        sin_fecha: 1,
+        fechas_pasadas: 0,
+        posteriores_al_limite: 0,
+        ordenes: pagina([actual]),
+      };
+      const rutaAnual = `/api/v1/puentes/${puente}/ordenes-mantenimiento/rutinario-anual?page=0&size=20`;
+      cargar([actual]);
+      http.expectOne(rutaAnual).flush(anual);
+      fixture.detectChanges();
+      boton(TEXTOS.mantenimiento.rutinarioAnual.ver).click();
+      fixture.detectChanges();
+      http.expectOne(rutaDetalle()).flush(actual);
+      fixture.detectChanges();
+      if (operacion === 'programar') enviarProgramacion();
+      else enviarDescarte('Cancelación de rutina');
+      expect(boton(TEXTOS.mantenimiento.rutinarioAnual.actualizar).disabled).toBe(true);
+      const guardada =
+        operacion === 'programar'
+          ? { ...actual, fecha_programada: '2026-11-02' }
+          : { ...actual, estado: 'CANCELADA' as const, motivo: 'Cancelación de rutina' };
+      http
+        .expectOne(
+          `${rutaDetalle()}/${operacion === 'programar' ? 'fecha-programada' : 'cancelacion'}`,
+        )
+        .flush(guardada);
+      fixture.detectChanges();
+      http.expectOne(rutaAnual).flush({
+        ...anual,
+        programadas_en_plazo: operacion === 'programar' ? 1 : 0,
+        sin_fecha: 0,
+        ordenes: pagina(operacion === 'programar' ? [guardada] : []),
+      });
+      fixture.detectChanges();
+      expect(texto()).toContain(operacion === 'programar' ? '02/11/2026' : 'Cancelación de rutina');
+      expect(boton(TEXTOS.mantenimiento.rutinarioAnual.actualizar).disabled).toBe(false);
+    },
+  );
 
   it.each([401, 403])('acceso rechazado %s al programar retira listado y detalle', (status) => {
     abrirParaProgramacion();

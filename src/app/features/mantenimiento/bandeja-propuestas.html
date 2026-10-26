@@ -34,7 +34,12 @@
             <tbody>
               @for (orden of datos.content; track orden.id) {
                 <tr>
-                  <th scope="row">{{ orden.descripcion }}</th>
+                  <th scope="row">
+                    {{ orden.descripcion }}
+                    @if (orden.elemento_ref) {
+                      <small class="elemento-origen"> ({{ orden.elemento_ref }})</small>
+                    }
+                  </th>
                   <td>{{ t.tipos[orden.tipo] }}</td>
                   <td>{{ t.prioridades[orden.prioridad] }}</td>
                   <td>

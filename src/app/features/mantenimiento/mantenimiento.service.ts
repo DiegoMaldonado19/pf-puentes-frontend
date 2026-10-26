@@ -5,7 +5,7 @@ import {
   CierreOrden,
   AjustarPrioridad,
   ProgramarFechaOrden,
-  DescartarOrden,
+  MotivoOrden,
   EvidenciaDTO,
   PaginaEvidencias,
   OrdenMantenimientoDTO,
@@ -83,10 +83,21 @@ export class MantenimientoService {
   descartar(
     puenteId: string,
     ordenId: string,
-    datos: DescartarOrden,
+    datos: MotivoOrden,
   ): Observable<OrdenMantenimientoDTO> {
     return this.http.post<OrdenMantenimientoDTO>(
       `${this.rutaOrden(puenteId, ordenId)}/descarte`,
+      datos,
+    );
+  }
+
+  cancelar(
+    puenteId: string,
+    ordenId: string,
+    datos: MotivoOrden,
+  ): Observable<OrdenMantenimientoDTO> {
+    return this.http.post<OrdenMantenimientoDTO>(
+      `${this.rutaOrden(puenteId, ordenId)}/cancelacion`,
       datos,
     );
   }

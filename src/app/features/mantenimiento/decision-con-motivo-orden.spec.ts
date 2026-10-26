@@ -2,10 +2,10 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TEXTOS } from '../../shared/textos';
-import { DescartePropuesta } from './descarte-propuesta';
+import { DecisionConMotivoOrden } from './decision-con-motivo-orden';
 import { EstadoOrden, OrdenMantenimientoDTO } from './modelos';
 
-const orden: OrdenMantenimientoDTO = {
+const propuesta: OrdenMantenimientoDTO = {
   id: '019a0031-0000-7000-8000-000000000010',
   puente_id: '019a0031-0000-7000-8000-000000000001',
   inspeccion_id: null,
@@ -24,22 +24,28 @@ const orden: OrdenMantenimientoDTO = {
   actualizado_en: '2026-10-20T12:00:00Z',
 };
 const motivo = '  Ya existe otra propuesta para la misma intervención.  ';
-const ruta = `/api/v1/puentes/${orden.puente_id}/ordenes-mantenimiento/${orden.id}/descarte`;
-const t = TEXTOS.mantenimiento.descarte;
 
-describe('DescartePropuesta', () => {
-  let fixture: ComponentFixture<DescartePropuesta>;
+describe.each(['descarte', 'cancelacion'] as const)('DecisionConMotivoOrden: %s', (operacion) => {
+  const orden: OrdenMantenimientoDTO = {
+    ...propuesta,
+    estado: operacion === 'descarte' ? 'PROPUESTA' : 'PROGRAMADA',
+  };
+  const destino = operacion === 'descarte' ? 'DESCARTADA' : 'CANCELADA';
+  const ruta = `/api/v1/puentes/${orden.puente_id}/ordenes-mantenimiento/${orden.id}/${operacion}`;
+  const t = TEXTOS.mantenimiento[operacion];
+  let fixture: ComponentFixture<DecisionConMotivoOrden>;
   let http: HttpTestingController;
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [DescartePropuesta],
+      imports: [DecisionConMotivoOrden],
       providers: [provideHttpClient(), provideHttpClientTesting()],
     });
-    fixture = TestBed.createComponent(DescartePropuesta);
+    fixture = TestBed.createComponent(DecisionConMotivoOrden);
     http = TestBed.inject(HttpTestingController);
+    fixture.componentRef.setInput('operacion', operacion);
     fixture.componentRef.setInput('orden', orden);
     fixture.componentRef.setInput('puedeConsultar', true);
-    fixture.componentRef.setInput('puedeDescartar', true);
+    fixture.componentRef.setInput('puedeDecidir', true);
     fixture.detectChanges();
   });
   afterEach(() => http.verify());
@@ -58,17 +64,25 @@ describe('DescartePropuesta', () => {
     fixture.detectChanges();
   }
 
-  it.each<EstadoOrden>(['PROGRAMADA', 'EN_EJECUCION', 'EJECUTADA', 'DESCARTADA', 'CANCELADA'])(
-    'no ofrece descarte para %s',
-    (estado) => {
-      fixture.componentRef.setInput('orden', { ...orden, estado });
-      fixture.detectChanges();
-      expect(html().querySelector('form')).toBeNull();
-      http.expectNone(() => true);
-    },
-  );
+  it.each(
+    (
+      [
+        'PROPUESTA',
+        'PROGRAMADA',
+        'EN_EJECUCION',
+        'EJECUTADA',
+        'DESCARTADA',
+        'CANCELADA',
+      ] as EstadoOrden[]
+    ).filter((estado) => estado !== orden.estado),
+  )('no ofrece descarte para %s', (estado) => {
+    fixture.componentRef.setInput('orden', { ...orden, estado });
+    fixture.detectChanges();
+    expect(html().querySelector('form')).toBeNull();
+    http.expectNone(() => true);
+  });
 
-  it.each(['puedeConsultar', 'puedeDescartar'])('requiere permiso explícito de %s', (permiso) => {
+  it.each(['puedeConsultar', 'puedeDecidir'])('requiere permiso explícito de %s', (permiso) => {
     fixture.componentRef.setInput(permiso, false);
     fixture.detectChanges();
     expect(html().querySelector('form')).toBeNull();
@@ -86,14 +100,14 @@ describe('DescartePropuesta', () => {
   it('envía el motivo exacto y solo confirma con el DTO persistido de la misma orden', () => {
     escribir();
     const descartada = vi.fn();
-    fixture.componentInstance.descartada.subscribe(descartada);
+    fixture.componentInstance.confirmada.subscribe(descartada);
     enviar();
     const req = http.expectOne(ruta);
     expect(req.request.method).toBe('POST');
     expect(req.request.body).toEqual({ motivo });
     expect(req.request.headers.has('Authorization')).toBe(false);
     expect(descartada).not.toHaveBeenCalled();
-    const resultado = { ...orden, estado: 'DESCARTADA', motivo };
+    const resultado = { ...orden, estado: destino, motivo };
     req.flush(resultado);
     fixture.detectChanges();
     expect(descartada).toHaveBeenCalledExactlyOnceWith(resultado);
@@ -106,7 +120,7 @@ describe('DescartePropuesta', () => {
     enviar();
     const req = http.expectOne(ruta);
     expect(req.request.body).toEqual({ motivo: largo });
-    req.flush({ ...orden, estado: 'DESCARTADA', motivo: largo });
+    req.flush({ ...orden, estado: destino, motivo: largo });
     expect(html().querySelector('textarea')?.hasAttribute('maxlength')).toBe(false);
   });
 
@@ -118,7 +132,7 @@ describe('DescartePropuesta', () => {
     expect(html().querySelector('textarea')?.readOnly).toBe(true);
     enviar();
     const req = http.expectOne(ruta);
-    req.flush({ ...orden, estado: 'DESCARTADA', motivo });
+    req.flush({ ...orden, estado: destino, motivo });
     fixture.detectChanges();
     expect(fixture.componentInstance.envioPendiente()).toBe(false);
   });
@@ -165,16 +179,16 @@ describe('DescartePropuesta', () => {
   );
 
   it.each([
-    { ...orden, estado: 'DESCARTADA', motivo, id: 'otra' },
-    { ...orden, estado: 'DESCARTADA', motivo, puente_id: 'otro' },
+    { ...orden, estado: destino, motivo, id: 'otra' },
+    { ...orden, estado: destino, motivo, puente_id: 'otro' },
     { ...orden, estado: 'PROGRAMADA', motivo },
-    { ...orden, estado: 'DESCARTADA', motivo: null },
+    { ...orden, estado: destino, motivo: null },
   ])('no confirma una respuesta incompatible y pide releer', (resultado) => {
     escribir();
     const actualizar = vi.fn();
     const descartada = vi.fn();
     fixture.componentInstance.actualizacionRequerida.subscribe(actualizar);
-    fixture.componentInstance.descartada.subscribe(descartada);
+    fixture.componentInstance.confirmada.subscribe(descartada);
     enviar();
     http.expectOne(ruta).flush(resultado);
     fixture.detectChanges();
@@ -187,10 +201,10 @@ describe('DescartePropuesta', () => {
     enviar();
     const req = http.expectOne(ruta);
     const descartada = vi.fn();
-    fixture.componentInstance.descartada.subscribe(descartada);
+    fixture.componentInstance.confirmada.subscribe(descartada);
     fixture.componentRef.setInput('orden', { ...orden, id: 'otra' });
     fixture.detectChanges();
-    req.flush({ ...orden, estado: 'DESCARTADA', motivo });
+    req.flush({ ...orden, estado: destino, motivo });
     fixture.detectChanges();
     expect(descartada).not.toHaveBeenCalled();
     expect(html().querySelector('textarea')?.value).toBe('');
@@ -201,12 +215,33 @@ describe('DescartePropuesta', () => {
     enviar();
     const req = http.expectOne(ruta);
     const descartada = vi.fn();
-    fixture.componentInstance.descartada.subscribe(descartada);
-    fixture.componentRef.setInput('puedeDescartar', false);
+    fixture.componentInstance.confirmada.subscribe(descartada);
+    fixture.componentRef.setInput('puedeDecidir', false);
     fixture.detectChanges();
-    req.flush({ ...orden, estado: 'DESCARTADA', motivo });
+    req.flush({ ...orden, estado: destino, motivo });
     expect(descartada).not.toHaveBeenCalled();
     expect(html().querySelector('form')).toBeNull();
+  });
+
+  it('cambiar de operación ignora la respuesta anterior y retira el motivo', () => {
+    escribir();
+    const confirmada = vi.fn();
+    fixture.componentInstance.confirmada.subscribe(confirmada);
+    enviar();
+    const req = http.expectOne(ruta);
+    fixture.componentRef.setInput(
+      'operacion',
+      operacion === 'descarte' ? 'cancelacion' : 'descarte',
+    );
+    fixture.componentRef.setInput('orden', {
+      ...orden,
+      estado: operacion === 'descarte' ? 'PROGRAMADA' : 'PROPUESTA',
+    });
+    fixture.detectChanges();
+    req.flush({ ...orden, estado: destino, motivo });
+    fixture.detectChanges();
+    expect(confirmada).not.toHaveBeenCalled();
+    expect(html().querySelector('textarea')?.value).toBe('');
   });
 
   it('destruir la vista desuscribe la petición sin afirmar rollback del servidor', () => {
