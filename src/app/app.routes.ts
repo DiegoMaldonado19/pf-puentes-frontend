@@ -6,6 +6,36 @@ import { TEXTOS } from './shared/textos';
 
 export const routes: Routes = [
   {
+    path: 'mis-revisiones',
+    title: TEXTOS.revision.misPendientes,
+    canActivate: [rolGuard('ESTUDIANTE')],
+    loadComponent: () => import('./features/revision/mis-revisiones').then((m) => m.MisRevisiones),
+  },
+  {
+    path: 'historial-revisiones/:inspeccionId',
+    title: TEXTOS.revision.historial,
+    canActivate: [sesionGuard],
+    loadComponent: () =>
+      import('./features/revision/vista-historial-revisiones').then(
+        (m) => m.VistaHistorialRevisiones,
+      ),
+  },
+  {
+    path: 'revisiones/:revisionId',
+    title: TEXTOS.revision.detalle,
+    canActivate: [rolGuard('CATEDRATICO')],
+    canDeactivate: [(componente: { guardando: () => boolean }) => !componente.guardando()],
+    loadComponent: () =>
+      import('./features/revision/detalle-revision').then((m) => m.DetalleRevision),
+  },
+  {
+    path: 'revisiones',
+    title: TEXTOS.revision.titulo,
+    canActivate: [rolGuard('CATEDRATICO')],
+    loadComponent: () =>
+      import('./features/revision/bandeja-revision').then((m) => m.BandejaRevision),
+  },
+  {
     path: 'cursos',
     canActivate: [rolCursosGuard],
     data: { rol: 'CATEDRATICO' },
