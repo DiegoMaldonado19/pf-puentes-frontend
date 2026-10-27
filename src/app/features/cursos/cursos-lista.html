@@ -1,0 +1,81 @@
+<section [attr.aria-busy]="ocupado()">
+  <header class="cabecera-cursos">
+    <div>
+      <h1>{{ textos.misCursos }}</h1>
+      <p class="descripcion">{{ textos.descripcion }}</p>
+    </div>
+    <button
+      class="secundario"
+      type="button"
+      [disabled]="ocupado()"
+      (click)="cargar(pagina()?.number ?? 0)"
+    >
+      {{ textos.actualizar }}
+    </button>
+  </header>
+  @if (error()) {
+    <p role="alert">{{ error() }}</p>
+    <button type="button" [disabled]="ocupado()" (click)="cargar()">{{ textos.reintentar }}</button>
+  }
+  @if (ocupado()) {
+    <p role="status">{{ textos.cargando }}</p>
+  }
+  <div class="panel-cursos">
+    <aside class="panel-creacion" aria-labelledby="titulo-crear-curso">
+      <h2 id="titulo-crear-curso">{{ textos.nuevo }}</h2>
+      <p class="descripcion">{{ textos.crearDescripcion }}</p>
+      <app-formulario-curso [ocupado]="ocupado()" (guardado)="crear($event)" />
+    </aside>
+    <div class="panel-listado" aria-labelledby="titulo-listado-cursos">
+      <h2 id="titulo-listado-cursos">{{ textos.listado }}</h2>
+      <p class="descripcion">{{ textos.listadoDescripcion }}</p>
+      @if (pagina(); as datos) {
+        <p class="resumen-cursos">
+          {{ textos.totalCursos }}: <strong>{{ datos.total_elements }}</strong>
+        </p>
+        <ul class="tarjetas-cursos">
+          @for (curso of datos.content; track curso.id) {
+            <li>
+              <div class="cabecera-tarjeta">
+                <h3>
+                  <a [routerLink]="['/cursos', curso.id]">{{ curso.nombre }}</a>
+                </h3>
+                <span class="insignia" [class.insignia-vigente]="curso.vigente">{{
+                  curso.vigente ? textos.vigente : textos.cerrado
+                }}</span>
+              </div>
+              <dl>
+                <div>
+                  <dt>{{ textos.anio }}</dt>
+                  <dd>{{ curso.anio }}</dd>
+                </div>
+                <div>
+                  <dt>{{ textos.semestre }}</dt>
+                  <dd>{{ curso.semestre }}</dd>
+                </div>
+              </dl>
+              <a
+                class="accion-enlace"
+                [routerLink]="['/cursos', curso.id]"
+                [attr.aria-label]="textos.gestionar + ': ' + curso.nombre"
+                >{{ textos.gestionar }} →</a
+              >
+            </li>
+          } @empty {
+            <li class="estado-vacio">
+              <h3>{{ textos.sinCursos }}</h3>
+              <p>{{ textos.sinCursosDescripcion }}</p>
+            </li>
+          }
+        </ul>
+        <app-paginacion-cursos
+          [etiqueta]="textos.misCursos"
+          [pagina]="datos.number"
+          [paginas]="datos.total_pages"
+          [ocupado]="ocupado()"
+          (cambio)="cargar($event)"
+        />
+      }
+    </div>
+  </div>
+</section>

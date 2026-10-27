@@ -17,6 +17,8 @@ import { AccesoLocal, crearAccesoLocal } from './offline/acceso-local';
 import { ROL_PUENTES } from './features/puentes/rol-puentes';
 import { SESION_P2 } from './features/foro/puertos';
 import { crearSesionForo } from './features/foro/sesion-foro';
+import { proveerSesionCursos } from './features/cursos/sesion-cursos';
+import { crearSesionCursosAuth } from './features/cursos/sesion-cursos-auth';
 
 export async function inicializarSesion(): Promise<void> {
   // Suscribir revocación antes de que la hidratación pueda cambiar la identidad.
@@ -42,6 +44,7 @@ export const appConfig: ApplicationConfig = {
     provideAppInitializer(inicializarSesion),
     { provide: ROL_PUENTES, useFactory: () => inject(AuthService).rol },
     { provide: SESION_P2, useFactory: crearSesionForo },
+    proveerSesionCursos(crearSesionCursosAuth),
     provideServiceWorker('ngsw-worker.js', { enabled: !isDevMode() }),
   ],
 };

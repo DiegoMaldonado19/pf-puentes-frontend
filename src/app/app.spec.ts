@@ -157,6 +157,7 @@ describe('App', () => {
       '/puentes/mapa',
       '/offline/local',
       '/foro',
+      '/mis-asignaciones',
       '/perfil',
     ]);
     expect(html.querySelector('button')?.textContent).toContain('Cerrar sesión');
