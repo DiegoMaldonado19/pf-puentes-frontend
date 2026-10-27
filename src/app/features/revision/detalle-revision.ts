@@ -9,10 +9,13 @@ import { AuthService } from '../../core/auth/auth';
 import { MarcaAnclada, MarcadorAnclado } from '../../shared/marcador-anclado/marcador-anclado';
 import { TEXTOS } from '../../shared/textos';
 import { MotorFormularioComponent } from '../formulario/motor-formulario/motor-formulario';
+import { ArchivoDTO } from './revision-api';
+import { ConfirmacionEstado } from '../../shared/confirmacion-estado/confirmacion-estado';
 import { CalificacionRevision } from './calificacion-revision';
 import { HistorialRevisiones } from './historial-revisiones';
 import {
   DetalleRevision as DatosRevision,
+  EstimacionPreliminarIcDTO,
   ObservacionRevision,
   RevisionApi,
   Veredicto,
@@ -28,12 +31,15 @@ import {
     MarcadorAnclado,
     CalificacionRevision,
     HistorialRevisiones,
+    ConfirmacionEstado,
   ],
   templateUrl: './detalle-revision.html',
 })
 export class DetalleRevision {
   readonly t = TEXTOS.revision;
   readonly detalle = signal<DatosRevision | null>(null);
+  readonly archivos = signal<ArchivoDTO[]>([]);
+  readonly icPreliminar = signal<EstimacionPreliminarIcDTO | null>(null);
   readonly cargando = signal(false);
   readonly guardando = signal(false);
   readonly error = signal('');
@@ -91,8 +97,16 @@ export class DetalleRevision {
         next: (datos) => {
           if (generacion !== this.generacion) return;
           this.detalle.set(datos);
-          this.cargando.set(false);
           this.observacion.reset({ referencia: datos.campos[0]?.referencia ?? '', texto: '' });
+          this.api.archivos(id).subscribe({
+            next: (arch) => { if (generacion === this.generacion) this.archivos.set(arch); },
+            error: () => { if (generacion === this.generacion) this.archivos.set([]); },
+          });
+          this.api.icPreliminar(datos.inspeccion_id).subscribe({
+            next: (ic) => { if (generacion === this.generacion) this.icPreliminar.set(ic); },
+            error: () => { if (generacion === this.generacion) this.icPreliminar.set(null); },
+          });
+          this.cargando.set(false);
         },
         error: (error) => {
           if (generacion === this.generacion) {
@@ -120,6 +134,15 @@ export class DetalleRevision {
       (datos.veredicto === 'APROBADA' || !!datos.observacion.trim()) &&
       (datos.veredicto !== 'APROBADA' || !datos.estado || !!datos.justificacion.trim())
     );
+  }
+
+  onConfirmacionCambio(cambio: { estadoConfirmado: any; justificacion: string | null; valida: boolean }) {
+    if (cambio.estadoConfirmado !== this.decision.controls.estado.value) {
+      this.decision.controls.estado.setValue(cambio.estadoConfirmado);
+    }
+    if ((cambio.justificacion ?? '') !== this.decision.controls.justificacion.value) {
+      this.decision.controls.justificacion.setValue(cambio.justificacion ?? '');
+    }
   }
 
   emitir() {

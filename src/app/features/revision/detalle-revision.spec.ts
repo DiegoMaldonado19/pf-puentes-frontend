@@ -36,6 +36,8 @@ describe('Detalle y veredicto de revisión', () => {
       detalle: vi.fn(() => of(datos)),
       decidir: vi.fn(() => decision),
       observar: vi.fn(() => observacion),
+      archivos: vi.fn(() => of([])),
+      icPreliminar: vi.fn(() => of({ estado_calculado: 'BUENO' } as any)),
       calificacion: vi.fn(() => of({ calificacion: null })),
       historial: vi.fn(() =>
         of({ content: [], number: 0, size: 10, total_elements: 0, total_pages: 0 }),

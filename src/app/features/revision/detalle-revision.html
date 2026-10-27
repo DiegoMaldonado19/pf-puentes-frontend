@@ -23,6 +23,7 @@
     <app-calificacion-revision [revisionId]="actual.id" [editable]="true" />
     <p class="break-all text-sm text-slate-600">
       {{ t.ciclo }}: {{ actual.id }} · {{ actual.estado }}
+      <a class="ml-3 underline text-blue-700" [routerLink]="['/inspecciones', actual.inspeccion_id]">Ir a inspección</a>
     </p>
     @if (actual.veredicto) {
       <div role="status" class="my-4 rounded bg-slate-100 p-4">
@@ -34,6 +35,20 @@
       <summary class="cursor-pointer font-semibold">{{ t.formularioOriginal }}</summary>
       <app-motor-formulario [esquema]="actual.esquema" [datos]="actual.datos" modo="lectura" />
     </details>
+    <h2 class="my-4 text-xl font-semibold">Evidencia</h2>
+    <ul class="my-4 grid gap-4">
+      @for (archivo of archivos(); track archivo.id) {
+        <li class="rounded border border-slate-300 bg-white p-4">
+          <p class="text-sm text-slate-600">{{ archivo.tipo }}</p>
+          @if (archivo.miniatura_url) {
+            <img [src]="archivo.miniatura_url" class="max-h-48 my-2" alt="miniatura" />
+          }
+          <a [href]="archivo.url" target="_blank" class="underline text-blue-700">Abrir archivo</a>
+        </li>
+      } @empty {
+        <li class="rounded bg-slate-100 p-4">Sin archivos</li>
+      }
+    </ul>
     <h2 class="my-4 text-xl font-semibold">{{ t.campos }}</h2>
     <p class="text-slate-600">{{ t.camposDescripcion }}</p>
     <ul class="my-4 grid gap-4">
@@ -41,6 +56,7 @@
         <li class="min-w-0 rounded border border-slate-300 bg-white p-4">
           <h3 class="font-semibold">{{ campo.titulo }}</h3>
           <p class="break-all text-sm text-slate-600">{{ campo.referencia }}</p>
+          <a class="text-sm underline text-blue-700" [routerLink]="['/inspecciones', actual.inspeccion_id]" [queryParams]="{ref: campo.referencia}">Ir a inspección</a>
           <pre class="my-2 max-h-48 overflow-auto whitespace-pre-wrap rounded bg-slate-50 p-3">{{
             campo.valor | json
           }}</pre>
@@ -132,29 +148,14 @@
             ></textarea>
           </label>
           @if (decision.controls.veredicto.value === 'APROBADA') {
-            <label
-              >{{ t.estadoConfirmado
-              }}<select
-                class="mt-1 block min-h-11 rounded border border-slate-400 p-2"
-                formControlName="estado"
-              >
-                <option value="">{{ t.usarCalculado }}</option>
-                <option value="BUENO">{{ t.bueno }}</option>
-                <option value="REGULAR">{{ t.regular }}</option>
-                <option value="MALO">{{ t.malo }}</option>
-              </select></label
-            >
-            @if (decision.controls.estado.value) {
-              <label
-                >{{ t.justificacion
-                }}<textarea
-                  class="mt-1 block w-full rounded border border-slate-400 p-3"
-                  rows="3"
-                  maxlength="10000"
-                  formControlName="justificacion"
-                  required
-                ></textarea>
-              </label>
+            @if (icPreliminar(); as ic) {
+              <app-confirmacion-estado
+                [estadoCalculado]="ic.estado_calculado"
+                [deshabilitado]="guardando()"
+                (cambio)="onConfirmacionCambio($event)"
+              />
+            } @else {
+              <p class="text-sm text-slate-600">Cálculo de IC no disponible para este borrador.</p>
             }
           }
           <button

@@ -80,6 +80,24 @@ export interface RevisionAbierta {
   creado_en: string;
 }
 
+export interface ArchivoDTO {
+  id: string;
+  tipo: string;
+  url: string | null;
+  miniatura_url: string | null;
+  elemento_ref?: string | null;
+}
+
+export interface EstimacionPreliminarIcDTO {
+  indice_condicion: number;
+  estado_calculado: 'BUENO' | 'REGULAR' | 'MALO';
+  anulaciones: string[];
+  version_pesos_id: string;
+  preliminar: boolean;
+  rotulo: string;
+  advertencia: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class RevisionApi {
   private readonly http = inject(HttpClient);
@@ -108,6 +126,17 @@ export class RevisionApi {
     return this.http.post<ObservacionRevision>(
       `/api/v1/revisiones/${encodeURIComponent(id)}/observaciones`,
       { elemento_ref, texto },
+    );
+  }
+  archivos(id: string) {
+    return this.http.get<ArchivoDTO[]>(
+      `/api/v1/revisiones/${encodeURIComponent(id)}/archivos`,
+    );
+  }
+  icPreliminar(inspeccionId: string) {
+    return this.http.post<EstimacionPreliminarIcDTO>(
+      `/api/v1/inspecciones/${encodeURIComponent(inspeccionId)}/ic-preliminar`,
+      {},
     );
   }
 
