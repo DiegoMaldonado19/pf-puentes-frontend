@@ -1,5 +1,35 @@
 // DT-FE-12: los textos de la interfaz viven aquí para poder traducirla sin tocar las plantillas
 export const TEXTOS = {
+  revision: {
+    titulo: 'Revisión académica',
+    descripcion:
+      'Inspecciones enviadas por estudiantes de tus cursos. Abre un ciclo para comenzar su revisión.',
+    filtro: 'Estado',
+    todos: 'Todos los pendientes',
+    enviada: 'Enviada',
+    enRevision: 'En revisión',
+    actualizar: 'Actualizar bandeja',
+    total: 'Inspecciones pendientes',
+    estudiante: 'Estudiante',
+    curso: 'Curso',
+    fecha: 'Fecha de envío',
+    abrir: 'Abrir revisión',
+    abriendo: 'Abriendo revisión…',
+    abierta: 'Ciclo de revisión abierto correctamente.',
+    ciclo: 'Ciclo',
+    siguiente:
+      'La emisión de veredictos y la revisión de evidencia se incorporarán en el siguiente incremento.',
+    sinCiclo: 'Ciclo no disponible',
+    cargando: 'Cargando inspecciones…',
+    vacio: 'No hay inspecciones pendientes con este estado.',
+    conflicto:
+      'La inspección cambió o ya está en revisión. Actualiza la bandeja antes de continuar.',
+    error:
+      'No se pudo completar la operación. Actualiza la bandeja para comprobar su estado; no se reintenta la apertura automáticamente.',
+    paginas: 'Páginas de revisiones',
+    anterior: 'Anterior',
+    siguientePagina: 'Siguiente',
+  },
   cursos: {
     descripcion: 'Administra tus cursos, inscribe estudiantes y organiza la asignación de puentes.',
     listado: 'Cursos registrados',

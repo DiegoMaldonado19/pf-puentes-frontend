@@ -15,6 +15,7 @@ import { TEXTOS } from './shared/textos';
   templateUrl: './app.html',
 })
 export class App {
+  protected readonly textosRevision = TEXTOS.revision;
   protected readonly textosCursos = TEXTOS.cursos;
   protected readonly t = TEXTOS.puentes.nav;
   protected readonly tPesos = TEXTOS.pesos.titulo;

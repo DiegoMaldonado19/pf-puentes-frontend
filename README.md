@@ -1,5 +1,9 @@
 # pf-puentes-frontend
 
+## Revisión académica: bandeja e inicio de ciclo
+
+Ruta privada `/revisiones` y enlace para Catedrático, con filtro de estado, paginación remota, apertura de ciclo y recarga de resultados. Reutiliza autenticación e interceptores existentes. [Guía de uso y alcance](docs/revision-academica.md). Evidencia y veredictos siguen pendientes; abrir no publica la inspección.
+
 ## Cursos y asignaciones — 27/10/2026
 
 Gestión académica integrada con la autenticación compartida: el Catedrático accede a `/cursos` y `/cursos/:cursoId`; el Estudiante, a `/mis-asignaciones`. `/acceso-cursos` resuelve la entrada por rol o solicita iniciar sesión en `/login`. La cabecera presenta enlaces según el rol.

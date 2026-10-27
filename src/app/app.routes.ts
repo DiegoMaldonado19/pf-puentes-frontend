@@ -6,6 +6,13 @@ import { TEXTOS } from './shared/textos';
 
 export const routes: Routes = [
   {
+    path: 'revisiones',
+    title: TEXTOS.revision.titulo,
+    canActivate: [rolGuard('CATEDRATICO')],
+    loadComponent: () =>
+      import('./features/revision/bandeja-revision').then((m) => m.BandejaRevision),
+  },
+  {
     path: 'cursos',
     canActivate: [rolCursosGuard],
     data: { rol: 'CATEDRATICO' },

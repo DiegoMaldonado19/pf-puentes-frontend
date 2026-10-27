@@ -163,6 +163,14 @@ describe('App', () => {
     expect(html.querySelector('button')?.textContent).toContain('Cerrar sesión');
   });
 
+  it('ofrece cursos y revisión académica al catedrático', async () => {
+    auth.entrar('CATEDRATICO');
+    const fixture = TestBed.createComponent(App);
+    await fixture.whenStable();
+    expect(hrefs(fixture.nativeElement)).toContain('/revisiones');
+    expect(hrefs(fixture.nativeElement)).toContain('/cursos');
+  });
+
   it('muestra administración solo al administrador', async () => {
     auth.entrar('ADMINISTRADOR');
     const fixture = TestBed.createComponent(App);
