@@ -191,7 +191,8 @@ G3: coordinación durable disponible; ver [preparacion-local.md](preparacion-loc
 P4: `EsquemasP4` disponible por propietario (G9.1, contrato HTTP probado en aislamiento).
 P5: falta el proveedor real de última publicación; su ausencia impide completar preparación;
 P4: validación offline del formulario. P5: borrador, revisión base y transición editable/envío.
-P1: transporte HTTP/multipart con las claves y UUID originales. Los rechazos
+P1: transporte HTTP/multipart con las claves y UUID originales, ya en `TransporteHttp`
+([ADR 0033](adr/0033-transporte-http-de-la-cola-offline.md)); conectarlo al motor real es de P6. Los rechazos
 de editabilidad conservarán las versiones nuevas locales; esta base no fuerza
 una transición remota ni sustituye la máquina de estados de P5. El ACK JSON
 versionado permite añadir revisiones sin reconstruir IndexedDB.
