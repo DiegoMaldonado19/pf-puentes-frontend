@@ -6,6 +6,14 @@ import { TEXTOS } from './shared/textos';
 
 export const routes: Routes = [
   {
+    path: 'revisiones/:revisionId',
+    title: TEXTOS.revision.detalle,
+    canActivate: [rolGuard('CATEDRATICO')],
+    canDeactivate: [(componente: { guardando: () => boolean }) => !componente.guardando()],
+    loadComponent: () =>
+      import('./features/revision/detalle-revision').then((m) => m.DetalleRevision),
+  },
+  {
     path: 'revisiones',
     title: TEXTOS.revision.titulo,
     canActivate: [rolGuard('CATEDRATICO')],

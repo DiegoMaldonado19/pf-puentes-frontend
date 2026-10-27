@@ -39,7 +39,9 @@
     <div role="status" class="mb-4 rounded border border-green-300 bg-green-50 p-4 text-green-900">
       <p>{{ t.abierta }}</p>
       <p class="break-all">{{ t.ciclo }}: {{ revision.id }}</p>
-      <p>{{ t.siguiente }}</p>
+      <a class="text-blue-800 underline" [routerLink]="['/revisiones', revision.id]">{{
+        t.continuar
+      }}</a>
     </div>
   }
   @if (cargando()) {
@@ -83,6 +85,13 @@
             <p class="break-all text-sm text-slate-600">
               {{ t.ciclo }}: {{ fila.revision_id || t.sinCiclo }}
             </p>
+            @if (fila.revision_id) {
+              <a
+                class="inline-flex min-h-11 items-center text-blue-800 underline"
+                [routerLink]="['/revisiones', fila.revision_id]"
+                >{{ t.continuar }}</a
+              >
+            }
           }
         </li>
       } @empty {

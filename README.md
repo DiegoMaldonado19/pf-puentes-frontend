@@ -2,7 +2,7 @@
 
 ## Revisión académica: bandeja e inicio de ciclo
 
-Ruta privada `/revisiones` y enlace para Catedrático, con filtro de estado, paginación remota, apertura de ciclo y recarga de resultados. Reutiliza autenticación e interceptores existentes. [Guía de uso y alcance](docs/revision-academica.md). Evidencia y veredictos siguen pendientes; abrir no publica la inspección.
+Ruta privada `/revisiones` y enlace para Catedrático, con filtro de estado, paginación remota y apertura de ciclo. `/revisiones/:revisionId` muestra el formulario original en lectura, campos con marcadores compartidos, observaciones ancladas y los tres veredictos. Reutiliza autenticación e interceptores existentes. Abrir no publica; la aprobación confirmada sí usa el flujo oficial del servidor. [Guía de uso y alcance](docs/revision-academica.md). Archivos firmados, calificación, historial completo y pendientes del estudiante siguen pendientes.
 
 ## Cursos y asignaciones — 27/10/2026
 

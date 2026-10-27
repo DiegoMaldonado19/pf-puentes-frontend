@@ -1,6 +1,37 @@
 // DT-FE-12: los textos de la interfaz viven aquí para poder traducirla sin tocar las plantillas
 export const TEXTOS = {
   revision: {
+    detalle: 'Revisar inspección',
+    volver: 'Volver a la bandeja',
+    continuar: 'Continuar revisión',
+    formularioOriginal: 'Formulario original en solo lectura',
+    campos: 'Campos y observaciones ancladas',
+    camposDescripcion:
+      'Cada marcador corresponde a la referencia del campo en la versión original. Los arreglos se muestran como un campo completo.',
+    sinCampos: 'La versión original no expone campos disponibles para anclar.',
+    agregarObservacion: 'Agregar observación anclada',
+    campo: 'Campo del formulario',
+    textoObservacion: 'Observación escrita',
+    guardarObservacion: 'Guardar observación',
+    emitirVeredicto: 'Emitir veredicto',
+    veredicto: 'Decisión',
+    aprobar: 'Aprobar y publicar',
+    cambios: 'Solicitar cambios',
+    rechazar: 'Rechazar',
+    observacionGeneral: 'Observación general (obligatoria para cambios o rechazo)',
+    avisoDecision:
+      'La aprobación publica con el cálculo oficial. Los cambios devuelven a borrador; el rechazo es terminal. Comprueba tu decisión antes de confirmar.',
+    estadoConfirmado: 'Estado confirmado al publicar',
+    usarCalculado: 'Conservar el estado calculado',
+    bueno: 'Bueno',
+    regular: 'Regular',
+    malo: 'Malo',
+    justificacion: 'Justificación del estado elegido',
+    confirmarDecision: 'Confirmar veredicto',
+    guardando: 'Guardando…',
+    decisionConfirmada: 'Veredicto confirmado',
+    errorDecision:
+      'No se pudo confirmar la operación. Verifica la observación, la referencia y la configuración de cálculo; actualiza para comprobar el estado antes de repetirla.',
     titulo: 'Revisión académica',
     descripcion:
       'Inspecciones enviadas por estudiantes de tus cursos. Abre un ciclo para comenzar su revisión.',

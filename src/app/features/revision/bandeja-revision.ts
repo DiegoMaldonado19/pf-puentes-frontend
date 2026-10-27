@@ -2,7 +2,7 @@ import { DatePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, DestroyRef, effect, inject, signal, untracked } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { AuthService } from '../../core/auth/auth';
 import { TEXTOS } from '../../shared/textos';
@@ -10,7 +10,7 @@ import { EstadoRevision, PaginaRevisiones, RevisionAbierta, RevisionApi } from '
 
 @Component({
   selector: 'app-bandeja-revision',
-  imports: [DatePipe],
+  imports: [DatePipe, RouterLink],
   templateUrl: './bandeja-revision.html',
 })
 export class BandejaRevision {

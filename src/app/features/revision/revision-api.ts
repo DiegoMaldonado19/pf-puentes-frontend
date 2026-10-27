@@ -1,5 +1,30 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
+import { EsquemaFormulario } from '../formulario/modelos';
+
+export type Veredicto = 'APROBADA' | 'CAMBIOS_SOLICITADOS' | 'RECHAZADA';
+export interface ObservacionRevision {
+  id: string;
+  elemento_ref: string;
+  texto: string;
+}
+export interface DetalleRevision {
+  id: string;
+  inspeccion_id: string;
+  estado: string;
+  veredicto: Veredicto | null;
+  observacion: string | null;
+  esquema: EsquemaFormulario;
+  datos: Record<string, unknown>;
+  campos: { referencia: string; titulo: string; valor: unknown }[];
+  observaciones: ObservacionRevision[];
+}
+export interface DecisionRevision {
+  veredicto: Veredicto;
+  observacion: string;
+  estado_confirmado?: 'BUENO' | 'REGULAR' | 'MALO' | null;
+  justificacion_estado?: string | null;
+}
 
 export type EstadoRevision = '' | 'ENVIADA' | 'EN_REVISION';
 export interface PendienteRevision {
@@ -37,6 +62,22 @@ export class RevisionApi {
     return this.http.post<RevisionAbierta>(
       `/api/v1/inspecciones/${encodeURIComponent(inspeccionId)}/revisiones`,
       {},
+    );
+  }
+
+  detalle(id: string) {
+    return this.http.get<DetalleRevision>(`/api/v1/revisiones/${encodeURIComponent(id)}`);
+  }
+  decidir(id: string, datos: DecisionRevision) {
+    return this.http.post<DetalleRevision>(
+      `/api/v1/revisiones/${encodeURIComponent(id)}/veredicto`,
+      datos,
+    );
+  }
+  observar(id: string, elemento_ref: string, texto: string) {
+    return this.http.post<ObservacionRevision>(
+      `/api/v1/revisiones/${encodeURIComponent(id)}/observaciones`,
+      { elemento_ref, texto },
     );
   }
 }
