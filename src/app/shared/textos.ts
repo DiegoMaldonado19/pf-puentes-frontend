@@ -1,6 +1,32 @@
 // DT-FE-12: los textos de la interfaz viven aquí para poder traducirla sin tocar las plantillas
 export const TEXTOS = {
   revision: {
+    misInspecciones: 'Historial de mis inspecciones',
+    misPendientes: 'Mis pendientes de revisión',
+    totalPendientes: 'Observaciones pendientes',
+    resolucionDescripcion:
+      'Consulta las observaciones emitidas. Marca una como resuelta solo después de corregir tu borrador. Esta acción no edita ni reenvía la inspección.',
+    resolver: 'Ya corregí: marcar resuelta',
+    resuelta: 'Resuelta',
+    pendiente: 'Pendiente',
+    soloBorrador: 'La resolución está disponible cuando la inspección vuelve a borrador.',
+    sinPendientes: 'No tienes observaciones emitidas pendientes de resolver.',
+    historial: 'Historial de ciclos',
+    verHistorial: 'Ver historial de la inspección',
+    historialDescripcion:
+      'Cada ciclo conserva su veredicto y observaciones. Las calificaciones se consultan por separado con permisos privados.',
+    sinHistorial: 'No hay ciclos de revisión registrados.',
+    errorSeguimiento:
+      'No se pudo completar la consulta o resolución. Actualiza el historial y comprueba tus permisos y el estado del borrador.',
+    calificacionPrivada: 'Calificación privada',
+    privacidadNota: 'Visible únicamente para el autor y el revisor de este ciclo.',
+    sinCalificacion: 'Sin calificación',
+    nota: 'Calificación (0–100)',
+    guardarNota: 'Guardar calificación',
+    notaOpcional:
+      'Opcional, hasta dos decimales. Guarda el campo vacío para retirar la calificación.',
+    notaNoDisponible: 'No tienes acceso a la calificación de este ciclo.',
+    errorNota: 'No se pudo consultar o guardar la calificación. Comprueba el rango y tus permisos.',
     detalle: 'Revisar inspección',
     volver: 'Volver a la bandeja',
     continuar: 'Continuar revisión',

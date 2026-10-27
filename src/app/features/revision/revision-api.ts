@@ -7,6 +7,36 @@ export interface ObservacionRevision {
   id: string;
   elemento_ref: string;
   texto: string;
+  resuelta_en?: string | null;
+}
+
+export interface PendienteRevisionEstudiante extends ObservacionRevision {
+  revision_id: string;
+  inspeccion_id: string;
+  estado: string;
+  puente_codigo: string;
+}
+export interface InspeccionRevisada {
+  inspeccion_id: string;
+  puente_codigo: string;
+  estado: string;
+}
+export interface CicloRevision {
+  id: string;
+  revisor_id: string;
+  veredicto: Veredicto | null;
+  observacion: string | null;
+  creado_en: string;
+  emitida_en: string | null;
+  estado: string;
+  observaciones: ObservacionRevision[];
+}
+export interface PaginaSeguimiento<T> {
+  content: T[];
+  number: number;
+  size: number;
+  total_elements: number;
+  total_pages: number;
 }
 export interface DetalleRevision {
   id: string;
@@ -78,6 +108,42 @@ export class RevisionApi {
     return this.http.post<ObservacionRevision>(
       `/api/v1/revisiones/${encodeURIComponent(id)}/observaciones`,
       { elemento_ref, texto },
+    );
+  }
+
+  misPendientes(page = 0) {
+    return this.http.get<PaginaSeguimiento<PendienteRevisionEstudiante>>(
+      '/api/v1/revisiones/mis-pendientes',
+      { params: { page, size: 10 } },
+    );
+  }
+  misInspecciones(page = 0) {
+    return this.http.get<PaginaSeguimiento<InspeccionRevisada>>(
+      '/api/v1/revisiones/mis-inspecciones',
+      { params: { page, size: 10 } },
+    );
+  }
+  resolver(id: string) {
+    return this.http.patch<ObservacionRevision>(
+      `/api/v1/observaciones/${encodeURIComponent(id)}/resolucion`,
+      {},
+    );
+  }
+  historial(id: string, page = 0) {
+    return this.http.get<PaginaSeguimiento<CicloRevision>>(
+      `/api/v1/inspecciones/${encodeURIComponent(id)}/revisiones`,
+      { params: { page, size: 10 } },
+    );
+  }
+  calificacion(id: string) {
+    return this.http.get<{ calificacion: number | null }>(
+      `/api/v1/revisiones/${encodeURIComponent(id)}/calificacion`,
+    );
+  }
+  calificar(id: string, calificacion: number | null) {
+    return this.http.put<{ calificacion: number | null }>(
+      `/api/v1/revisiones/${encodeURIComponent(id)}/calificacion`,
+      { calificacion },
     );
   }
 }

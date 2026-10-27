@@ -6,6 +6,21 @@ import { TEXTOS } from './shared/textos';
 
 export const routes: Routes = [
   {
+    path: 'mis-revisiones',
+    title: TEXTOS.revision.misPendientes,
+    canActivate: [rolGuard('ESTUDIANTE')],
+    loadComponent: () => import('./features/revision/mis-revisiones').then((m) => m.MisRevisiones),
+  },
+  {
+    path: 'historial-revisiones/:inspeccionId',
+    title: TEXTOS.revision.historial,
+    canActivate: [sesionGuard],
+    loadComponent: () =>
+      import('./features/revision/vista-historial-revisiones').then(
+        (m) => m.VistaHistorialRevisiones,
+      ),
+  },
+  {
     path: 'revisiones/:revisionId',
     title: TEXTOS.revision.detalle,
     canActivate: [rolGuard('CATEDRATICO')],

@@ -157,6 +157,7 @@ describe('App', () => {
       '/puentes/mapa',
       '/offline/local',
       '/foro',
+      '/mis-revisiones',
       '/mis-asignaciones',
       '/perfil',
     ]);

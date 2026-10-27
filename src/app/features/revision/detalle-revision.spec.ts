@@ -36,6 +36,10 @@ describe('Detalle y veredicto de revisión', () => {
       detalle: vi.fn(() => of(datos)),
       decidir: vi.fn(() => decision),
       observar: vi.fn(() => observacion),
+      calificacion: vi.fn(() => of({ calificacion: null })),
+      historial: vi.fn(() =>
+        of({ content: [], number: 0, size: 10, total_elements: 0, total_pages: 0 }),
+      ),
     };
     const paramMap = convertToParamMap({ revisionId: 'ciclo' });
     TestBed.configureTestingModule({

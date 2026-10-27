@@ -20,6 +20,7 @@
     <p role="status">{{ t.cargando }}</p>
   }
   @if (detalle(); as actual) {
+    <app-calificacion-revision [revisionId]="actual.id" [editable]="true" />
     <p class="break-all text-sm text-slate-600">
       {{ t.ciclo }}: {{ actual.id }} · {{ actual.estado }}
     </p>
@@ -166,5 +167,6 @@
         </fieldset>
       </form>
     }
+    <app-historial-revisiones [inspeccionId]="actual.inspeccion_id" />
   }
 </section>

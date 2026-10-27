@@ -9,6 +9,8 @@ import { AuthService } from '../../core/auth/auth';
 import { MarcaAnclada, MarcadorAnclado } from '../../shared/marcador-anclado/marcador-anclado';
 import { TEXTOS } from '../../shared/textos';
 import { MotorFormularioComponent } from '../formulario/motor-formulario/motor-formulario';
+import { CalificacionRevision } from './calificacion-revision';
+import { HistorialRevisiones } from './historial-revisiones';
 import {
   DetalleRevision as DatosRevision,
   ObservacionRevision,
@@ -18,7 +20,15 @@ import {
 
 @Component({
   selector: 'app-detalle-revision',
-  imports: [RouterLink, ReactiveFormsModule, JsonPipe, MotorFormularioComponent, MarcadorAnclado],
+  imports: [
+    RouterLink,
+    ReactiveFormsModule,
+    JsonPipe,
+    MotorFormularioComponent,
+    MarcadorAnclado,
+    CalificacionRevision,
+    HistorialRevisiones,
+  ],
   templateUrl: './detalle-revision.html',
 })
 export class DetalleRevision {

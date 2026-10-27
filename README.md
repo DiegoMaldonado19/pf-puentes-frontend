@@ -1,8 +1,10 @@
 # pf-puentes-frontend
 
-## Revisión académica: bandeja e inicio de ciclo
+## Revisión académica — 27/10/2026
 
-Ruta privada `/revisiones` y enlace para Catedrático, con filtro de estado, paginación remota y apertura de ciclo. `/revisiones/:revisionId` muestra el formulario original en lectura, campos con marcadores compartidos, observaciones ancladas y los tres veredictos. Reutiliza autenticación e interceptores existentes. Abrir no publica; la aprobación confirmada sí usa el flujo oficial del servidor. [Guía de uso y alcance](docs/revision-academica.md). Archivos firmados, calificación, historial completo y pendientes del estudiante siguen pendientes.
+Seguimiento: `/mis-revisiones` para pendientes e inspecciones propias con revisión; `/historial-revisiones/:inspeccionId` para ciclos y resoluciones sin perder los anteriores. La calificación opcional tiene un componente y endpoint privado por ciclo: lectura de autor/revisor y edición por el revisor asignado. Los avisos de 15 días usan la campana existente y enlazan a la bandeja. [ADR 0036](docs/adr/0036-pendientes-historial-y-calificacion-privada.md).
+
+Ruta privada `/revisiones` y enlace para Catedrático, con filtro de estado, paginación remota y apertura de ciclo. `/revisiones/:revisionId` muestra el formulario original en lectura, campos con marcadores compartidos, observaciones ancladas y los tres veredictos. Reutiliza autenticación e interceptores existentes. Abrir no publica; la aprobación confirmada sí usa el flujo oficial del servidor. [Guía de uso y alcance](docs/revision-academica.md). Archivos firmados, integración visual de edición/reenvío con Inspecciones y recorrido de navegador siguen pendientes.
 
 ## Cursos y asignaciones — 27/10/2026
 
@@ -10,7 +12,7 @@ Gestión académica integrada con la autenticación compartida: el Catedrático 
 
 Panel con creación, tarjetas, período/vigencia, total y paginación del servidor; detalle con edición, inscripción y asignación de puentes; consulta del estudiante con nombres/códigos y fecha. Selectores con búsqueda paginada. Diseño adaptable azul/slate acorde al inventario; sin datos ficticios ni nuevas responsabilidades de autenticación.
 
-[Guía y validación actual](docs/P7/README.md) · [ADR 0033](docs/adr/0033-integracion-de-sesion-en-cursos.md). Formato revisado; pruebas/build frontend pendientes por dependencias locales incompletas (`maplibre-gl`). Revisión académica es un incremento separado, todavía pendiente.
+[Guía y validación de Cursos](docs/P7/README.md) · [ADR 0033](docs/adr/0033-integracion-de-sesion-en-cursos.md). La nota de dependencias incompletas corresponde a la revisión inicial de Cursos; los resultados del incremento actual de Revisión académica están en su guía enlazada arriba.
 
 ### Trazabilidad de daño e inspección de origen en bandeja y aceptación de propuestas (P8, 25/10/2026)
 
