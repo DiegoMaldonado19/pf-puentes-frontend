@@ -14,4 +14,4 @@ Se comprueban la regresión de textos compartidos, restauración antes de autori
 
 **Límite:** AuthService e interceptores reales siguen pendientes de P2. No se ha probado ni se declara terminado el recorrido de autenticación/renovación automático completo en un navegador. P7 entrega el puerto y sus pruebas de consumidor, no una sesión ficticia ni un servicio alternativo.
 
-Contrato: [integración de sesión](integracion-sesion.md). Decisión: [ADR 0033](../adr/0033-integracion-de-sesion-en-cursos.md), renumerado posteriormente.
+Contrato: [integración de sesión](integracion-sesion.md). Decisión: [ADR 0034](../adr/0034-integracion-de-sesion-en-cursos.md), renumerado posteriormente.

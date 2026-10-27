@@ -28,7 +28,7 @@ El catedrático recibe en la campana compartida un aviso de revisión vencida a 
 
 Pendiente: fotos/documentos firmados y recorrido completo con edición/reenvío en la pantalla de Inspecciones. Las capturas reales para el manual quedan pendientes; no se incluyen imágenes simuladas. [ADR 0036](adr/0036-pendientes-historial-y-calificacion-privada.md).
 
-Pruebas: `bandeja-revision.spec.ts` cubre cliente HTTP, paginación/filtro, guardia, apertura única, recarga y descarte por cambio de identidad. [ADR 0034](adr/0034-bandeja-y-apertura-de-revision-academica.md).
+Pruebas: `bandeja-revision.spec.ts` cubre cliente HTTP, paginación/filtro, guardia, apertura única, recarga y descarte por cambio de identidad. [ADR 0037](adr/0037-bandeja-y-apertura-de-revision-academica.md).
 
 ## Validación local — 27/10/2026
 

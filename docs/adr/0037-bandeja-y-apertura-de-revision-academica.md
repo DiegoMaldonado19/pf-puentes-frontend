@@ -1,7 +1,8 @@
-# 0034. Bandeja protegida e inicio de revisión
+# 0037. Bandeja protegida e inicio de revisión
 
 - Estado: aceptado para el incremento de bandeja/apertura.
 - Fecha: 27/10/2026.
+- Renumeración: desde 0034 para conservar el ADR de Cursos integrado en develop.
 - Reglas: RN-REV-01/03 y DT-SEC-04.
 
 `/revisiones` es una ruta diferida para Catedrático, protegida por `rolGuard`, con enlace en la cabecera por rol. Usa la sesión y los interceptores existentes; no persiste credenciales. Consume el GET paginado y el POST de apertura del backend, sin inferir autorizaciones por nombres ni datos del navegador.

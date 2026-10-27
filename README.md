@@ -12,7 +12,7 @@ Gestión académica integrada con la autenticación compartida: el Catedrático 
 
 Panel con creación, tarjetas, período/vigencia, total y paginación del servidor; detalle con edición, inscripción y asignación de puentes; consulta del estudiante con nombres/códigos y fecha. Selectores con búsqueda paginada. Diseño adaptable azul/slate acorde al inventario; sin datos ficticios ni nuevas responsabilidades de autenticación.
 
-[Guía y validación de Cursos](docs/P7/README.md) · [ADR 0033](docs/adr/0033-integracion-de-sesion-en-cursos.md). La nota de dependencias incompletas corresponde a la revisión inicial de Cursos; los resultados del incremento actual de Revisión académica están en su guía enlazada arriba.
+[Guía y validación de Cursos](docs/P7/README.md) · [ADR 0034](docs/adr/0034-integracion-de-sesion-en-cursos.md). La nota de dependencias incompletas corresponde a la revisión inicial de Cursos; los resultados del incremento actual de Revisión académica están en su guía enlazada arriba.
 
 ### Trazabilidad de daño e inspección de origen en bandeja y aceptación de propuestas (P8, 25/10/2026)
 

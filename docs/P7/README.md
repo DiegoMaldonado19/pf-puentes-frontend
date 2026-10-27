@@ -19,13 +19,13 @@ Actualizado al 11/10: búsquedas por nombre de estudiante y por nombre/código d
 
 Al 18/10, P7 ofrece `IntegracionSesionCursos` y `proveerSesionCursos`: sesión reactiva, restauración delegada antes de guardias y ruta de acceso de P2. Con el puerto conectado, Authorization/renovación pertenecen exclusivamente al interceptor P2. El proveedor anterior `SESION_CURSOS` se conserva como compatibilidad. No hay sesión por defecto ni tokens persistidos. [Contrato, ejemplo de conexión y pruebas](integracion-sesion.md).
 
-Las cuentas pendientes necesitan el adaptador de activación de P2 en backend. La UI muestra 503 como dependencia de activación, sin anunciar éxito ni borrar la selección.
+Las cuentas pendientes utilizan `ActivadorDeEstudiante`, ya disponible en backend. La UI conserva el tratamiento de 503 como protección si falta ese proveedor, sin anunciar éxito ni borrar la selección; no es el comportamiento normal de la versión integrada.
 
-El backend ya entrega login, renovación, cierre y perfil propio por HTTP. **AuthService e interceptores Angular siguen siendo responsabilidad pendiente de P2**: no se implementan ni se simulan desde P7. Sin ese proveedor las rutas privadas siguen cerradas. Al cerrar/cambiar sesión o recibir un rechazo de acceso final, P7 limpia sus datos y selecciones; no intenta renovar por su cuenta.
+El backend entrega login, renovación, cierre y perfil propio por HTTP. AuthService e interceptores Angular también están disponibles y conectados mediante el adaptador de Cursos; no se duplican ni se simulan desde este módulo. Solo si se retira el proveedor las rutas privadas permanecen cerradas. Al cerrar/cambiar sesión o recibir un rechazo de acceso final, Cursos limpia sus datos y selecciones; no intenta renovar por su cuenta.
 
 Se corrigió la regresión del merge de `shared/textos.ts`: `estadoPuente`, `offline` y `capturaFoto` vuelven a la raíz junto a `cursos`, conservando los contratos de otros compañeros.
 
-Código y pruebas: `src/app/features/cursos/`. Textos en `shared/textos.ts`; fechas dd/MM/yyyy UTC−6. [ADR 0033](../adr/0033-integracion-de-sesion-en-cursos.md).
+Código y pruebas: `src/app/features/cursos/`. Textos en `shared/textos.ts`; fechas dd/MM/yyyy UTC−6. [ADR 0034](../adr/0034-integracion-de-sesion-en-cursos.md).
 
 ## Estado actual — 27/10/2026
 
@@ -38,7 +38,7 @@ El proveedor de sesión ya está conectado en `app.config.ts` mediante `crearSes
 
 Estilo compartido por las vistas/formulario en `cursos.css`: azul/slate, tarjetas blancas, diseño adaptable y controles accesibles. Se retiraron de `app.css` los estilos antiguos que interferían con la cabecera global.
 
-Validación actual: Prettier y `git diff --check` correctos. Se añadió `cursos-lista.spec.ts`; las pruebas frontend recientes no llegaron a ejecutarse por ausencia local de `maplibre-gl`. Build y revisión visual real quedan pendientes. Los resultados del 18/10 son históricos, no certifican estos cambios.
+La ausencia de `maplibre-gl` bloqueó una verificación inicial; no representa el estado de todas las ejecuciones posteriores. Los resultados del 18/10 son históricos. La validación posterior al merge de Foro y transporte offline se registra en [Revisión académica](../revision-academica.md); el recorrido visual real y las capturas siguen pendientes.
 
 Chequeos: `npx prettier --check .`, `npm run lint`, `npm run build`, `npx ng test --watch=false`.
 
