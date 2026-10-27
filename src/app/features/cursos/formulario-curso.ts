@@ -34,27 +34,7 @@ import { CursoDTO, GuardarCursoDTO } from './modelos';
       </fieldset>
     </form>
   `,
-  styles: `
-    fieldset {
-      display: grid;
-      gap: 1rem;
-      border: 1px solid #64748b;
-      border-radius: 0.5rem;
-      padding: 1rem;
-    }
-    label {
-      display: grid;
-      gap: 0.4rem;
-    }
-    input,
-    select,
-    button {
-      min-height: 44px;
-    }
-    input[type='checkbox'] {
-      min-height: auto;
-    }
-  `,
+  styleUrl: './cursos.css',
 })
 export class FormularioCurso {
   readonly textos = TEXTOS.cursos;

@@ -55,6 +55,19 @@
               <span class="text-slate-300"> · {{ roles[rol] }}</span>
             }
           </p>
+          @if (auth.rol() === 'CATEDRATICO') {
+            <a routerLink="/cursos" routerLinkActive="underline" ariaCurrentWhenActive="page">{{
+              textosCursos.misCursos
+            }}</a>
+          }
+          @if (auth.rol() === 'ESTUDIANTE') {
+            <a
+              routerLink="/mis-asignaciones"
+              routerLinkActive="underline"
+              ariaCurrentWhenActive="page"
+              >{{ textosCursos.misAsignaciones }}</a
+            >
+          }
           <a
             routerLink="/perfil"
             routerLinkActive="underline"
