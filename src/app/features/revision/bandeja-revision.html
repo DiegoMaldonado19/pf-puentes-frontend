@@ -1,0 +1,123 @@
+<section
+  class="mx-auto max-w-6xl p-4"
+  aria-labelledby="titulo-revision"
+  [attr.aria-busy]="cargando() || !!abriendo()"
+>
+  <header class="mb-6 flex flex-wrap items-start justify-between gap-4">
+    <div>
+      <h1 id="titulo-revision" class="text-2xl font-bold">{{ t.titulo }}</h1>
+      <p class="mt-2 text-slate-700">{{ t.descripcion }}</p>
+    </div>
+    <button
+      type="button"
+      class="min-h-11 rounded border border-blue-700 px-4 py-2 text-blue-800 disabled:opacity-50"
+      [disabled]="cargando() || !!abriendo()"
+      (click)="cargar(pagina()?.number ?? 0)"
+    >
+      {{ t.actualizar }}
+    </button>
+  </header>
+  <label class="mb-6 block font-medium"
+    >{{ t.filtro }}
+    <select
+      class="mt-2 block min-h-11 rounded border border-slate-400 p-2"
+      [value]="estado()"
+      [disabled]="!!abriendo()"
+      (change)="filtrar($event)"
+    >
+      <option value="">{{ t.todos }}</option>
+      <option value="ENVIADA">{{ t.enviada }}</option>
+      <option value="EN_REVISION">{{ t.enRevision }}</option>
+    </select>
+  </label>
+  @if (error()) {
+    <p role="alert" class="mb-4 rounded border border-red-300 bg-red-50 p-3 text-red-800">
+      {{ error() }}
+    </p>
+  }
+  @if (abierta(); as revision) {
+    <div role="status" class="mb-4 rounded border border-green-300 bg-green-50 p-4 text-green-900">
+      <p>{{ t.abierta }}</p>
+      <p class="break-all">{{ t.ciclo }}: {{ revision.id }}</p>
+      <a class="text-blue-800 underline" [routerLink]="['/revisiones', revision.id]">{{
+        t.continuar
+      }}</a>
+    </div>
+  }
+  @if (cargando()) {
+    <p role="status">{{ t.cargando }}</p>
+  }
+  @if (pagina(); as datos) {
+    <p class="mb-3 text-slate-700">{{ t.total }}: {{ datos.total_elements }}</p>
+    <ul class="grid gap-4">
+      @for (fila of datos.content; track fila.inspeccion_id) {
+        <li class="rounded-lg border border-slate-300 bg-white p-5">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <h2 class="text-lg font-semibold">{{ fila.puente_codigo }}</h2>
+            <span class="rounded-full bg-slate-100 px-3 py-1 text-sm">{{
+              fila.estado === 'ENVIADA' ? t.enviada : t.enRevision
+            }}</span>
+          </div>
+          <dl class="my-4 grid gap-3 sm:grid-cols-3">
+            <div>
+              <dt class="text-sm text-slate-600">{{ t.estudiante }}</dt>
+              <dd>{{ fila.autor_nombre }}</dd>
+            </div>
+            <div>
+              <dt class="text-sm text-slate-600">{{ t.curso }}</dt>
+              <dd>{{ fila.curso_nombre }}</dd>
+            </div>
+            <div>
+              <dt class="text-sm text-slate-600">{{ t.fecha }}</dt>
+              <dd>{{ fila.enviada_en | date: 'dd/MM/yyyy' : '-0600' }}</dd>
+            </div>
+          </dl>
+          @if (fila.estado === 'ENVIADA') {
+            <button
+              type="button"
+              class="min-h-11 rounded bg-blue-700 px-4 py-2 font-medium text-white hover:bg-blue-800 disabled:opacity-50"
+              [disabled]="!!abriendo() || cargando()"
+              (click)="abrir(fila.inspeccion_id)"
+            >
+              {{ abriendo() === fila.inspeccion_id ? t.abriendo : t.abrir }}
+            </button>
+          } @else {
+            <p class="break-all text-sm text-slate-600">
+              {{ t.ciclo }}: {{ fila.revision_id || t.sinCiclo }}
+            </p>
+            @if (fila.revision_id) {
+              <a
+                class="inline-flex min-h-11 items-center text-blue-800 underline"
+                [routerLink]="['/revisiones', fila.revision_id]"
+                >{{ t.continuar }}</a
+              >
+            }
+          }
+        </li>
+      } @empty {
+        <li class="rounded border border-dashed border-slate-300 p-8 text-center text-slate-600">
+          {{ t.vacio }}
+        </li>
+      }
+    </ul>
+    <nav class="mt-6 flex flex-wrap items-center gap-4" [attr.aria-label]="t.paginas">
+      <button
+        type="button"
+        class="min-h-11 rounded border border-slate-400 px-3 py-2 disabled:opacity-50"
+        [disabled]="datos.number === 0 || !!abriendo()"
+        (click)="cargar(datos.number - 1)"
+      >
+        {{ t.anterior }}
+      </button>
+      <span>{{ datos.number + 1 }} / {{ datos.total_pages || 1 }}</span>
+      <button
+        type="button"
+        class="min-h-11 rounded border border-slate-400 px-3 py-2 disabled:opacity-50"
+        [disabled]="datos.number + 1 >= datos.total_pages || !!abriendo()"
+        (click)="cargar(datos.number + 1)"
+      >
+        {{ t.siguientePagina }}
+      </button>
+    </nav>
+  }
+</section>

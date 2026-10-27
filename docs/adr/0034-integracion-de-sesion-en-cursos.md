@@ -1,9 +1,10 @@
-# 0033. Integración de sesión en cursos mediante un proveedor explícito
+# 0034. Integración de sesión en cursos mediante un proveedor explícito
 
 - Estado: aceptado e integrado con la autenticación compartida
 - Fecha: 07/10/2026
 - Actualización: 18/10/2026, puerto reactivo/restauración delegada y separación de Authorization
 - Actualización: 27/10/2026, adaptador real y navegación por rol; renumerado desde 0011 para conservar el ADR de estado del puente.
+- Numeración vigente: 0034, tras reservar 0033 al transporte HTTP offline integrado por el equipo.
 - Reglas/directrices: DT-FE-02/03/06/10/11/12, DT-SEC-02/03, RN-USR-02
 
 ## Contexto

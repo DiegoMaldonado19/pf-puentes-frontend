@@ -157,10 +157,19 @@ describe('App', () => {
       '/puentes/mapa',
       '/offline/local',
       '/foro',
+      '/mis-revisiones',
       '/mis-asignaciones',
       '/perfil',
     ]);
     expect(html.querySelector('button')?.textContent).toContain('Cerrar sesión');
+  });
+
+  it('ofrece cursos y revisión académica al catedrático', async () => {
+    auth.entrar('CATEDRATICO');
+    const fixture = TestBed.createComponent(App);
+    await fixture.whenStable();
+    expect(hrefs(fixture.nativeElement)).toContain('/revisiones');
+    expect(hrefs(fixture.nativeElement)).toContain('/cursos');
   });
 
   it('muestra administración solo al administrador', async () => {
