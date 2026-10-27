@@ -13,6 +13,7 @@ import { vigilarSesionCursos } from './sesion-cursos';
   template: `
     <section [attr.aria-busy]="ocupado()">
       <h1>{{ textos.misAsignaciones }}</h1>
+      <p class="descripcion">{{ textos.asignacionesPropiasDescripcion }}</p>
       @if (error()) {
         <p role="alert">{{ error() }}</p>
         <button type="button" [disabled]="ocupado()" (click)="cargar()">
@@ -23,13 +24,23 @@ import { vigilarSesionCursos } from './sesion-cursos';
         <p role="status">{{ textos.cargando }}</p>
       }
       @if (pagina(); as datos) {
-        <ul>
+        <ul class="tarjetas-cursos">
           @for (asignacion of datos.content; track asignacion.id) {
             <li>
-              {{ textos.puenteId }} {{ asignacion.puente_codigo || asignacion.puente_id }} —
-              {{ asignacion.puente_nombre }} — {{ textos.cursoId }}
-              {{ asignacion.curso_nombre || asignacion.curso_id }} —
-              {{ asignacion.creado_en | date: 'dd/MM/yyyy' : '-0600' }}
+              <h2>
+                {{ asignacion.puente_nombre || asignacion.puente_codigo || asignacion.puente_id }}
+              </h2>
+              <p class="codigo-puente">{{ asignacion.puente_codigo || asignacion.puente_id }}</p>
+              <dl>
+                <div>
+                  <dt>{{ textos.cursoId }}</dt>
+                  <dd>{{ asignacion.curso_nombre || asignacion.curso_id }}</dd>
+                </div>
+                <div>
+                  <dt>{{ textos.fechaAsignacion }}</dt>
+                  <dd>{{ asignacion.creado_en | date: 'dd/MM/yyyy' : '-0600' }}</dd>
+                </div>
+              </dl>
             </li>
           } @empty {
             <li>{{ textos.sinAsignaciones }}</li>

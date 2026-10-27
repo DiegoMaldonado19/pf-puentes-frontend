@@ -25,7 +25,20 @@ El backend ya entrega login, renovación, cierre y perfil propio por HTTP. **Aut
 
 Se corrigió la regresión del merge de `shared/textos.ts`: `estadoPuente`, `offline` y `capturaFoto` vuelven a la raíz junto a `cursos`, conservando los contratos de otros compañeros.
 
-Código y pruebas: `src/app/features/cursos/`. Textos en `shared/textos.ts`; fechas dd/MM/yyyy UTC−6. [ADR 0011](../adr/0011-integracion-de-sesion-en-cursos.md).
+Código y pruebas: `src/app/features/cursos/`. Textos en `shared/textos.ts`; fechas dd/MM/yyyy UTC−6. [ADR 0033](../adr/0033-integracion-de-sesion-en-cursos.md).
+
+## Estado actual — 27/10/2026
+
+El proveedor de sesión ya está conectado en `app.config.ts` mediante `crearSesionCursosAuth`. Se reutilizan AuthService e interceptores compartidos; no hay autenticación alternativa ni datos simulados. Las indicaciones anteriores sobre ausencia del proveedor solo aplican si se retira esa configuración.
+
+- `/cursos`: panel del Catedrático con creación, tarjetas, período, vigencia, total del servidor y paginación.
+- `/cursos/:cursoId`: configuración, matrícula, búsqueda paginada de estudiantes/puentes y asignaciones por inscripción. Los cursos cerrados conservan lectura y bloquean nuevas inscripciones/asignaciones.
+- `/mis-asignaciones`: tarjetas del Estudiante con puente, curso y fecha de asignación.
+- `/acceso-cursos`: entrada por rol o mensaje de acceso requerido, con enlace a `/login`.
+
+Estilo compartido por las vistas/formulario en `cursos.css`: azul/slate, tarjetas blancas, diseño adaptable y controles accesibles. Se retiraron de `app.css` los estilos antiguos que interferían con la cabecera global.
+
+Validación actual: Prettier y `git diff --check` correctos. Se añadió `cursos-lista.spec.ts`; las pruebas frontend recientes no llegaron a ejecutarse por ausencia local de `maplibre-gl`. Build y revisión visual real quedan pendientes. Los resultados del 18/10 son históricos, no certifican estos cambios.
 
 Chequeos: `npx prettier --check .`, `npm run lint`, `npm run build`, `npx ng test --watch=false`.
 

@@ -70,3 +70,7 @@ La cookie es HttpOnly, SameSite=Strict y acotada a `/api/v1/auth`; P2 usa creden
 - Backend `CursoSesionIntegracionTest`: login real → curso → inscripción activa → asignación → consulta propia; acceso vencido → renovación HTTP; cierre/baja y activación todavía ausente. No usa `@WithMockUser` ni adaptador de activación simulado.
 - La renovación automática de extremo a extremo **en Angular queda pendiente de P2**. P7 prueba que no la duplica, no sustituye sus pruebas de interceptor.
 - Activación productiva, vínculo histórico con inspección, captura, publicación y sincronización real no se implementan en este cambio.
+
+# Estado de integración — 27/10/2026
+
+El contrato descrito abajo ya está conectado: `sesion-cursos-auth.ts` expone `crearSesionCursosAuth`, registrado con `proveerSesionCursos` en `app.config.ts`. Adapta los signals de usuario/token y delega la preparación a `hidratarAlArrancar`; el destino de acceso es `/login`. No requiere implementar otro AuthService ni interceptores. Las referencias posteriores a una conexión futura describen el diseño original. La validación completa de navegador permanece pendiente.

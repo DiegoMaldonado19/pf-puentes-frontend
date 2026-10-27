@@ -1,6 +1,26 @@
 // DT-FE-12: los textos de la interfaz viven aquí para poder traducirla sin tocar las plantillas
 export const TEXTOS = {
   cursos: {
+    descripcion: 'Administra tus cursos, inscribe estudiantes y organiza la asignación de puentes.',
+    listado: 'Cursos registrados',
+    totalCursos: 'Total de cursos',
+    gestionar: 'Gestionar curso',
+    crearDescripcion:
+      'Define el período académico y la vigencia. Después podrás inscribir estudiantes y asignar puentes.',
+    listadoDescripcion: 'Consulta cada curso para administrar su matrícula y sus asignaciones.',
+    sinCursosDescripcion:
+      'Crea tu primer curso con el formulario para comenzar a organizar el trabajo académico.',
+    periodo: 'Período académico',
+    matricula: 'Matrícula y estudiantes',
+    matriculaDescripcion:
+      'Busca una cuenta elegible e inscríbela. Selecciona un estudiante inscrito para gestionar sus puentes.',
+    configuracion: 'Configuración del curso',
+    asignacionesDescripcion:
+      'Asigna puentes activos al estudiante seleccionado y consulta sus asignaciones actuales.',
+    asignacionesPropiasDescripcion:
+      'Consulta los puentes asignados en tus cursos vigentes. Cada asignación conserva su contexto académico.',
+    fechaAsignacion: 'Fecha de asignación',
+    actualizar: 'Actualizar listado',
     tituloSistema: 'Sistema de Gestión de Puentes',
     navegacion: 'Navegación principal',
     misCursos: 'Mis cursos',

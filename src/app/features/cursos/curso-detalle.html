@@ -11,134 +11,154 @@
     <p role="status">{{ textos.cargando }}</p>
   }
   @if (curso(); as actual) {
-    <h1>{{ actual.nombre }}</h1>
-    <p>{{ actual.vigente ? textos.vigente : textos.cerrado }}</p>
-    <app-formulario-curso [curso]="actual" [ocupado]="ocupado()" (guardado)="guardar($event)" />
-    <h2>{{ textos.estudiantes }}</h2>
-    @if (!actual.vigente) {
-      <p>{{ textos.cursoCerrado }}</p>
-    }
-    <form [formGroup]="inscripcion" (ngSubmit)="inscribir()">
-      <fieldset [disabled]="ocupado() || !actual.vigente">
-        <legend>{{ textos.inscribir }}</legend>
-        <label
-          >{{ textos.elegirEstudiante }}
-          <select formControlName="estudiante">
-            <option value="">{{ textos.seleccionar }}</option>
-            @for (estudiante of estudiantes()?.content ?? []; track estudiante.id) {
-              <option [value]="estudiante.id">
-                {{ estudiante.nombre }} —
-                {{ estudiante.estado === 'ACTIVO' ? textos.activo : textos.pendiente }}
-              </option>
-            }
-          </select>
-        </label>
-        <button type="submit" [disabled]="ocupado() || !actual.vigente || inscripcion.invalid">
-          {{ textos.inscribir }}
-        </button>
-      </fieldset>
-    </form>
-    <form [formGroup]="buscarEstudiante" (ngSubmit)="buscar('estudiantes')">
-      <label
-        >{{ textos.buscarEstudiante }} <input type="search" formControlName="texto" maxlength="120"
-      /></label>
-      <button type="submit" [disabled]="ocupado() || buscarEstudiante.invalid">
-        {{ textos.buscar }}
-      </button>
-    </form>
-    <p>{{ textos.activacionAviso }}</p>
-    @if (estudiantes() && !estudiantes()!.content.length) {
-      <p role="status">{{ textos.sinElegibles }}</p>
-    }
-    @if (estudiantes(); as datos) {
-      <app-paginacion-cursos
-        [etiqueta]="textos.elegirEstudiante"
-        [pagina]="datos.number"
-        [paginas]="datos.total_pages"
-        [ocupado]="ocupado()"
-        (cambio)="paginar('estudiantes', $event)"
-      />
-    }
-    @if (inscritos(); as datos) {
-      <ul>
-        @for (inscrito of datos.content; track inscrito.id) {
-          <li>
-            {{ textos.estudianteId }} {{ inscrito.estudiante_nombre || inscrito.estudiante_id }}
-            <button type="button" [disabled]="ocupado()" (click)="seleccionar(inscrito)">
-              {{ textos.verAsignaciones }}
-            </button>
-          </li>
-        } @empty {
-          <li>{{ textos.sinInscritos }}</li>
-        }
-      </ul>
-      <app-paginacion-cursos
-        [etiqueta]="textos.estudiantes"
-        [pagina]="datos.number"
-        [paginas]="datos.total_pages"
-        [ocupado]="ocupado()"
-        (cambio)="paginar('inscritos', $event)"
-      />
-    }
-    @if (seleccionada(); as inscrito) {
-      <h2>{{ textos.asignaciones }}</h2>
-      <p>{{ textos.estudianteId }} {{ inscrito.estudiante_nombre || inscrito.estudiante_id }}</p>
-      <form [formGroup]="asignacion" (ngSubmit)="asignar()">
+    <header class="cabecera-cursos">
+      <div>
+        <h1>{{ actual.nombre }}</h1>
+        <p class="descripcion">{{ textos.periodo }}: {{ actual.anio }} / {{ actual.semestre }}</p>
+      </div>
+      <span class="insignia" [class.insignia-vigente]="actual.vigente">{{
+        actual.vigente ? textos.vigente : textos.cerrado
+      }}</span>
+    </header>
+    <div class="bloque-curso">
+      <h2>{{ textos.configuracion }}</h2>
+      <app-formulario-curso [curso]="actual" [ocupado]="ocupado()" (guardado)="guardar($event)" />
+    </div>
+    <div class="bloque-curso">
+      <h2>{{ textos.estudiantes }}</h2>
+      <p class="descripcion">{{ textos.matriculaDescripcion }}</p>
+      @if (!actual.vigente) {
+        <p>{{ textos.cursoCerrado }}</p>
+      }
+      <form [formGroup]="inscripcion" (ngSubmit)="inscribir()">
         <fieldset [disabled]="ocupado() || !actual.vigente">
-          <legend>{{ textos.asignar }}</legend>
+          <legend>{{ textos.inscribir }}</legend>
           <label
-            >{{ textos.elegirPuente }}
-            <select formControlName="puente">
+            >{{ textos.elegirEstudiante }}
+            <select formControlName="estudiante">
               <option value="">{{ textos.seleccionar }}</option>
-              @for (puente of puentes()?.content ?? []; track puente.id) {
-                <option [value]="puente.id">{{ puente.codigo }} — {{ puente.nombre }}</option>
+              @for (estudiante of estudiantes()?.content ?? []; track estudiante.id) {
+                <option [value]="estudiante.id">
+                  {{ estudiante.nombre }} —
+                  {{ estudiante.estado === 'ACTIVO' ? textos.activo : textos.pendiente }}
+                </option>
               }
             </select>
           </label>
-          <button type="submit" [disabled]="ocupado() || !actual.vigente || asignacion.invalid">
-            {{ textos.asignar }}
+          <button type="submit" [disabled]="ocupado() || !actual.vigente || inscripcion.invalid">
+            {{ textos.inscribir }}
           </button>
         </fieldset>
       </form>
-      <form [formGroup]="buscarPuente" (ngSubmit)="buscar('puentes')">
+      <form [formGroup]="buscarEstudiante" (ngSubmit)="buscar('estudiantes')">
         <label
-          >{{ textos.buscarPuente }} <input type="search" formControlName="texto" maxlength="120"
+          >{{ textos.buscarEstudiante }}
+          <input type="search" formControlName="texto" maxlength="120"
         /></label>
-        <button type="submit" [disabled]="ocupado() || buscarPuente.invalid">
+        <button type="submit" [disabled]="ocupado() || buscarEstudiante.invalid">
           {{ textos.buscar }}
         </button>
       </form>
-      @if (puentes(); as datos) {
-        @if (!datos.content.length) {
-          <p role="status">{{ textos.sinPuentes }}</p>
-        }
+      <p>{{ textos.activacionAviso }}</p>
+      @if (estudiantes() && !estudiantes()!.content.length) {
+        <p role="status">{{ textos.sinElegibles }}</p>
+      }
+      @if (estudiantes(); as datos) {
         <app-paginacion-cursos
-          [etiqueta]="textos.elegirPuente"
+          [etiqueta]="textos.elegirEstudiante"
           [pagina]="datos.number"
           [paginas]="datos.total_pages"
           [ocupado]="ocupado()"
-          (cambio)="paginar('puentes', $event)"
+          (cambio)="paginar('estudiantes', $event)"
         />
       }
-      @if (asignaciones(); as datos) {
+      @if (inscritos(); as datos) {
         <ul>
-          @for (asignada of datos.content; track asignada.id) {
+          @for (inscrito of datos.content; track inscrito.id) {
             <li>
-              {{ textos.puenteId }} {{ asignada.puente_codigo || asignada.puente_id }} —
-              {{ asignada.puente_nombre }}
+              {{ textos.estudianteId }} {{ inscrito.estudiante_nombre || inscrito.estudiante_id }}
+              <button type="button" [disabled]="ocupado()" (click)="seleccionar(inscrito)">
+                {{ textos.verAsignaciones }}
+              </button>
             </li>
           } @empty {
-            <li>{{ textos.sinAsignaciones }}</li>
+            <li>{{ textos.sinInscritos }}</li>
           }
         </ul>
         <app-paginacion-cursos
-          [etiqueta]="textos.asignaciones"
+          [etiqueta]="textos.estudiantes"
           [pagina]="datos.number"
           [paginas]="datos.total_pages"
           [ocupado]="ocupado()"
-          (cambio)="paginar('asignaciones', $event)"
+          (cambio)="paginar('inscritos', $event)"
         />
       }
-    }
+      @if (seleccionada(); as inscrito) {
+        <div class="panel-asignaciones">
+          <h2>{{ textos.asignaciones }}</h2>
+          <p class="descripcion">{{ textos.asignacionesDescripcion }}</p>
+          <p>
+            {{ textos.estudianteId }} {{ inscrito.estudiante_nombre || inscrito.estudiante_id }}
+          </p>
+          <form [formGroup]="asignacion" (ngSubmit)="asignar()">
+            <fieldset [disabled]="ocupado() || !actual.vigente">
+              <legend>{{ textos.asignar }}</legend>
+              <label
+                >{{ textos.elegirPuente }}
+                <select formControlName="puente">
+                  <option value="">{{ textos.seleccionar }}</option>
+                  @for (puente of puentes()?.content ?? []; track puente.id) {
+                    <option [value]="puente.id">{{ puente.codigo }} — {{ puente.nombre }}</option>
+                  }
+                </select>
+              </label>
+              <button type="submit" [disabled]="ocupado() || !actual.vigente || asignacion.invalid">
+                {{ textos.asignar }}
+              </button>
+            </fieldset>
+          </form>
+          <form [formGroup]="buscarPuente" (ngSubmit)="buscar('puentes')">
+            <label
+              >{{ textos.buscarPuente }}
+              <input type="search" formControlName="texto" maxlength="120"
+            /></label>
+            <button type="submit" [disabled]="ocupado() || buscarPuente.invalid">
+              {{ textos.buscar }}
+            </button>
+          </form>
+          @if (puentes(); as datos) {
+            @if (!datos.content.length) {
+              <p role="status">{{ textos.sinPuentes }}</p>
+            }
+            <app-paginacion-cursos
+              [etiqueta]="textos.elegirPuente"
+              [pagina]="datos.number"
+              [paginas]="datos.total_pages"
+              [ocupado]="ocupado()"
+              (cambio)="paginar('puentes', $event)"
+            />
+          }
+          @if (asignaciones(); as datos) {
+            <ul>
+              @for (asignada of datos.content; track asignada.id) {
+                <li>
+                  {{ textos.puenteId }} {{ asignada.puente_codigo || asignada.puente_id }} —
+                  {{ asignada.puente_nombre }}
+                </li>
+              } @empty {
+                <li>{{ textos.sinAsignaciones }}</li>
+              }
+            </ul>
+            <app-paginacion-cursos
+              [etiqueta]="textos.asignaciones"
+              [pagina]="datos.number"
+              [paginas]="datos.total_pages"
+              [ocupado]="ocupado()"
+              (cambio)="paginar('asignaciones', $event)"
+            />
+          }
+        </div>
+      }
+    </div>
   }
 </section>
