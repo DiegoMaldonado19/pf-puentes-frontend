@@ -7,6 +7,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { AuthService } from '../../core/auth/auth';
 import { MarcaAnclada, MarcadorAnclado } from '../../shared/marcador-anclado/marcador-anclado';
+import { EstadoCondicion } from '../../shared/estado-puente/estado-puente';
 import { TEXTOS } from '../../shared/textos';
 import { MotorFormularioComponent } from '../formulario/motor-formulario/motor-formulario';
 import { ArchivoDTO } from './revision-api';
@@ -99,12 +100,20 @@ export class DetalleRevision {
           this.detalle.set(datos);
           this.observacion.reset({ referencia: datos.campos[0]?.referencia ?? '', texto: '' });
           this.api.archivos(id).subscribe({
-            next: (arch) => { if (generacion === this.generacion) this.archivos.set(arch); },
-            error: () => { if (generacion === this.generacion) this.archivos.set([]); },
+            next: (arch) => {
+              if (generacion === this.generacion) this.archivos.set(arch);
+            },
+            error: () => {
+              if (generacion === this.generacion) this.archivos.set([]);
+            },
           });
           this.api.icPreliminar(datos.inspeccion_id).subscribe({
-            next: (ic) => { if (generacion === this.generacion) this.icPreliminar.set(ic); },
-            error: () => { if (generacion === this.generacion) this.icPreliminar.set(null); },
+            next: (ic) => {
+              if (generacion === this.generacion) this.icPreliminar.set(ic);
+            },
+            error: () => {
+              if (generacion === this.generacion) this.icPreliminar.set(null);
+            },
           });
           this.cargando.set(false);
         },
@@ -136,7 +145,11 @@ export class DetalleRevision {
     );
   }
 
-  onConfirmacionCambio(cambio: { estadoConfirmado: any; justificacion: string | null; valida: boolean }) {
+  onConfirmacionCambio(cambio: {
+    estadoConfirmado: EstadoCondicion;
+    justificacion: string | null;
+    valida: boolean;
+  }) {
     if (cambio.estadoConfirmado !== this.decision.controls.estado.value) {
       this.decision.controls.estado.setValue(cambio.estadoConfirmado);
     }

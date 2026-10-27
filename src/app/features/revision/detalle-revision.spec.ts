@@ -4,7 +4,12 @@ import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angul
 import { of, Subject } from 'rxjs';
 import { AuthService } from '../../core/auth/auth';
 import { DetalleRevision } from './detalle-revision';
-import { DetalleRevision as DatosRevision, ObservacionRevision, RevisionApi } from './revision-api';
+import {
+  DetalleRevision as DatosRevision,
+  EstimacionPreliminarIcDTO,
+  ObservacionRevision,
+  RevisionApi,
+} from './revision-api';
 
 const datos: DatosRevision = {
   id: 'ciclo',
@@ -37,7 +42,17 @@ describe('Detalle y veredicto de revisión', () => {
       decidir: vi.fn(() => decision),
       observar: vi.fn(() => observacion),
       archivos: vi.fn(() => of([])),
-      icPreliminar: vi.fn(() => of({ estado_calculado: 'BUENO' } as any)),
+      icPreliminar: vi.fn(() =>
+        of({
+          estado_calculado: 'BUENO',
+          indice_condicion: 0,
+          anulaciones: [],
+          version_pesos_id: '',
+          preliminar: true,
+          rotulo: '',
+          advertencia: '',
+        } as EstimacionPreliminarIcDTO),
+      ),
       calificacion: vi.fn(() => of({ calificacion: null })),
       historial: vi.fn(() =>
         of({ content: [], number: 0, size: 10, total_elements: 0, total_pages: 0 }),

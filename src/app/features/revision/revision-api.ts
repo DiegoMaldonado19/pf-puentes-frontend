@@ -129,9 +129,7 @@ export class RevisionApi {
     );
   }
   archivos(id: string) {
-    return this.http.get<ArchivoDTO[]>(
-      `/api/v1/revisiones/${encodeURIComponent(id)}/archivos`,
-    );
+    return this.http.get<ArchivoDTO[]>(`/api/v1/revisiones/${encodeURIComponent(id)}/archivos`);
   }
   icPreliminar(inspeccionId: string) {
     return this.http.post<EstimacionPreliminarIcDTO>(

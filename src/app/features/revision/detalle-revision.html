@@ -23,7 +23,9 @@
     <app-calificacion-revision [revisionId]="actual.id" [editable]="true" />
     <p class="break-all text-sm text-slate-600">
       {{ t.ciclo }}: {{ actual.id }} · {{ actual.estado }}
-      <a class="ml-3 underline text-blue-700" [routerLink]="['/inspecciones', actual.inspeccion_id]">Ir a inspección</a>
+      <a class="ml-3 underline text-blue-700" [routerLink]="['/inspecciones', actual.inspeccion_id]"
+        >Ir a inspección</a
+      >
     </p>
     @if (actual.veredicto) {
       <div role="status" class="my-4 rounded bg-slate-100 p-4">
@@ -56,7 +58,12 @@
         <li class="min-w-0 rounded border border-slate-300 bg-white p-4">
           <h3 class="font-semibold">{{ campo.titulo }}</h3>
           <p class="break-all text-sm text-slate-600">{{ campo.referencia }}</p>
-          <a class="text-sm underline text-blue-700" [routerLink]="['/inspecciones', actual.inspeccion_id]" [queryParams]="{ref: campo.referencia}">Ir a inspección</a>
+          <a
+            class="text-sm underline text-blue-700"
+            [routerLink]="['/inspecciones', actual.inspeccion_id]"
+            [queryParams]="{ ref: campo.referencia }"
+            >Ir a inspección</a
+          >
           <pre class="my-2 max-h-48 overflow-auto whitespace-pre-wrap rounded bg-slate-50 p-3">{{
             campo.valor | json
           }}</pre>

@@ -31,6 +31,7 @@ Pendiente: fotos/documentos firmados y recorrido completo con edición/reenvío 
 Pruebas: `bandeja-revision.spec.ts` cubre cliente HTTP, paginación/filtro, guardia, apertura única, recarga y descarte por cambio de identidad. [ADR 0037](adr/0037-bandeja-y-apertura-de-revision-academica.md).
 
 Uso:
+
 - Desde la bandeja, abrir revisión crea el ciclo y bloquea la inspección.
 - El detalle muestra el formulario original en lectura, marcadores anclados y la opción “Ir a inspección” con `?ref=` para saltar al campo observado.
 - Resolver observación marca `resuelta_en` y no edita ni reenvía el borrador; la edición/reenvío es responsabilidad de P5.
