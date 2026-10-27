@@ -1,5 +1,13 @@
 # pf-puentes-frontend
 
+## Cursos y asignaciones — 27/10/2026
+
+Gestión académica integrada con la autenticación compartida: el Catedrático accede a `/cursos` y `/cursos/:cursoId`; el Estudiante, a `/mis-asignaciones`. `/acceso-cursos` resuelve la entrada por rol o solicita iniciar sesión en `/login`. La cabecera presenta enlaces según el rol.
+
+Panel con creación, tarjetas, período/vigencia, total y paginación del servidor; detalle con edición, inscripción y asignación de puentes; consulta del estudiante con nombres/códigos y fecha. Selectores con búsqueda paginada. Diseño adaptable azul/slate acorde al inventario; sin datos ficticios ni nuevas responsabilidades de autenticación.
+
+[Guía y validación actual](docs/P7/README.md) · [ADR 0033](docs/adr/0033-integracion-de-sesion-en-cursos.md). Formato revisado; pruebas/build frontend pendientes por dependencias locales incompletas (`maplibre-gl`). Revisión académica es un incremento separado, todavía pendiente.
+
 ### Trazabilidad de daño e inspección de origen en bandeja y aceptación de propuestas (P8, 25/10/2026)
 
 En `/puentes/:id/mantenimiento`, la bandeja de propuestas (`<app-bandeja-propuestas>`) y el panel de revisión/aceptación (`<app-aceptacion-propuesta>`) muestran explícitamente la referencia del elemento con daño (`elemento_ref`) y el identificador de la inspección publicada (`inspeccion_id`) cuando la propuesta fue generada automáticamente por daño estructural (`HU-P8-MTO-02`, `RN-MTO-02/06`). [ADR frontend 0032](docs/adr/0032-origen-de-dano-e-inspeccion-en-bandeja-de-propuestas.md) y [ADR backend 0045](../pf-puentes-backend/docs/adr/0045-generacion-de-propuestas-por-dano-y-deteccion-de-anulaciones.md).
