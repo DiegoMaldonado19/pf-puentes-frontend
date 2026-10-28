@@ -19,6 +19,7 @@ export interface MencionesP2 {
   readonly personas: Signal<readonly PersonaMencion[]>;
   readonly cargando: Signal<boolean>;
   readonly error: Signal<string | null>;
+  cargar(): void;
 }
 
 const SESION_NO_DISPONIBLE: SesionP2 = {
@@ -32,6 +33,7 @@ const MENCIONES_NO_DISPONIBLE: MencionesP2 = {
   personas: signal([]),
   cargando: signal(false),
   error: signal(null),
+  cargar: () => undefined,
 };
 
 export const SESION_P2 = new InjectionToken<SesionP2>('SESION_P2', {

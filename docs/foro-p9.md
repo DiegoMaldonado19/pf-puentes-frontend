@@ -15,6 +15,9 @@ cerrado; el servidor sigue validando permisos y estado al publicar.
 Los puertos de mutación reutilizan las rutas genéricas existentes para editar,
 borrar y ocultar comentarios y cerrar hilos. La moderación exige motivo.
 
-Las menciones se escriben directamente como `@usuario` en el texto y las procesa
-el backend. No se monta el compositor de menciones porque no existe un endpoint
-para listar usuarios mencionables; no se simula una lista de usuarios.
+Las menciones se eligen con `<app-compositor-menciones>` en el hilo del puente y
+en la discusión de la inspección. La lista sale de `GET /api/v1/usuarios/mencionables`
+(`MencionesForoHttp`, solo con sesión). Al enviar, cada persona elegida se agrega
+al texto como `@<id>`, que el backend convierte en notificación (ADR 0065 del
+backend). Al mostrar un comentario, `@<id>` se ve como `@Nombre`, o `@usuario`
+si la persona no está en la lista (por ejemplo, para un visitante sin sesión).

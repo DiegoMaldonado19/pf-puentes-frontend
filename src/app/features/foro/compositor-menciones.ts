@@ -4,6 +4,7 @@ import {
   computed,
   inject,
   input,
+  OnInit,
   output,
   signal,
 } from '@angular/core';
@@ -19,7 +20,7 @@ type EstadoMenciones =
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './compositor-menciones.html',
 })
-export class CompositorMenciones {
+export class CompositorMenciones implements OnInit {
   readonly opciones = input<readonly PersonaMencion[] | null>(null);
   readonly deshabilitado = input(false);
   readonly sinPermisos = input(false);
@@ -92,6 +93,12 @@ export class CompositorMenciones {
     () => this.estado() === 'LISTO' && !this.deshabilitado(),
   );
 
+  ngOnInit(): void {
+    if (this.opciones() === null) {
+      this.p2.cargar();
+    }
+  }
+
   protected buscar(evento: Event): void {
     if (!this.puedeBuscar()) {
       return;
@@ -120,8 +127,18 @@ export class CompositorMenciones {
     this.emitirIntencion();
   }
 
+  idsSeleccionados(): readonly string[] {
+    return this.seleccionadas().map((persona) => persona.id);
+  }
+
+  reiniciar(): void {
+    this.seleccionadas.set([]);
+    this.busqueda.set('');
+    this.emitirIntencion();
+  }
+
   private emitirIntencion(): void {
-    const ids = this.seleccionadas().map((persona) => persona.id);
+    const ids = this.idsSeleccionados();
     const clave = ids.join('|');
     if (clave === this.ultimaIntencion) {
       return;

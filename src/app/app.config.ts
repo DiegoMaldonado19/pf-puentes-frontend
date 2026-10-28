@@ -18,7 +18,8 @@ import { proveerPreparacionLocal } from './offline/proveedores-preparacion';
 import { proveerSync } from './offline/proveedores-sync';
 import { MotorSync } from './offline/motor-sync';
 import { ROL_PUENTES } from './features/puentes/rol-puentes';
-import { SESION_P2 } from './features/foro/puertos';
+import { MENCIONES_P2, SESION_P2 } from './features/foro/puertos';
+import { MencionesForoHttp } from './features/foro/menciones-foro-http';
 import { crearSesionForo } from './features/foro/sesion-foro';
 import { proveerSesionCursos } from './features/cursos/sesion-cursos';
 import { crearSesionCursosAuth } from './features/cursos/sesion-cursos-auth';
@@ -44,6 +45,7 @@ export const appConfig: ApplicationConfig = {
     provideAppInitializer(() => inject(MotorSync).iniciar()),
     { provide: ROL_PUENTES, useFactory: () => inject(AuthService).rol },
     { provide: SESION_P2, useFactory: crearSesionForo },
+    { provide: MENCIONES_P2, useExisting: MencionesForoHttp },
     proveerSesionCursos(crearSesionCursosAuth),
     provideServiceWorker('ngsw-worker.js', { enabled: !isDevMode() }),
   ],

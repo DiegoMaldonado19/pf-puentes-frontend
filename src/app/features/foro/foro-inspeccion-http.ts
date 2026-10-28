@@ -5,7 +5,7 @@ import { FormularioService } from '../formulario/formulario.service';
 import { referenciasDeElemento } from '../inspecciones/esquema';
 import { InspeccionApi } from '../inspecciones/inspeccion-api';
 import { ForoApiService } from './foro-api.service';
-import { Comentario, Hilo, Pagina } from './modelos';
+import { Comentario, conMenciones, Hilo, Pagina } from './modelos';
 import type {
   ComentarioForoInspeccion,
   EntradaComentarioInspeccion,
@@ -104,7 +104,7 @@ export class ForoInspeccionHttp implements ForoInspeccionApi, ForoInspeccionMuta
   ): Observable<ResultadoMutacionForoInspeccion> {
     return this.mutar(
       this.http.post<Comentario>(`${this.ruta(id)}/comentarios`, {
-        texto: entrada.texto,
+        texto: conMenciones(entrada.texto, entrada.menciones),
         elemento_ref: entrada.elementoRef || null,
         ...(padreId ? { padre_id: padreId } : {}),
       }),

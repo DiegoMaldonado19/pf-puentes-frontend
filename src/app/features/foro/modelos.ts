@@ -1,4 +1,5 @@
 import { EstadoCondicion } from '../../shared/estado-puente/estado-puente';
+import type { PersonaMencion } from './puertos';
 
 export interface PuenteForo {
   id: string;
@@ -99,6 +100,21 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export function esUuid(valor: string | null | undefined): valor is string {
   return !!valor && UUID.test(valor);
+}
+
+export function conMenciones(texto: string, ids: readonly string[] = []): string {
+  return [texto, ...ids.map((id) => `@${id}`)].join(' ');
+}
+
+// Mismo patrón que ForoService del backend; sin la lista de personas (visitante) no se muestra el id
+const MENCION = /(?<!\w)@\{?([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\}?/gi;
+
+export function nombrarMenciones(texto: string, personas: readonly PersonaMencion[]): string {
+  const nombres = new Map(personas.map((persona) => [persona.id.toLowerCase(), persona.etiqueta]));
+  return texto.replace(
+    MENCION,
+    (_, id: string) => `@${nombres.get(id.toLowerCase()) ?? 'usuario'}`,
+  );
 }
 
 export interface EstadoRespuestas {

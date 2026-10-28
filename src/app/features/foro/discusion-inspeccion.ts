@@ -5,18 +5,21 @@ import {
   computed,
   inject,
   signal,
+  viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthService } from '../../core/auth/auth';
 import { TEXTOS } from '../../shared/textos';
-import { esUuid, formatearFechaUtc } from './modelos';
+import { CompositorMenciones } from './compositor-menciones';
+import { esUuid, formatearFechaUtc, nombrarMenciones } from './modelos';
 import {
   ComentarioForoInspeccion,
   ContextoForoInspeccion,
   FORO_INSPECCION_API,
   FORO_INSPECCION_MUTACIONES_API,
+  MENCIONES_P2,
   ResultadoLecturaForoInspeccion,
 } from './puertos';
 
@@ -26,7 +29,7 @@ type EstadoVista =
 @Component({
   selector: 'app-discusion-inspeccion',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, CompositorMenciones],
   templateUrl: './discusion-inspeccion.html',
 })
 export class DiscusionInspeccion {
@@ -49,6 +52,8 @@ export class DiscusionInspeccion {
   private readonly api = inject(FORO_INSPECCION_API);
   private readonly mutaciones = inject(FORO_INSPECCION_MUTACIONES_API);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly compositor = viewChild(CompositorMenciones);
+  private readonly menciones = inject(MENCIONES_P2);
   private carga = 0;
   private inspeccionId: string | null = null;
 
@@ -66,7 +71,12 @@ export class DiscusionInspeccion {
     return actual?.estado === 'PUBLICADA' ? actual.pagina : null;
   });
 
+  protected textoVisible(texto: string | null): string {
+    return nombrarMenciones(texto ?? '', this.menciones.personas());
+  }
+
   constructor() {
+    this.menciones.cargar();
     this.ruta.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((parametros) => {
       const inspeccionId = parametros.get('inspeccionId');
       if (!inspeccionId || !esUuid(inspeccionId)) {
@@ -111,7 +121,11 @@ export class DiscusionInspeccion {
     this.publicando.set(true);
     this.errorComentario.set('');
     this.mutaciones
-      .crear(id, { texto: entrada.texto.trim(), elementoRef: entrada.elementoRef || null })
+      .crear(id, {
+        texto: entrada.texto.trim(),
+        elementoRef: entrada.elementoRef || null,
+        menciones: this.compositor()?.idsSeleccionados(),
+      })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (resultado) => {
@@ -119,6 +133,7 @@ export class DiscusionInspeccion {
           this.publicando.set(false);
           if (resultado.estado === 'OK') {
             this.formulario.reset();
+            this.compositor()?.reiniciar();
             this.cargar(id);
           } else {
             const mensajes = {

@@ -42,7 +42,9 @@
             @for (comentario of comentarios(); track comentario.id) {
               <li class="rounded-lg border border-slate-200 p-3">
                 <p class="text-sm wrap-break-word">
-                  {{ comentario.eliminado ? 'Comentario eliminado' : comentario.texto }}
+                  {{
+                    comentario.eliminado ? 'Comentario eliminado' : textoVisible(comentario.texto)
+                  }}
                 </p>
                 <p class="mt-1 text-xs text-slate-600">
                   {{ textos.autor }}: {{ comentario.autorNombre || textos.autorNoDisponible }} ·
@@ -76,6 +78,7 @@
               class="rounded border p-3"
               [readOnly]="publicando()"
             ></textarea>
+            <app-compositor-menciones [deshabilitado]="publicando()" />
             <label for="elemento-comentario">Elemento de la inspección (opcional)</label>
             <select
               id="elemento-comentario"

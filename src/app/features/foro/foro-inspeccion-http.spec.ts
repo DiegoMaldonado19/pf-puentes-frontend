@@ -110,6 +110,14 @@ describe('ForoInspeccionHttp', () => {
     respuesta.flush({ ...comentario, id: 'respuesta', padre_id: 'comentario' });
   });
 
+  it('agrega las menciones elegidas como @uuid al final del texto publicado', () => {
+    const persona = '019a0000-0000-7000-8000-000000000001';
+    api.crear('inspeccion', { texto: 'Revisar', menciones: [persona] }).subscribe();
+    const solicitud = http.expectOne('/api/v1/inspecciones/inspeccion/comentarios');
+    expect(solicitud.request.body).toEqual({ texto: `Revisar @${persona}`, elemento_ref: null });
+    solicitud.flush(comentario);
+  });
+
   it('reutiliza endpoints genéricos para editar, borrar y moderar', () => {
     api.editar('inspeccion', 'comentario', 'Corregido').subscribe();
     const editar = http.expectOne('/api/v1/comentarios/comentario');

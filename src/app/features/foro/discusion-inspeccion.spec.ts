@@ -7,10 +7,13 @@ import { DiscusionInspeccion } from './discusion-inspeccion';
 import {
   FORO_INSPECCION_API,
   FORO_INSPECCION_MUTACIONES_API,
+  MENCIONES_P2,
   ResultadoMutacionForoInspeccion,
+  SESION_P2,
 } from './puertos';
 
 const id = '019a0000-0000-7000-8000-000000000001';
+const persona = '019a0000-0000-7000-8000-000000000002';
 
 describe('DiscusionInspeccion', () => {
   async function montar(cerrado = false, conSesion = true) {
@@ -35,6 +38,24 @@ describe('DiscusionInspeccion', () => {
         { provide: AuthService, useValue: { usuario: signal(conSesion ? { id: 'autor' } : null) } },
         { provide: FORO_INSPECCION_API, useValue: { disponible: true, leer } },
         { provide: FORO_INSPECCION_MUTACIONES_API, useValue: { disponible: true, crear } },
+        {
+          provide: SESION_P2,
+          useValue: {
+            disponible: true,
+            usuarioId: signal(conSesion ? 'autor' : null),
+            roles: signal([]),
+          },
+        },
+        {
+          provide: MENCIONES_P2,
+          useValue: {
+            disponible: true,
+            personas: signal([{ id: persona, etiqueta: 'Ana Pérez' }]),
+            cargando: signal(false),
+            error: signal(null),
+            cargar: vi.fn(),
+          },
+        },
       ],
     });
     const fixture = TestBed.createComponent(DiscusionInspeccion);
@@ -62,7 +83,11 @@ describe('DiscusionInspeccion', () => {
       .querySelector('form')
       ?.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
     expect(crear).toHaveBeenCalledTimes(1);
-    expect(crear).toHaveBeenCalledWith(id, { texto: 'Revisar @docente', elementoRef: 'estribo' });
+    expect(crear).toHaveBeenCalledWith(id, {
+      texto: 'Revisar @docente',
+      elementoRef: 'estribo',
+      menciones: [],
+    });
     mutacion.next({ estado: 'OK' });
     await fixture.whenStable();
     expect(leer).toHaveBeenCalledTimes(2);
@@ -82,6 +107,25 @@ describe('DiscusionInspeccion', () => {
     expect((elemento.querySelector('textarea') as HTMLTextAreaElement).value).toBe(
       'No perder este texto',
     );
+  });
+
+  it('envía las menciones elegidas con el comentario', async () => {
+    const { fixture, crear } = await montar();
+    const elemento = fixture.nativeElement as HTMLElement;
+    escribir(elemento, 'Revisar');
+    const busqueda = elemento.querySelector('#menciones-busqueda') as HTMLInputElement;
+    busqueda.value = 'ana';
+    busqueda.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+    (elemento.querySelector('#menciones-opciones button') as HTMLButtonElement).click();
+    elemento
+      .querySelector('form')
+      ?.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    expect(crear).toHaveBeenCalledWith(id, {
+      texto: 'Revisar',
+      elementoRef: null,
+      menciones: [persona],
+    });
   });
 
   it.each([
