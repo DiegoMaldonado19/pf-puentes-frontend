@@ -20,10 +20,11 @@ import { AuthService } from '../core/auth/auth';
 import { AccesoLocal } from './acceso-local';
 import { ALMACENES_V1, BaseLocal } from './base-local';
 import { EsquemasP4 } from './esquemas-p4';
+import { PublicacionesP5 } from './publicaciones-p5';
 import { ReferenciaLocal } from './modelos';
 import { PersistenciaOffline } from './persistencia';
 import { PreparacionLocal, ProveedoresPreparacion, ProgresoPreparacion } from './preparacion';
-import { ReferenciaAsignadaP3 } from './referencia-p3';
+import { ReferenciaAsignadaP3, ReferenciaP3 } from './referencia-p3';
 import { SesionOffline } from './sesion-offline';
 
 Dexie.dependencies.indexedDB = indexedDB;
@@ -87,6 +88,41 @@ function publicacion(owner = ana, id = publicacionId): ReferenciaLocal {
     modelo_version: 1,
     preparada_en: fecha,
     datos: { inspeccion_id: id, formulario_version_id: 'version-historica', indice: 10 },
+  };
+}
+
+function precargaP5(origen: string | null) {
+  return {
+    datos: { estructura: { material: 'concreto', extension: [1, null, true] } },
+    origen_inspeccion_id: origen,
+    anio_construccion: 1988,
+    extension_futura: { conservar: true },
+  };
+}
+
+function detalleP5(id: string, puente_id = puente) {
+  return {
+    id,
+    puente: { id: puente_id, codigo: 'P1', nombre: 'Puente' },
+    formulario: { id: version, codigo: 'V1.0.0' },
+    estado: 'PUBLICADA',
+    version: 4,
+    fecha_inspeccion: '2026-10-04',
+    curso_id: v7(),
+    autor_id: bea,
+    dispositivo_id: 'equipo-p5',
+    creada_en_dispositivo: fecha,
+    creado_en: fecha,
+    enviada_en: fecha,
+    sincronizada_en: fecha,
+    publicada_en: fecha,
+    datos_permanentes_confirmados_en: fecha,
+    gps_disponible: false,
+    datos: { estructura: { material: 'concreto', extension: { conservar: true } } },
+    acompanantes: [],
+    superada: false,
+    advertencias: [],
+    extension_futura: ['conservar', { valor: 9 }],
   };
 }
 
@@ -503,6 +539,150 @@ describe('preparación completa por propietario', () => {
       expect(resultado.proveedores.publicacion).toBe('ausente');
       expect(await servicio.consultar(ana)).toEqual(anterior);
       http.expectNone('/api/v1/formularios/activo');
+    });
+  });
+  describe('integración HTTP P5 autorizada', () => {
+    beforeEach(() => {
+      proveedores.publicacion = TestBed.inject(PublicacionesP5);
+    });
+
+    async function avanzar() {
+      for (let paso = 0; paso < 5; paso++) await Promise.resolve();
+    }
+
+    async function peticionP5(url: string, datos: object, status = 200) {
+      await avanzar();
+      http.expectOne(url).flush(datos, {
+        status,
+        statusText: status === 200 ? 'OK' : 'Error',
+      });
+    }
+
+    async function conPermiso<T>(tarea: () => Promise<T>): Promise<T> {
+      const permiso = vi.spyOn(sesion, 'preparar').mockResolvedValue(true);
+      try {
+        return await tarea();
+      } finally {
+        permiso.mockRestore();
+      }
+    }
+
+    it('recorre todas las páginas P7 y conserva sus contextos al preparar P5', async () => {
+      proveedores.referencia = TestBed.inject(ReferenciaP3);
+      const asignaciones = referencia().asignaciones;
+      const resultado = await conPermiso(async () => {
+        const pendiente = servicio.preparar(ana);
+        await avanzar();
+        http.expectOne('/api/v1/mis-asignaciones?page=0&size=20').flush({
+          content: [asignaciones[0]],
+          number: 0,
+          size: 20,
+          total_elements: 2,
+          total_pages: 2,
+        });
+        await avanzar();
+        http.expectOne('/api/v1/mis-asignaciones?page=1&size=20').flush({
+          content: [asignaciones[1]],
+          number: 1,
+          size: 20,
+          total_elements: 2,
+          total_pages: 2,
+        });
+        await avanzar();
+        http.expectOne(`/api/v1/puentes/${puente}`).flush(referencia().puentes[0]);
+        await peticionP5(`/api/v1/puentes/${puente}/datos-permanentes`, precargaP5(null));
+        expect((await pendiente).completa).toBe(true);
+        return servicio.consultar(ana);
+      });
+      expect(resultado.preparacion?.asignaciones).toEqual(asignaciones);
+      expect(resultado.preparacion?.asignaciones.map((a) => a.curso_id)).toEqual([
+        'curso-a',
+        'curso-b',
+      ]);
+      expect(resultado.preparacion?.publicaciones).toEqual([
+        { puente_id: puente, publicacion: null },
+      ]);
+    });
+
+    it('publica la ausencia explícita y conserva todos los contextos aunque compartan puente', async () => {
+      const resultado = await conPermiso(async () => {
+        const pendiente = servicio.preparar(ana);
+        await peticionP5(`/api/v1/puentes/${puente}/datos-permanentes`, precargaP5(null));
+        const preparado = await pendiente;
+        expect(preparado.completa).toBe(true);
+        return servicio.consultar(ana);
+      });
+      expect(resultado.preparacion?.asignaciones.map((a) => a.curso_id)).toEqual([
+        'curso-a',
+        'curso-b',
+      ]);
+      expect(resultado.preparacion?.publicaciones).toEqual([
+        {
+          puente_id: puente,
+          publicacion: null,
+        },
+      ]);
+      http.expectNone((request) => request.url.startsWith('/api/v1/inspecciones/'));
+    });
+
+    it('guarda precarga y detalle completo por su referencia autorizada', async () => {
+      const origen = v7();
+      const precarga = precargaP5(origen);
+      const detalle = detalleP5(origen);
+      const resultado = await conPermiso(async () => {
+        const pendiente = servicio.preparar(ana);
+        await peticionP5(`/api/v1/puentes/${puente}/datos-permanentes`, precarga);
+        await peticionP5(`/api/v1/inspecciones/${origen}`, detalle);
+        expect((await pendiente).completa).toBe(true);
+        return servicio.consultar(ana);
+      });
+      expect(resultado.preparacion?.publicaciones).toEqual([
+        {
+          puente_id: puente,
+          publicacion: {
+            id: origen,
+            propietario_id: ana,
+            modelo_version: 1,
+            preparada_en: expect.any(String),
+            datos: { precarga, publicacion: detalle },
+          },
+        },
+      ]);
+      expect(resultado.preparacion?.asignaciones).toHaveLength(2);
+    });
+
+    it('un fallo HTTP en el segundo puente conserva la preparación completa anterior', async () => {
+      await conPermiso(async () => {
+        const inicial = servicio.preparar(ana);
+        await peticionP5(`/api/v1/puentes/${puente}/datos-permanentes`, precargaP5(null));
+        expect((await inicial).completa).toBe(true);
+      });
+      const anterior = await servicio.consultar(ana);
+      const segundoPuente = v7();
+      const asignaciones = referencia();
+      asignaciones.puentes.push({ ...asignaciones.puentes[0], id: segundoPuente });
+      asignaciones.asignaciones.push({
+        ...asignaciones.asignaciones[0],
+        id: v7(),
+        puente_id: segundoPuente,
+      });
+      proveedores.referencia!.descargar = async () => asignaciones;
+      const origen = v7();
+      const resultado = await conPermiso(async () => {
+        const pendiente = servicio.preparar(ana);
+        await peticionP5(`/api/v1/puentes/${puente}/datos-permanentes`, precargaP5(origen));
+        await peticionP5(`/api/v1/inspecciones/${origen}`, detalleP5(origen));
+        await peticionP5(
+          `/api/v1/puentes/${segundoPuente}/datos-permanentes`,
+          { type: 'https://sgp.cunoc.usac.edu.gt/errores/denegado' },
+          403,
+        );
+        return pendiente;
+      });
+      expect(resultado.completa).toBe(false);
+      expect(resultado.proveedores.publicacion).toBe('fallo');
+      expect(await servicio.consultar(ana)).toEqual(anterior);
+      expect(await acceso.propietarioActual()).toBe(ana);
     });
   });
   it('migra v3 con capturas, blobs, operaciones y referencias intactos sin acreditar preparación', async () => {
