@@ -58,6 +58,8 @@ export class MotorFormularioComponent implements OnInit, OnChanges, OnDestroy {
 
   @Output() datosChange = new EventEmitter<Record<string, unknown>>();
   @Output() validoChange = new EventEmitter<boolean>();
+  /** RN-INS-11: id del grupo (`x-grupo`) marcado sano; P5 lo manda en `grupos_sin_danos`. */
+  @Output() grupoSinDanos = new EventEmitter<string>();
 
   readonly textos = TEXTOS.formulario.motor;
   private cdr = inject(ChangeDetectorRef);
@@ -121,6 +123,7 @@ export class MotorFormularioComponent implements OnInit, OnChanges, OnDestroy {
       }
     }
 
+    if (grupo) this.grupoSinDanos.emit(grupo);
     this.datosChange.emit(this.formGroup.getRawValue());
     this.validoChange.emit(this.formGroup.valid);
     this.cdr.markForCheck();

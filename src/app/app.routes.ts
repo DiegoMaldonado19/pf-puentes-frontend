@@ -84,6 +84,12 @@ export const routes: Routes = [
       import('./features/foro/discusion-inspeccion').then((m) => m.DiscusionInspeccion),
   },
   {
+    // Después de `inspecciones/:inspeccionId/foro`, que es más específica.
+    path: 'inspecciones',
+    loadChildren: () =>
+      import('./features/inspecciones/inspecciones.routes').then((m) => m.RUTAS_INSPECCIONES),
+  },
+  {
     path: 'puentes',
     loadChildren: () => import('./features/puentes/puentes.routes').then((m) => m.RUTAS_PUENTES),
   },

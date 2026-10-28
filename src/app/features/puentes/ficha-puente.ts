@@ -25,6 +25,7 @@ export class FichaPuente {
   readonly id = input.required<string>();
   protected readonly t = TEXTOS.puentes;
   protected readonly textosForo = TEXTOS.foro;
+  protected readonly textosInspecciones = TEXTOS.inspecciones;
   protected readonly rol = inject(ROL_PUENTES);
   protected readonly fechaSinHora = fechaSinHora;
 
