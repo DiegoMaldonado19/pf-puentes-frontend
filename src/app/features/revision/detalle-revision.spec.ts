@@ -92,18 +92,21 @@ describe('Detalle y veredicto de revisión', () => {
     expect(componente.seleccion()?.id).toBe('marca');
   });
 
-  it('cambios y rechazo no se envían con observación vacía', async () => {
+  it('ningún veredicto se envía con observación vacía o espacios', async () => {
     const { componente, api } = await preparar();
     componente.decision.patchValue({ veredicto: 'CAMBIOS_SOLICITADOS', observacion: '   ' });
     componente.emitir();
     componente.decision.patchValue({ veredicto: 'RECHAZADA', observacion: '' });
+    componente.emitir();
+    componente.decision.patchValue({ veredicto: 'APROBADA', observacion: '   ' });
+    componente.confirmacionValida.set(true);
     componente.emitir();
     expect(api.decidir).not.toHaveBeenCalled();
   });
 
   it('el hijo real permite aprobar el estado calculado sin justificación', async () => {
     const { fixture, componente, api } = await preparar();
-    componente.decision.controls.veredicto.setValue('APROBADA');
+    componente.decision.patchValue({ veredicto: 'APROBADA', observacion: 'Inspección conforme' });
     await fixture.whenStable();
     fixture.detectChanges();
     await fixture.whenStable();
@@ -119,7 +122,7 @@ describe('Detalle y veredicto de revisión', () => {
     componente.emitir();
     expect(api.decidir).toHaveBeenCalledWith('ciclo', {
       veredicto: 'APROBADA',
-      observacion: '',
+      observacion: 'Inspección conforme',
       estado_confirmado: 'BUENO',
       justificacion_estado: null,
     });
@@ -127,7 +130,7 @@ describe('Detalle y veredicto de revisión', () => {
 
   it('una discrepancia exige justificación real y propaga la validez del hijo', async () => {
     const { fixture, componente, api } = await preparar();
-    componente.decision.controls.veredicto.setValue('APROBADA');
+    componente.decision.patchValue({ veredicto: 'APROBADA', observacion: 'Inspección revisada' });
     fixture.detectChanges();
     await fixture.whenStable();
     const selector = fixture.nativeElement.querySelector(

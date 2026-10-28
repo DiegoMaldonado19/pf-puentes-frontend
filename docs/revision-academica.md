@@ -12,7 +12,7 @@ La bandeja puede estar vacía: requiere inspecciones reales enviadas por estudia
 
 El detalle muestra el motor de formulario compartido en modo lectura, seguido de campos con su referencia, valor original y `app-marcador-anclado`. Elegir una marca muestra su texto. Para agregar una observación selecciona el campo, escribe el texto y guarda; no se cambia la respuesta del estudiante.
 
-Selecciona Aprobar y publicar, Solicitar cambios o Rechazar. Cambios/rechazo requieren observación general. La aprobación usa el estado calculado por defecto; si eliges otro estado explícito, escribe su justificación. Backend valida la discrepancia y calcula el IC oficial. Sin configuración de cálculo válida no se confirma la aprobación.
+Selecciona Aprobar y publicar, Solicitar cambios o Rechazar. Todos los veredictos requieren observación general no vacía (máximo 10 000 caracteres), incluida la aprobación. La aprobación usa el estado calculado por defecto; si eliges otro estado explícito, escribe además su justificación. Backend valida la discrepancia y calcula el IC oficial. Sin configuración de cálculo válida no se confirma la aprobación.
 
 La escritura bloquea acciones y salida de la ruta. No se reintenta automáticamente un POST incierto. Tras confirmar se muestra el veredicto y el ciclo queda en lectura. Los errores de conflicto requieren actualizar para consultar el estado real. Perder sesión limpia los datos privados y descarta respuestas tardías.
 

@@ -41,6 +41,27 @@
           <ul class="space-y-3">
             @for (comentario of comentarios(); track comentario.id) {
               <li class="rounded-lg border border-slate-200 p-3">
+                @if (editando() === comentario.id) {
+                  <label [for]="'editar-' + comentario.id">Editar comentario</label>
+                  <textarea
+                    [id]="'editar-' + comentario.id"
+                    maxlength="10000"
+                    [value]="borrador()"
+                    (input)="borrador.set($any($event.target).value)"
+                    [readOnly]="publicando()"
+                    class="w-full rounded border p-2"
+                  ></textarea>
+                  <button
+                    type="button"
+                    [disabled]="publicando() || !borrador().trim()"
+                    (click)="guardarEdicion(comentario)"
+                  >
+                    Guardar cambios
+                  </button>
+                  <button type="button" [disabled]="publicando()" (click)="editando.set(null)">
+                    Cancelar
+                  </button>
+                }
                 <p class="text-sm wrap-break-word">
                   {{
                     comentario.eliminado ? 'Comentario eliminado' : textoVisible(comentario.texto)
@@ -56,6 +77,27 @@
                     {{ textos.anclaje }}: <code>{{ comentario.elementoRef }}</code>
                   </p>
                 }
+                <div class="mt-2 flex gap-3">
+                  @if (puedeEditar(comentario)) {
+                    <button type="button" [disabled]="publicando()" (click)="editar(comentario)">
+                      Editar
+                    </button>
+                  }
+                  @if (esPropio(comentario)) {
+                    <button type="button" [disabled]="publicando()" (click)="borrar(comentario)">
+                      Eliminar
+                    </button>
+                  }
+                  @if (puedeModerar() && !comentario.eliminado) {
+                    <button
+                      type="button"
+                      [disabled]="publicando()"
+                      (click)="abrirModeracion(comentario.id)"
+                    >
+                      Ocultar
+                    </button>
+                  }
+                </div>
               </li>
             }
           </ul>
@@ -103,6 +145,11 @@
         } @else {
           <p class="mt-4">Inicia sesión para comentar.</p>
         }
+        @if (puedeModerar() && !contexto()?.cerrado) {
+          <button type="button" [disabled]="publicando()" (click)="abrirModeracion()">
+            Cerrar hilo
+          </button>
+        }
         @if (errorComentario()) {
           <p role="alert" class="mt-3 text-red-800">{{ errorComentario() }}</p>
         }
@@ -110,3 +157,14 @@
     }
   }
 </main>
+@if (moderacion(); as dialogo) {
+  <app-dialogo-moderacion
+    [titulo]="dialogo.comentarioId ? 'Ocultar comentario' : 'Cerrar hilo'"
+    [motivo]="motivo()"
+    [errorServidor]="errorComentario()"
+    [enCurso]="publicando()"
+    (cambioMotivo)="motivo.set($event)"
+    (cancelar)="moderacion.set(null)"
+    (confirmar)="confirmarModeracion()"
+  />
+}

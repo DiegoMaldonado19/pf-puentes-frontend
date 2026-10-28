@@ -113,7 +113,7 @@ describe('App', () => {
 
     const local = new PersistenciaOffline(db);
     const captura = await local.crear(propietario, v7(), v7());
-    await local.editar(propietario, captura.id, { actualizada: true });
+    await local.editar(propietario, captura.id, { actualizada: true }, captura.version_local);
     const foto = {
       archivo: new Blob(['foto'], { type: 'image/webp' }),
       miniatura: new Blob(['mini'], { type: 'image/webp' }),

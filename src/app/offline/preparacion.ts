@@ -116,7 +116,7 @@ export class PreparacionLocal implements ReferenciaOffline {
       const publicaciones = await descargar('publicacion', async () => {
         const registros: PreparacionCompleta['publicaciones'] = [];
         // Deduplicar la consulta por puente, nunca los contextos de asignación.
-        for (const puente_id of new Set(referencia.asignaciones.map((a) => a.puente_id))) {
+        for (const puente_id of new Set(referencia.puentes.map((p) => p.id))) {
           const publicacion = structuredClone(
             await this.proveedores.publicacion!.consultar(propietario_id, puente_id),
           );
@@ -148,6 +148,7 @@ export class PreparacionLocal implements ReferenciaOffline {
         preparada_en,
         formulario_version_id: esquema.id,
         asignaciones: referencia.asignaciones,
+        ...(referencia.inspeccionables ? { inspeccionables: referencia.inspeccionables } : {}),
         publicaciones,
         puentes: referencia.puentes.map((puente) => ({
           id: puente.id,

@@ -1,6 +1,7 @@
 import { DecimalPipe } from '@angular/common';
 import {
   Component,
+  ChangeDetectorRef,
   computed,
   DestroyRef,
   effect,
@@ -57,6 +58,8 @@ export class CapturaInspeccion {
   protected readonly fechaSinHora = fechaSinHora;
   protected readonly minimoFotos = MINIMO_FOTOS_ENVIO;
   protected readonly confirmandoEnvio = signal(false);
+  protected readonly impresion = signal(false);
+  private readonly detector = inject(ChangeDetectorRef);
   protected readonly confirmandoBaja = signal(false);
   protected readonly enConexion = signal(typeof navigator === 'undefined' || navigator.onLine);
   protected readonly estimacion = signal<EstimacionPreliminarIcDTO | null>(null);
@@ -153,7 +156,15 @@ export class CapturaInspeccion {
   }
 
   protected imprimir(): void {
-    if (!this.store.editable()) window.print();
+    if (this.store.editable()) return;
+    this.impresion.set(true);
+    this.detector.detectChanges();
+    try {
+      window.print();
+    } finally {
+      this.impresion.set(false);
+      this.detector.detectChanges();
+    }
   }
 
   protected exportarJson(): void {

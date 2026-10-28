@@ -122,6 +122,65 @@ describe('CapturaLocal', () => {
     return fixture;
   }
 
+  it('conserva edición sucia ante otra pestaña y muestra conflicto sin sobrescribir', async () => {
+    const fixture = await abrir();
+    const editor = fixture.componentInstance;
+    editor.cambiarPermanentes({ identificacion: { nombre: 'Mi edición' } });
+    const i = await local.inspeccion(propietario, id);
+    await local.editar(
+      propietario,
+      id,
+      { identificacion: { nombre: 'Otra pestaña' } },
+      i.version_local,
+    );
+    await vi.waitFor(() => expect(editor.inspeccion()?.version_local).toBe(2));
+    expect(await editor.guardar()).toBe(false);
+    expect(editor.error()).toContain('Otra pestaña');
+    expect(editor.respuestas()).toMatchObject({ identificacion: { nombre: 'Mi edición' } });
+    expect((await local.inspeccion(propietario, id)).respuestas).toEqual({
+      identificacion: { nombre: 'Otra pestaña' },
+    });
+  });
+
+  it('hidrata cambios de otra pestaña cuando el editor está limpio', async () => {
+    const fixture = await abrir();
+    const i = await local.inspeccion(propietario, id);
+    await local.editar(
+      propietario,
+      id,
+      { identificacion: { nombre: 'Actualizado' } },
+      i.version_local,
+    );
+    await vi.waitFor(() =>
+      expect(fixture.componentInstance.respuestas()).toEqual({
+        identificacion: { nombre: 'Actualizado' },
+      }),
+    );
+    fixture.componentInstance.cambiarPermanentes({ identificacion: { nombre: 'Siguiente' } });
+    expect(await fixture.componentInstance.guardar()).toBe(true);
+  });
+
+  it('ofrece retirar PDF rechazado aunque el envío bloquee el editor y lo habilita para corregir', async () => {
+    const fixture = await abrir();
+    const editor = fixture.componentInstance;
+    await editor.confirmar();
+    const pdf = await local.documento(
+      propietario,
+      id,
+      new Blob(['pdf'], { type: 'application/pdf' }),
+    );
+    await local.enviar(propietario, id);
+    const op = (await local.operaciones(propietario, id)).find((o) => o.entidad_id === pdf.id)!;
+    await db.cola_sync.update(op.id, { estado: 'requiere_intervencion' });
+    await vi.waitFor(() => expect(editor.rechazados()).toContain(pdf.id));
+    fixture.detectChanges();
+    expect(editor.bloqueada()).toBe(true);
+    expect(fixture.nativeElement.textContent).toContain('Retirar PDF rechazado para corregir');
+    expect(await editor.retirarArchivo(pdf.id)).toBe(true);
+    expect(editor.bloqueada()).toBe(false);
+    expect(await db.documentos.count()).toBe(0);
+  });
+
   it('bloquea el formulario hasta confirmar y guarda solo permanentes en metadatos con su cola atómica', async () => {
     const fixture = await abrir();
     const editor = fixture.componentInstance;

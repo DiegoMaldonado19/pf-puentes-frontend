@@ -92,7 +92,12 @@ export class SesionDemo implements OnDestroy {
   async editar(): Promise<void> {
     const [captura] = await this.acceso.inspecciones();
     if (captura)
-      await this.persistencia.editar(captura.propietario_id, captura.id, { editada: true });
+      await this.persistencia.editar(
+        captura.propietario_id,
+        captura.id,
+        { editada: true },
+        captura.version_local,
+      );
   }
   ngOnDestroy(): void {
     this.motor.detener();

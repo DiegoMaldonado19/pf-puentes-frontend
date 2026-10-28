@@ -1,5 +1,14 @@
 # pf-puentes-frontend
 
+### Renovación de sesión ante fallos de conexión
+
+`AuthService.renovar()` sólo invalida la identidad ante HTTP 401/403. Los fallos de red
+y del servidor conservan identidad en memoria y la cookie de renovación, propagan el
+error HTTP y publican `errorRenovacion` para distinguir el fallo transitorio de una sesión
+rechazada. El arranque frío completa la hidratación aunque no haya conexión; la recuperación
+del propietario local y el reintento de sincronización corresponden a P6, sin persistir
+tokens en el navegador.
+
 ## Captura sin conexión (P6) — 28/10/2026
 
 Flujo productivo en `/offline/local` y `/offline/captura/:id`: preparar salida con sesión de estudiante, iniciar desde un puente asignado, confirmar permanentes y completar SIECA, fotos generales/ancladas y PDF. Las escrituras locales y su operación de cola son atómicas; el editor autoguarda y espera el guardado al salir. El envío exige formulario válido y cuatro fotos.

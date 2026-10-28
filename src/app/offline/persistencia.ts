@@ -113,10 +113,15 @@ export class PersistenciaOffline {
     propietario_id: string,
     id: string,
     respuestas: Json,
+    version_esperada: number,
     metadatos?: Record<string, Json>,
   ) {
     return this.db.transaction('rw', this.db.inspecciones, this.db.cola_sync, async () => {
       const i = await this.inspeccion(propietario_id, id);
+      if (i.version_local !== version_esperada)
+        throw new Error(
+          'Otra pestaña modificó esta captura. Tu edición se conserva; copia tus cambios antes de recargar.',
+        );
       const anteriores = await this.operaciones(propietario_id, id);
       i.respuestas = structuredClone(respuestas);
       if (metadatos)
@@ -247,5 +252,67 @@ export class PersistenciaOffline {
         ),
       );
     });
+  }
+  async retirarArchivo(propietario_id: string, inspeccion_id: string, archivo_id: string) {
+    return this.db.transaction(
+      'rw',
+      [
+        this.db.inspecciones,
+        this.db.fotos,
+        this.db.documentos,
+        this.db.cola_sync,
+        this.db.bloqueos,
+      ],
+      async () => {
+        const i = await this.inspeccion(propietario_id, inspeccion_id);
+        const operaciones = await this.operaciones(propietario_id, inspeccion_id);
+        const fallida = operaciones.find(
+          (o) =>
+            o.entidad_id === archivo_id &&
+            (o.tipo === 'foto' || o.tipo === 'documento') &&
+            o.estado === 'requiere_intervencion',
+        );
+        const bloqueo = await this.db.bloqueos.get(propietario_id);
+        if (
+          !fallida ||
+          i.estado_remoto ||
+          operaciones.some((o) => o.estado === 'en_proceso') ||
+          (bloqueo && bloqueo.vence_en > Date.now())
+        )
+          throw new Error(
+            'Solo puedes retirar archivos rechazados con la sincronización detenida.',
+          );
+        const tabla = fallida.tipo === 'foto' ? this.db.fotos : this.db.documentos;
+        const archivo = await tabla.get(archivo_id);
+        if (
+          !archivo ||
+          archivo.propietario_id !== propietario_id ||
+          archivo.inspeccion_id !== inspeccion_id ||
+          archivo.confirmado
+        )
+          throw new Error('No se puede retirar un archivo confirmado.');
+        const retiradas = operaciones.filter(
+          (o) => o.id === fallida.id || (o.tipo === 'envio' && o.estado !== 'confirmada'),
+        );
+        const ids = new Set(retiradas.map((o) => o.id));
+        const expandir = (id: string): string[] =>
+          ids.has(id) ? retiradas.find((o) => o.id === id)!.dependencias.flatMap(expandir) : [id];
+        for (const o of operaciones) {
+          if (ids.has(o.id) || o.estado === 'confirmada') continue;
+          if (o.dependencias.some((id) => ids.has(id))) {
+            o.dependencias = [...new Set(o.dependencias.flatMap(expandir))];
+            o.clave = v7();
+            await this.db.cola_sync.put(o);
+          }
+        }
+        await this.db.cola_sync.bulkDelete([...ids]);
+        await tabla.delete(archivo_id);
+        i.version_local++;
+        i.intencion_envio_en = null;
+        i.modificada_en = new Date().toISOString();
+        await this.db.inspecciones.put(i);
+        return i;
+      },
+    );
   }
 }

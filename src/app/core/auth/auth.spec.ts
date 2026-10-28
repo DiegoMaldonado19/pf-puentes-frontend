@@ -87,6 +87,50 @@ describe('AuthService', () => {
     expect(auth.esGestorMantenimiento()).toBe(false);
   });
 
+  it.each([0, 502])(
+    'preserva identidad ante error transitorio %s y permite reintentar',
+    async (status) => {
+      const entrada = firstValueFrom(auth.iniciarSesion('ana@correo.com', 'clave'));
+      http.expectOne('/api/v1/auth/login').flush(sesion());
+      await entrada;
+      const renovacion = firstValueFrom(auth.renovar());
+      const rechazo = expect(renovacion).rejects.toMatchObject({ status });
+      const peticion = http.expectOne('/api/v1/auth/renovar');
+      if (status === 0) peticion.error(new ProgressEvent('error'));
+      else peticion.flush({}, { status, statusText: 'Bad Gateway' });
+      await rechazo;
+      expect(auth.usuario()?.id).toBe('u1');
+      expect(auth.accessToken()).toBe('tok-1');
+      expect(auth.errorRenovacion()).toContain('acceso local');
+      const reintento = firstValueFrom(auth.renovar());
+      http.expectOne('/api/v1/auth/renovar').flush(sesion());
+      await reintento;
+      expect(auth.errorRenovacion()).toBeNull();
+    },
+  );
+
+  it.each([401, 403])('invalida una sesión realmente rechazada con %s', async (status) => {
+    const entrada = firstValueFrom(auth.iniciarSesion('ana@correo.com', 'clave'));
+    http.expectOne('/api/v1/auth/login').flush(sesion());
+    await entrada;
+    const respuesta = firstValueFrom(auth.renovar());
+    http.expectOne('/api/v1/auth/renovar').flush({}, { status, statusText: 'Rejected' });
+    expect(await respuesta).toBeNull();
+    expect(auth.usuario()).toBeNull();
+  });
+
+  it('completa arranque frío sin conexión y conserva el error explícito para reintentar', async () => {
+    const inicio = firstValueFrom(auth.hidratarAlArrancar());
+    http.expectOne('/api/v1/auth/renovar').error(new ProgressEvent('error'));
+    await inicio;
+    expect(auth.listo()).toBe(true);
+    expect(auth.errorRenovacion()).not.toBeNull();
+    const reintento = firstValueFrom(auth.renovar());
+    http.expectOne('/api/v1/auth/renovar').flush(sesion());
+    await reintento;
+    expect(auth.usuario()?.id).toBe('u1');
+  });
+
   it('al hidratar con 401 deja visitante y no navega a login', async () => {
     const hidratar = firstValueFrom(auth.hidratarAlArrancar());
     http

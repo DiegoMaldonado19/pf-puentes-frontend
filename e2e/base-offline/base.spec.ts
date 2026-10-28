@@ -458,7 +458,8 @@ test('B06 — indicador cuenta entidades y diagnóstico accesible coincide con I
   await page.evaluate(async (id) => {
     const h = window.__offlineDemo!,
       p = h.propietario();
-    await h.persistencia.editar(p, id, { valor: 2 });
+    const leida = await h.persistencia.inspeccion(p, id);
+    await h.persistencia.editar(p, id, { valor: 2 }, leida.version_local);
     await h.persistencia.documento(p, id, new Blob(['pdf'], { type: 'application/pdf' }));
     h.transporte.resultado = 'negocio';
     await h.motor.drenar();
@@ -506,7 +507,8 @@ test('B07 — dos pestañas, cierre en vuelo, recuperación y ACK anterior', asy
   expect(await otra.evaluate(() => window.__offlineDemo!.transporte.registro.length)).toBe(0);
   await otra.evaluate(async (id) => {
     const h = window.__offlineDemo!;
-    await h.persistencia.editar(h.propietario(), id, { nueva: true });
+    const leida = await h.persistencia.inspeccion(h.propietario(), id);
+    await h.persistencia.editar(h.propietario(), id, { nueva: true }, leida.version_local);
     const ops = await h.persistencia.operaciones(h.propietario());
     await h.db.cola_sync.update(ops[1].id, { proximo_intento: Date.now() + 999999 });
   }, i.id);

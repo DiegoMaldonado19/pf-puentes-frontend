@@ -181,7 +181,7 @@ describe('base offline', () => {
     await inicio;
     await motor.drenar();
     expect(transporte.registro).toHaveLength(0);
-    await local.editar(propietario, i.id, { valor: 2 });
+    await local.editar(propietario, i.id, { valor: 2 }, i.version_local);
     // Retrasar la edición nueva para observar el ACK de la versión anterior.
     await db.cola_sync
       .where('propietario_id')
@@ -218,7 +218,7 @@ describe('base offline', () => {
     expect(await db.fotos.count()).toBe(0);
     expect(await db.cola_sync.count()).toBe(1);
     db.cola_sync.hook('creating').unsubscribe(fallar);
-    await expect(local.editar(otro, i.id, {})).rejects.toThrow();
+    await expect(local.editar(otro, i.id, {}, i.version_local)).rejects.toThrow();
     await expect(
       local.documento(propietario, i.id, new Blob(['x'], { type: 'text/plain' })),
     ).rejects.toThrow();
@@ -271,7 +271,7 @@ describe('base offline', () => {
     const i = await local.crear(propietario, v7(), v7(), { respuesta: 1 });
     await local.enviar(propietario, i.id);
     const envio = (await local.operaciones(propietario, i.id))[1];
-    await local.editar(propietario, i.id, { respuesta: 2 });
+    await local.editar(propietario, i.id, { respuesta: 2 }, i.version_local);
     const nuevo = (await local.operaciones(propietario, i.id))[2];
     await db.cola_sync.update(nuevo.id, { proximo_intento: 999999 });
     await motor.drenar();
@@ -460,7 +460,7 @@ describe('base offline', () => {
       }
     },
   );
-  it('detener durante adquisición no inicia transporte; fallo de preparar sesión pausa', async () => {
+  it('detener durante adquisición no inicia transporte; fallo transitorio de sesión no pausa', async () => {
     await local.crear(propietario, v7(), v7());
     const trabajo = motor.drenar();
     motor.detener();
@@ -480,7 +480,7 @@ describe('base offline', () => {
     );
     await m.drenar();
     await m.drenar();
-    expect(m.pausa()).toContain('sesión');
+    expect(m.pausa()).toBeNull();
     expect((await local.operaciones(propietario))[0]).toMatchObject({
       estado: 'pendiente',
       intentos: 0,

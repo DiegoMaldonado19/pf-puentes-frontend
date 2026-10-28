@@ -20,7 +20,12 @@ test('G3 — preparación completa alimenta captura y conserva JSON, foto, PDF e
   const esperado = await page.evaluate(async () => {
     const h = window.__sesionDemo!;
     const [i] = await h.acceso.inspecciones();
-    await h.persistencia.editar(h.propietario, i.id, { fixture: true, observacion: 'JSON G3' });
+    await h.persistencia.editar(
+      h.propietario,
+      i.id,
+      { fixture: true, observacion: 'JSON G3' },
+      i.version_local,
+    );
     await h.persistencia.foto(
       h.propietario,
       i.id,

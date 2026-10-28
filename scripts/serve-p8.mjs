@@ -1,6 +1,6 @@
 import { createServer, request as proxyRequest } from 'node:http';
 import { readFile } from 'node:fs/promises';
-import { resolve, extname } from 'node:path';
+import { resolve, extname, sep } from 'node:path';
 
 const backend = new URL(process.env['P8_BACKEND_URL'] ?? 'http://invalid');
 if (
@@ -43,7 +43,7 @@ createServer(async (request, response) => {
   try {
     const ruta = decodeURIComponent(new URL(request.url ?? '/', 'http://localhost').pathname);
     const archivo = resolve(root, '.' + (extname(ruta) ? ruta : '/index.html'));
-    if (!archivo.startsWith(root + '/')) {
+    if (!archivo.startsWith(root + sep)) {
       response.writeHead(403).end();
       return;
     }
