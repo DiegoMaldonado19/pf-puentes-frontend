@@ -248,7 +248,8 @@ Decisión y alternativas: [ADR 0025](adr/0025-preparacion-local-referencia.md).
 - Lint, build y suite global: exit 0, 871/871 en 86 archivos. Build advierte
   552,44 kB frente al presupuesto inicial de 500 kB.
 - E2E base: 14/14 tras actualizar la expectativa obsoleta del texto G4; esta
-  ejecución precede al cambio puntual `version > 0` → `version >= 0`.
+  ejecución fue repetida tras el cambio `version > 0` → `version >= 0`: 14/14,
+  exit 0 (36,3 segundos).
   No es un E2E HTTP de P5 ni acredita V01/V02/V16 integrales.
 - Chromium fue instalado manualmente sin `--with-deps` en Fedora; el instalador
   de dependencias con fallback Ubuntu falló por requerir sudo interactivo.
@@ -256,5 +257,8 @@ Decisión y alternativas: [ADR 0025](adr/0025-preparacion-local-referencia.md).
   `odd/tasks/offline-diagnostico-g4.md`. Tras autorización explícita se corrigió
   solo su formato como ajuste local; `prettier --check .` pasa. El documento está
   excluido por `.git/info/exclude` y no se incorpora a los commits.
-- Evaluación nativa no disponible para el árbol con archivos nuevos sin declarar;
-  no hay aprobación nativa. Verificación independiente de identidad realizada.
+- La evaluación inicial del consumidor no pudo resolver los archivos nuevos
+  sin declarar. Para el corte de composición ya comprometido, la evaluación
+  nativa informa `medium`, `reviewDue: false` (`under_budget`). No se inició
+  revisión ni hay aprobación nativa; la verificación independiente exigida por
+  el riesgo de identidad está completada.
