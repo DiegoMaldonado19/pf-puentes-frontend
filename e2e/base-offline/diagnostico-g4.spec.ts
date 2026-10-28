@@ -65,7 +65,12 @@ test('G4 — diagnóstico local G2 accesible, aislado y sin transporte que confi
   ).toBeVisible();
   await expect(page.getByRole('status').filter({ hasText: 'Persistencia denegada' })).toBeVisible();
   await expect(page.getByText(/Ocupación del origen \(bytes\): \d+/)).toBeVisible();
-  await expect(page.getByText(/no hay transporte ni reintento productivos/)).toBeVisible();
+  await expect(
+    page.getByText(
+      'Consulta las capturas autorizadas por separado de la sesión remota. Solo una sesión remota de estudiante puede preparar datos para uso sin conexión. Esta vista no incluye editor, nueva captura, transporte ni motor de reintentos. Al cerrar o cambiar de cuenta se oculta la información; las capturas, archivos y la cola se conservan en este dispositivo.',
+      { exact: true },
+    ),
+  ).toBeVisible();
   await expect(page.getByRole('button', { name: 'Reintentar' })).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Sincronizar simulación' })).toHaveCount(0);
 

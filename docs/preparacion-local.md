@@ -4,7 +4,30 @@
 transacción. Una descarga parcial, un proveedor ausente o la ausencia de esquema
 activo nunca sustituye la última preparación completa. Un puente sin publicación
 previa sí puede prepararse: P5 es historial opcional, no el esquema activo P4. Esta entrega es
-infraestructura G3 con consumidor P4 G9.1: **no conecta Preparar salida productivo ni implementa P5**.
+infraestructura G3 con consumidor P4 G9.1 y composición productiva parcial G9.2:
+**incluye P5 de solo lectura y la acción estudiantil de preparación**, sin editor,
+motor de formularios ni sincronización. No acredita aceptación integral V01/V02/V16
+ni una ejecución HTTP contra un servidor real.
+
+## Preparar como estudiante (G9.2)
+
+1. Con conexión y sesión remota de estudiante, abrir `/offline/local`.
+2. Pulsar **Preparar para uso sin conexión**. El botón se deshabilita mientras
+   descarga y muestra progreso de puentes/asignaciones, publicaciones y esquema.
+3. Comprobar el resultado completo antes de depender de la nueva preparación.
+   Si falla, se informa el impedimento y se conserva la última completa; nunca
+   se publica un snapshot parcial como listo.
+
+La acción solo aparece para estudiantes autenticados. La lectura local sigue
+regida por `AccesoLocal` y la habilitación del propietario, no por la visibilidad
+del botón: una sesión remota no equivale a preparación durable y el snapshot no
+crea una sesión remota. Cerrar o cambiar de cuenta limpia el resultado/progreso
+de la vista y revoca el acceso según G2, sin borrar datos ni mostrar resultados
+tardíos de la cuenta anterior.
+
+`app.config.ts` registra `proveerPreparacionLocal`, que compone la misma
+`BaseLocal`, `AccesoLocal` y `SesionOffline` con `ReferenciaP3`, `PublicacionesP5`
+y `EsquemasP4`. No instala dobles ni caché de preparación bajo `sistema`.
 
 ## API para el harness G3/T3
 
@@ -46,6 +69,30 @@ El esquema activo se obtiene por separado; su id se guarda sin renombrarlo en
 No interpreta ni precarga campos, no valida formularios y no concede autorización
 de captura usando el inventario de puentes.
 
+## Proveedor P5 de solo lectura (G9.2)
+
+`ReferenciaP3` consume todas las páginas de asignaciones P7 y las fichas P3;
+conserva cada contexto de curso/asignación, deduplicando solo las consultas por
+puente. Por cada puente, `PublicacionesP5` consulta:
+
+| Paso                   | Consulta                                          | Resultado                                                                   |
+| ---------------------- | ------------------------------------------------- | --------------------------------------------------------------------------- |
+| Precarga               | `GET /api/v1/puentes/{id}/datos-permanentes`      | `origen_inspeccion_id: null` explícito confirma ausencia y devuelve `null`. |
+| Detalle, si hay origen | `GET /api/v1/inspecciones/{origen_inspeccion_id}` | Exige detalle autorizado, publicado y consistente con puente/origen.        |
+
+La referencia usa el id de la inspección, `modelo_version: 1` para el envoltorio
+local y al estudiante descargador como `propietario_id`, aunque el autor de la
+publicación sea otro. Conserva los DTO completos como JSON opaco en
+`datos: { precarga, publicacion }`: formulario, revisión (`version`), publicación,
+referencias y extensiones que realmente devuelve el contrato. El formulario del
+detalle es una referencia resumida, **no un esquema histórico completo**.
+
+Proveedor omitido, origen omitido, respuesta parcial, 401/403/404 y fallo durante
+la descarga no son ausencia válida. Impiden completar y dejan intacta la
+preparación anterior. El consumidor comprueba sesión/identidad durante la
+consulta; solo G3 publica el conjunto atómicamente. El formulario activo P4
+exacto se descarga por separado, sin inferirlo de P5 ni interpretar campos.
+
 ## Proveedor P4 por propietario (G9.1)
 
 Inyectar `EsquemasP4` como `esquema` en el constructor anterior. Implementa
@@ -76,9 +123,10 @@ Se renueva/comprueba la sesión antes y después de una descarga exitosa.
 La recuperación histórica queda disponible por código/id explícito; no se infiere
 una versión desde el JSON opaco P5 ni se agrega precarga automática. G3 continúa
 seleccionando el activo independientemente del historial P5.
-**Sin API P5 disponible, omitir `publicacion`: nunca instalar un proveedor que
-siempre devuelva `null`.** La preparación no queda completa y conserva la última
-completa. Los dobles P3/P5 utilizados para acreditar G9.1 viven solo en pruebas.
+**Si no se puede consultar P5, nunca instalar un proveedor que siempre devuelva
+`null`.** Omitir el puerto impide completar y conserva la última completa.
+En G9.2 la composición productiva ya inyecta `PublicacionesP5`; los dobles P3/P5
+utilizados para acreditar G9.1 siguen siendo evidencia aislada de pruebas.
 
 G9.1 acredita el consumidor y su integración atómica aislada, no V01/V02/V16,
 captura real ni Preparar salida completo. Las pruebas usan el contrato de rutas,
@@ -128,6 +176,8 @@ No se persisten tokens; el límite de confidencialidad del perfil sigue vigente.
 ## Verificación focal
 
 ```sh
+npx ng test --watch=false --include=app/offline/publicaciones-p5.spec.ts
+npx ng test --watch=false --include=app/offline/proveedores-preparacion.spec.ts
 npx ng test --watch=false --include=app/offline/esquemas-p4.spec.ts
 npx ng test --watch=false --include=app/offline/preparacion.spec.ts
 npx ng test --watch=false --include=app/offline/acceso-local.spec.ts
@@ -146,7 +196,21 @@ sesión offline y 2 de vista local pasan. El RED conductual previo confirmó el
 rechazo incorrecto de `null` P5 y la falta de publicaciones por puente.
 La evidencia de comandos exactos se entrega en el informe T2.
 
-### Evidencia G9.1 — 26/10/2026
+### Evidencia G9.2 parcial — 27/10/2026
+
+El padre reporta una verificación focal de **65/65** tras corregir fallos previos
+de compilación/helper y de fixture. Este resultado no debe confundirse con el
+47/47 histórico de G9.1 ni presentarse como RED/GREEN de esta actualización
+documental. Incluye consumidor P5, preparación, composición y vista estudiantil;
+las pruebas usan HTTP simulado/dobles, no un backend desplegado.
+
+La cobertura añadida contempla varias páginas/contextos, precarga sin origen,
+detalle autorizado de otro autor, errores 401/403/404, fallo intermedio sin
+reemplazo de la preparación anterior y acción/progreso por rol e identidad.
+Los chequeos completos de esta entrega siguen **pendientes a cargo del padre**;
+no se extrapolan los resultados globales de G9.1 al árbol actual.
+
+### Evidencia histórica G9.1 — 26/10/2026
 
 - RED: test del adaptador rechazado por módulo `esquemas-p4` inexistente (exit 1).
 - GREEN inicial: 17/17 del adaptador; con renovación final añadida, verificación
@@ -172,3 +236,25 @@ No cambia código compartido de comandos/servicios existentes; no corresponde
 comparación diferencial de CLI. No hubo migraciones, commits ni push.
 
 Decisión y alternativas: [ADR 0025](adr/0025-preparacion-local-referencia.md).
+
+### Verificación posterior — revisión cero y regresión G4
+
+- El verificador independiente detectó que una publicación histórica puede tener
+  `version: 0` (migración backend con valor predeterminado cero). El consumidor
+  acepta revisiones enteras no negativas; `modelo_version: 1` es otro campo.
+- RED público de revisión cero: 23 pruebas aprobadas y una fallida, exit 1.
+  Tras corregir el validador: 24/24 del consumidor y 68/68 focalizadas, exit 0.
+  El verificador independiente confirmó 24/24 y no dejó bloqueantes de identidad.
+- Lint, build y suite global: exit 0, 871/871 en 86 archivos. Build advierte
+  552,44 kB frente al presupuesto inicial de 500 kB.
+- E2E base: 14/14 tras actualizar la expectativa obsoleta del texto G4; esta
+  ejecución precede al cambio puntual `version > 0` → `version >= 0`.
+  No es un E2E HTTP de P5 ni acredita V01/V02/V16 integrales.
+- Chromium fue instalado manualmente sin `--with-deps` en Fedora; el instalador
+  de dependencias con fallback Ubuntu falló por requerir sudo interactivo.
+- El formato global falló inicialmente por un documento preexistente,
+  `odd/tasks/offline-diagnostico-g4.md`. Tras autorización explícita se corrigió
+  solo su formato como ajuste local; `prettier --check .` pasa. El documento está
+  excluido por `.git/info/exclude` y no se incorpora a los commits.
+- Evaluación nativa no disponible para el árbol con archivos nuevos sin declarar;
+  no hay aprobación nativa. Verificación independiente de identidad realizada.

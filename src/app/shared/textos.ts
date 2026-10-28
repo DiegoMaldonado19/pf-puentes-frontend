@@ -779,12 +779,32 @@ export const TEXTOS = {
   accesoLocal: {
     titulo: 'Capturas locales',
     limite:
-      'Consulta local sin sesión remota. La edición P5 y Preparar salida productivo aún no están integrados; no hay transporte ni reintento productivos. Conflictos, permisos por acordar y caché privada quedan en G11. Cerrar o cambiar cuenta oculta la vista, pero conserva capturas, archivos y cola en este dispositivo.',
+      'Consulta las capturas autorizadas por separado de la sesión remota. Solo una sesión remota de estudiante puede preparar datos para uso sin conexión. Esta vista no incluye editor, nueva captura, transporte ni motor de reintentos. Al cerrar o cambiar de cuenta se oculta la información; las capturas, archivos y la cola se conservan en este dispositivo.',
     sinAcceso:
       'Sin capturas habilitadas. Tras cerrar o cambiar de cuenta se requiere login online del propietario preparado.',
     sinCapturas: 'No hay capturas locales para el propietario habilitado.',
     errorConsulta:
       'No se pudieron consultar las capturas locales. Los datos guardados se conservan.',
+    tituloPreparacion: 'Preparación para uso sin conexión',
+    prepararUsoSinConexion: 'Preparar para uso sin conexión',
+    preparando: 'Preparando datos para uso sin conexión…',
+    proveedoresPreparacion: {
+      referencia: 'Puentes y asignaciones',
+      publicacion: 'Publicaciones',
+      esquema: 'Formulario activo',
+    },
+    estadosPreparacion: {
+      pendiente: 'Pendiente',
+      descargando: 'Descargando…',
+      completo: 'Completo',
+      ausente: 'No disponible',
+      sin_esquema: 'Sin formulario activo',
+      fallo: 'No completado',
+    },
+    resultadoPreparacionCompleta: 'Preparación para uso sin conexión completa.',
+    resultadoPreparacionIncompleta: 'No se completó la preparación para uso sin conexión.',
+    errorPreparacion:
+      'No se pudo completar la preparación. Comprueba tu sesión y conexión antes de volver a intentarlo.',
     inspeccion: 'Inspección',
     harness: 'Sesión offline G2 — datos ficticios',
     preparar: 'Preparar captura ficticia',
