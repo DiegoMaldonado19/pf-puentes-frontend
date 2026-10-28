@@ -1,15 +1,14 @@
 import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { finalize, Observable } from 'rxjs';
-import { v7 } from 'uuid';
 import { mensajeAdjuntado } from '../core/errores/errores.interceptor';
 import { detalleDeProblema, tipoDeProblema } from '../core/errores/problema';
 import { TEXTOS } from '../shared/textos';
+import { hoyGuatemala, idDispositivo } from '../features/inspecciones/dispositivo';
 import { BaseLocal } from './base-local';
 import { ArchivoLocal, Json, Operacion, ResultadoTransporte, TransporteSync } from './modelos';
 
 const API = '/api/v1/inspecciones';
-const DISPOSITIVO = 'sgp.dispositivo';
 const TRANSITORIOS = new Set([0, 408, 429]);
 const EXTENSIONES: Readonly<Record<string, string>> = {
   'image/webp': 'webp',
@@ -27,6 +26,8 @@ export interface MetadatosInspeccion {
   grupos_sin_danos?: string[];
   supersede_a_id?: string;
   motivo_correccion?: string;
+  permanentes_confirmados_en?: string;
+  permanentes?: Json;
 }
 
 interface PayloadDatos {
@@ -41,7 +42,6 @@ interface PayloadDatos {
 export class TransporteHttp implements TransporteSync {
   private readonly http = inject(HttpClient);
   private readonly db = inject(BaseLocal);
-  private dispositivo: string | null = null;
 
   async ejecutar(
     operacion: Readonly<Operacion>,
@@ -102,14 +102,31 @@ export class TransporteHttp implements TransporteSync {
     const headers = encabezados(o);
     const guardar = () =>
       this.peticion(this.http.put<Json>(`${API}/${o.inspeccion_id}`, cuerpo, { headers }), signal);
+    let resultado: Json;
     try {
-      return await guardar();
+      resultado = await guardar();
     } catch (error) {
       if (!(error instanceof HttpErrorResponse) || error.status !== 404) throw error;
       // El borrador nació sin conexión: el alta es idempotente por su UUID v7 (DT-OFF-05).
       await this.peticion(this.http.post<Json>(API, this.alta(o, payload, metadatos)), signal);
-      return guardar();
+      resultado = await guardar();
     }
+    const confirmados =
+      resultado &&
+      typeof resultado === 'object' &&
+      !Array.isArray(resultado) &&
+      resultado['datos_permanentes_confirmados_en'];
+    if (metadatos.permanentes_confirmados_en && !confirmados) {
+      return this.peticion(
+        this.http.post<Json>(
+          `${API}/${o.inspeccion_id}/confirmacion-datos-permanentes`,
+          { datos: metadatos.permanentes ?? {} },
+          { headers: headers.set('Idempotency-Key', `${o.clave}:permanentes`) },
+        ),
+        signal,
+      );
+    }
+    return resultado;
   }
 
   /** Huella del PUT = DTO completo: la versión sale de lo confirmado y no cambia al reintentar. */
@@ -138,28 +155,14 @@ export class TransporteHttp implements TransporteSync {
       puente_id: payload.puente_id,
       asignacion_id: metadatos.asignacion_id,
       curso_id: metadatos.curso_id,
-      fecha_inspeccion: metadatos.fecha_inspeccion ?? fechaLocal(payload.creada_en),
-      dispositivo_id: this.idDispositivo(),
+      fecha_inspeccion: metadatos.fecha_inspeccion ?? hoyGuatemala(new Date(payload.creada_en)),
+      dispositivo_id: idDispositivo(),
       latitud: metadatos.latitud,
       longitud: metadatos.longitud,
       creada_en_dispositivo: payload.creada_en,
       supersede_a_id: metadatos.supersede_a_id,
       motivo_correccion: metadatos.motivo_correccion,
     };
-  }
-
-  private idDispositivo(): string {
-    if (this.dispositivo) return this.dispositivo;
-    try {
-      this.dispositivo = localStorage.getItem(DISPOSITIVO);
-      if (!this.dispositivo) {
-        this.dispositivo = v7();
-        localStorage.setItem(DISPOSITIVO, this.dispositivo);
-      }
-    } catch {
-      this.dispositivo ??= v7();
-    }
-    return this.dispositivo;
   }
 
   /** Si el motor aborta (cambio de propietario o cierre), la petición en vuelo se cancela. */
@@ -183,12 +186,6 @@ export class TransporteHttp implements TransporteSync {
 
 function encabezados(o: Readonly<Operacion>): HttpHeaders {
   return new HttpHeaders({ 'Idempotency-Key': o.clave, 'X-Sgp-Sync': 'true' });
-}
-
-/** Día de calendario de Guatemala: una inspección de las 19:00 no pasa al día siguiente. */
-function fechaLocal(instante: string): string {
-  const formato = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Guatemala' });
-  return formato.format(new Date(instante));
 }
 
 function nombre(id: string, archivo: Blob, sufijo = ''): string {

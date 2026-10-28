@@ -44,3 +44,15 @@ Uso:
 - Build de producción aprobado; advertencia de presupuesto inicial: 541.75 kB frente a 500 kB. No se ampliaron presupuestos para ocultarla.
 - Se usó Node 24.21.0. La instalación local incompleta de MapLibre se resolvió para validar con dependencias aisladas en `/tmp/opencode`, sin cambiar `package.json` ni el lockfile. Para una instalación normal usar las dependencias del lockfile mediante `npm ci`.
 - No equivale a toda la suite frontend ni a un recorrido de navegador con backend real. Capturas y comprobación visual quedan pendientes.
+
+## Evidencia y confirmación de estado
+
+El detalle usa `url_miniatura` del contrato de archivos y solo ofrece descarga
+cuando `url` no es nula. El IC preliminar se presenta con el componente compartido,
+sin confundirlo con una publicación oficial.
+
+Al aprobar, el estado calculado puede confirmarse sin justificación. Cuando el
+evaluador elige un estado distinto, la justificación es obligatoria: la validez
+emitida por la confirmación compartida controla el botón y la operación de envío.
+Si el cálculo no está disponible, la aprobación no se habilita; puede reintentarse
+la carga, solicitar cambios o rechazar con observación.

@@ -1,6 +1,7 @@
-import { InjectionToken, Signal, signal } from '@angular/core';
-import { Observable, of } from 'rxjs';
+import { inject, InjectionToken, Signal, signal } from '@angular/core';
+import { Observable } from 'rxjs';
 import { MarcaAnclada } from '../../shared/marcador-anclado/marcador-anclado';
+import { ForoInspeccionHttp } from './foro-inspeccion-http';
 
 export interface PersonaMencion {
   readonly id: string;
@@ -144,32 +145,15 @@ export interface ForoInspeccionMutacionesApi {
   cerrarHilo(inspeccionId: string, motivo: string): Observable<ResultadoMutacionForoInspeccion>;
 }
 
-const FORO_INSPECCION_NO_DISPONIBLE: ForoInspeccionApi = {
-  disponible: false,
-  leer: () => of({ estado: 'NO_INTEGRADO' }),
-};
-
-const NO_INTEGRADO = { estado: 'NO_INTEGRADO' } as const;
-
-const FORO_INSPECCION_MUTACIONES_NO_DISPONIBLE: ForoInspeccionMutacionesApi = {
-  disponible: false,
-  crear: () => of(NO_INTEGRADO),
-  responder: () => of(NO_INTEGRADO),
-  editar: () => of(NO_INTEGRADO),
-  borrar: () => of(NO_INTEGRADO),
-  ocultarComentario: () => of(NO_INTEGRADO),
-  cerrarHilo: () => of(NO_INTEGRADO),
-};
-
 export const FORO_INSPECCION_API = new InjectionToken<ForoInspeccionApi>('FORO_INSPECCION_API', {
   providedIn: 'root',
-  factory: () => FORO_INSPECCION_NO_DISPONIBLE,
+  factory: () => inject(ForoInspeccionHttp),
 });
 
 export const FORO_INSPECCION_MUTACIONES_API = new InjectionToken<ForoInspeccionMutacionesApi>(
   'FORO_INSPECCION_MUTACIONES_API',
   {
     providedIn: 'root',
-    factory: () => FORO_INSPECCION_MUTACIONES_NO_DISPONIBLE,
+    factory: () => inject(ForoInspeccionHttp),
   },
 );

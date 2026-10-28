@@ -257,4 +257,93 @@ describe('transporte HTTP de la cola (P1)', () => {
     const resultado = await transporte.ejecutar(operacion('foto', null), undefined, senal);
     expect(resultado.tipo).toBe('negocio');
   });
+
+  it('confirma permanentes después del PUT y usa su versión nueva en la siguiente operación', async () => {
+    const permanentes = { identificacion: { nombre: 'Puente' } };
+    const o = datos({
+      permanentes_confirmados_en: '2026-10-28T15:00:00Z',
+      permanentes,
+    });
+    const promesa = transporte.ejecutar(o, undefined, senal);
+    (await esperar('PUT', ruta)).flush({ version: 1 });
+    const confirmar = await esperar('POST', `${ruta}/confirmacion-datos-permanentes`);
+    expect(confirmar.request.body).toEqual({ datos: permanentes });
+    expect(confirmar.request.headers.get('Idempotency-Key')).toBe(`${o.clave}:permanentes`);
+    expect(confirmar.request.headers.get('X-Sgp-Sync')).toBe('true');
+    confirmar.flush({ version: 2, datos_permanentes_confirmados_en: '2026-10-28T15:00:01Z' });
+    const resultado = await promesa;
+    expect(resultado).toMatchObject({ tipo: 'ack', resultado: { version: 2 } });
+    if (resultado.tipo !== 'ack') throw new Error('No hubo confirmación');
+    await db.cola_sync.add({ ...o, estado: 'confirmada', resultado: resultado.resultado });
+    const siguiente = transporte.ejecutar(datos(), undefined, senal);
+    const put = await esperar('PUT', ruta);
+    expect(put.request.body.version).toBe(2);
+    put.flush({ version: 3 });
+    await siguiente;
+  });
+
+  it('repite PUT y confirmación con los mismos cuerpos y claves tras perder la respuesta de confirmación', async () => {
+    const o = datos({
+      permanentes_confirmados_en: '2026-10-28T15:00:00Z',
+      permanentes: { identificacion: { nombre: 'Precargado' } },
+    });
+    let cuerpoPut: unknown, cuerpoConfirmar: unknown;
+    for (let intento = 0; intento < 2; intento++) {
+      const promesa = transporte.ejecutar(o, undefined, senal);
+      const put = await esperar('PUT', ruta);
+      expect(put.request.headers.get('Idempotency-Key')).toBe(o.clave);
+      if (intento === 0) cuerpoPut = structuredClone(put.request.body);
+      else expect(put.request.body).toEqual(cuerpoPut);
+      // Reproduce el resultado idempotente original, anterior a la confirmación.
+      put.flush({ version: 1 });
+      const confirmar = await esperar('POST', `${ruta}/confirmacion-datos-permanentes`);
+      expect(confirmar.request.headers.get('Idempotency-Key')).toBe(`${o.clave}:permanentes`);
+      if (intento === 0) {
+        cuerpoConfirmar = structuredClone(confirmar.request.body);
+        confirmar.error(new ProgressEvent('error'));
+        await expect(promesa).resolves.toMatchObject({ tipo: 'transitorio' });
+      } else {
+        expect(confirmar.request.body).toEqual(cuerpoConfirmar);
+        confirmar.flush({ version: 2, datos_permanentes_confirmados_en: '2026-10-28T15:00:01Z' });
+        await expect(promesa).resolves.toMatchObject({ tipo: 'ack', resultado: { version: 2 } });
+      }
+    }
+  });
+
+  it('no repite confirmación cuando el PUT ya devuelve permanentes confirmados', async () => {
+    const promesa = transporte.ejecutar(
+      datos({
+        permanentes_confirmados_en: '2026-10-28T15:00:00Z',
+        permanentes: {},
+      }),
+      undefined,
+      senal,
+    );
+    (await esperar('PUT', ruta)).flush({
+      version: 4,
+      datos_permanentes_confirmados_en: '2026-10-28T15:00:01Z',
+    });
+    await expect(promesa).resolves.toMatchObject({ tipo: 'ack', resultado: { version: 4 } });
+    http.expectNone(`${ruta}/confirmacion-datos-permanentes`);
+  });
+
+  it('una confirmación rechazada no produce ACK ni oculta el error de negocio', async () => {
+    const promesa = transporte.ejecutar(
+      datos({
+        permanentes_confirmados_en: '2026-10-28T15:00:00Z',
+        permanentes: {},
+      }),
+      undefined,
+      senal,
+    );
+    (await esperar('PUT', ruta)).flush({ version: 1 });
+    (await esperar('POST', `${ruta}/confirmacion-datos-permanentes`)).flush(
+      { detail: 'Revisa la identificación.' },
+      { status: 422, statusText: 'Unprocessable Entity' },
+    );
+    await expect(promesa).resolves.toMatchObject({
+      tipo: 'negocio',
+      mensaje: 'Revisa la identificación.',
+    });
+  });
 });

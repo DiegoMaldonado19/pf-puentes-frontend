@@ -14,6 +14,7 @@ export default defineConfig({
   outputDir: 'test-results/p8',
   use: {
     ...devices['Desktop Chrome'],
+    launchOptions: { executablePath: process.env['PLAYWRIGHT_CHROMIUM_EXECUTABLE'] },
     channel: process.env['P8_CHROME_CHANNEL'],
     baseURL: 'http://127.0.0.1:8093',
     serviceWorkers: 'block',

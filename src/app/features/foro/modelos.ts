@@ -38,6 +38,7 @@ export interface Comentario {
   padre_id: string | null;
 
   eliminado: boolean;
+  elemento_ref?: string | null;
 }
 
 export const CATEGORIAS_HILO = [
@@ -68,6 +69,7 @@ export interface PeticionCrearComentario {
   texto: string;
 
   padre_id?: string | null;
+  elemento_ref?: string | null;
 }
 
 const FORMATO_FECHA_UTC = new Intl.DateTimeFormat('es-GT', {

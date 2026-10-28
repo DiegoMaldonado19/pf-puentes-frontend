@@ -12,6 +12,7 @@ import { TEXTOS } from '../../shared/textos';
 import { MotorFormularioComponent } from '../formulario/motor-formulario/motor-formulario';
 import { ArchivoDTO } from './revision-api';
 import { ConfirmacionEstado } from '../../shared/confirmacion-estado/confirmacion-estado';
+import { IcPreliminar } from '../../shared/ic-preliminar/ic-preliminar';
 import { CalificacionRevision } from './calificacion-revision';
 import { HistorialRevisiones } from './historial-revisiones';
 import {
@@ -33,6 +34,7 @@ import {
     CalificacionRevision,
     HistorialRevisiones,
     ConfirmacionEstado,
+    IcPreliminar,
   ],
   templateUrl: './detalle-revision.html',
 })
@@ -45,6 +47,7 @@ export class DetalleRevision {
   readonly guardando = signal(false);
   readonly error = signal('');
   readonly seleccion = signal<ObservacionRevision | null>(null);
+  readonly confirmacionValida = signal(false);
   private readonly api = inject(RevisionApi);
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
@@ -75,6 +78,10 @@ export class DetalleRevision {
       this.generacion++;
       this.lectura?.unsubscribe();
       this.detalle.set(null);
+      this.archivos.set([]);
+      this.icPreliminar.set(null);
+      this.confirmacionValida.set(false);
+      this.decision.reset();
       this.seleccion.set(null);
       this.guardando.set(false);
       if (usuario && permitido) untracked(() => this.cargar());
@@ -88,6 +95,10 @@ export class DetalleRevision {
     const id = this.parametros().get('revisionId');
     if (!id) return;
     this.detalle.set(null);
+    this.archivos.set([]);
+    this.icPreliminar.set(null);
+    this.confirmacionValida.set(false);
+    this.decision.reset();
     this.seleccion.set(null);
     this.error.set('');
     this.cargando.set(true);
@@ -141,7 +152,7 @@ export class DetalleRevision {
     return (
       !this.decision.invalid &&
       (datos.veredicto === 'APROBADA' || !!datos.observacion.trim()) &&
-      (datos.veredicto !== 'APROBADA' || !datos.estado || !!datos.justificacion.trim())
+      (datos.veredicto !== 'APROBADA' || this.confirmacionValida())
     );
   }
 
@@ -150,6 +161,7 @@ export class DetalleRevision {
     justificacion: string | null;
     valida: boolean;
   }) {
+    this.confirmacionValida.set(cambio.valida);
     if (cambio.estadoConfirmado !== this.decision.controls.estado.value) {
       this.decision.controls.estado.setValue(cambio.estadoConfirmado);
     }

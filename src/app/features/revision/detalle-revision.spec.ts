@@ -2,6 +2,8 @@ import { computed, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
 import { of, Subject } from 'rxjs';
+import { By } from '@angular/platform-browser';
+import { ConfirmacionEstado } from '../../shared/confirmacion-estado/confirmacion-estado';
 import { AuthService } from '../../core/auth/auth';
 import { DetalleRevision } from './detalle-revision';
 import {
@@ -97,6 +99,80 @@ describe('Detalle y veredicto de revisión', () => {
     componente.decision.patchValue({ veredicto: 'RECHAZADA', observacion: '' });
     componente.emitir();
     expect(api.decidir).not.toHaveBeenCalled();
+  });
+
+  it('el hijo real permite aprobar el estado calculado sin justificación', async () => {
+    const { fixture, componente, api } = await preparar();
+    componente.decision.controls.veredicto.setValue('APROBADA');
+    await fixture.whenStable();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const hijo = fixture.debugElement.query(By.directive(ConfirmacionEstado));
+    expect(hijo).not.toBeNull();
+    expect((hijo.componentInstance as ConfirmacionEstado).valida()).toBe(true);
+    expect(componente.decision.controls.estado.value).toBe('BUENO');
+    expect(componente.decision.controls.justificacion.value).toBe('');
+    expect(componente.puedeDecidir()).toBe(true);
+    expect(
+      fixture.nativeElement.querySelector('[data-testid="textarea-justificacion"]'),
+    ).toBeNull();
+    componente.emitir();
+    expect(api.decidir).toHaveBeenCalledWith('ciclo', {
+      veredicto: 'APROBADA',
+      observacion: '',
+      estado_confirmado: 'BUENO',
+      justificacion_estado: null,
+    });
+  });
+
+  it('una discrepancia exige justificación real y propaga la validez del hijo', async () => {
+    const { fixture, componente, api } = await preparar();
+    componente.decision.controls.veredicto.setValue('APROBADA');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const selector = fixture.nativeElement.querySelector(
+      '[data-testid="select-estado-confirmado"]',
+    ) as HTMLSelectElement;
+    selector.value = 'MALO';
+    selector.dispatchEvent(new Event('change'));
+    await fixture.whenStable();
+    expect(componente.puedeDecidir()).toBe(false);
+    componente.emitir();
+    expect(api.decidir).not.toHaveBeenCalled();
+    const justificacion = fixture.nativeElement.querySelector(
+      '[data-testid="textarea-justificacion"]',
+    ) as HTMLTextAreaElement;
+    justificacion.value = 'Daño estructural comprobado';
+    justificacion.dispatchEvent(new Event('input'));
+    await fixture.whenStable();
+    expect(componente.puedeDecidir()).toBe(true);
+    componente.emitir();
+    expect(api.decidir).toHaveBeenCalledWith(
+      'ciclo',
+      expect.objectContaining({
+        estado_confirmado: 'MALO',
+        justificacion_estado: 'Daño estructural comprobado',
+      }),
+    );
+  });
+
+  it('representa url_miniatura y no genera enlaces a URL nula', async () => {
+    const { fixture, componente } = await preparar();
+    componente.archivos.set([
+      {
+        id: 'foto',
+        tipo: 'FOTO',
+        url: 'https://archivos.test/foto',
+        url_miniatura: 'https://archivos.test/miniatura',
+      },
+      { id: 'pdf', tipo: 'DOCUMENTO', url: null, url_miniatura: null },
+    ]);
+    await fixture.whenStable();
+    expect(fixture.nativeElement.querySelector('img')?.src).toBe('https://archivos.test/miniatura');
+    expect(
+      fixture.nativeElement.querySelectorAll('a[href="https://archivos.test/foto"]'),
+    ).toHaveLength(1);
+    expect(fixture.nativeElement.textContent).toContain('Archivo no disponible.');
   });
 
   it('bloquea dobles veredictos y muestra la confirmación sin reenvío automático', async () => {

@@ -15,6 +15,8 @@ import { authInterceptor } from './core/auth/auth.interceptor';
 import { erroresInterceptor } from './core/errores/errores.interceptor';
 import { AccesoLocal, crearAccesoLocal } from './offline/acceso-local';
 import { proveerPreparacionLocal } from './offline/proveedores-preparacion';
+import { proveerSync } from './offline/proveedores-sync';
+import { MotorSync } from './offline/motor-sync';
 import { ROL_PUENTES } from './features/puentes/rol-puentes';
 import { SESION_P2 } from './features/foro/puertos';
 import { crearSesionForo } from './features/foro/sesion-foro';
@@ -33,17 +35,13 @@ export async function inicializarSesion(): Promise<void> {
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
-    provideHttpClient(
-      withInterceptors([
-        authInterceptor,
-        erroresInterceptor,
-        // offlineInterceptor (P6) va después, cuando exista; no se inventa aquí.
-      ]),
-    ),
+    provideHttpClient(withInterceptors([authInterceptor, erroresInterceptor])),
     provideRouter(routes, withComponentInputBinding()),
     { provide: AccesoLocal, useFactory: crearAccesoLocal },
     proveerPreparacionLocal,
+    proveerSync,
     provideAppInitializer(inicializarSesion),
+    provideAppInitializer(() => inject(MotorSync).iniciar()),
     { provide: ROL_PUENTES, useFactory: () => inject(AuthService).rol },
     { provide: SESION_P2, useFactory: crearSesionForo },
     proveerSesionCursos(crearSesionCursosAuth),

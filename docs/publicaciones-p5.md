@@ -18,6 +18,30 @@ respuestas parciales y referencias incompatibles. HTTP 401/403/404 y cambios de
 sesión nunca se convierten en ausencia. El consumidor no modifica la preparación
 anterior: solo G3 publica cuando todos los proveedores terminan correctamente.
 
+## Captura y lectura histórica en línea
+
+La captura consulta `GET /api/v1/inspecciones/{id}/archivos` al abrir. Fotos y PDF
+anteriores se muestran junto con los nuevos; las fotos reales del inventario
+determinan el mínimo de envío y los límites. El autor puede quitar también un
+archivo subido en otra sesión mientras la inspección siga siendo editable. Si el
+inventario falla, se informa el error: no existe una casilla para declarar fotos
+que el cliente no ha consultado. Una URL nula no genera un enlace descargable.
+
+El autoguardado conserva una revisión por edición: la respuesta de un PUT nunca
+limpia cambios posteriores. El guard de salida espera que se guarde la última
+edición; si falla, impide salir. Un reintento de envío tras un corte de red
+reutiliza tanto la clave de idempotencia como el cuerpo original, incluida su
+fecha; un 422 permite corregir y genera un intento nuevo.
+
+En solo lectura, **Imprimir** usa el formulario congelado y permite guardar PDF
+desde el navegador. **Exportar JSON** descarga la inspección, el identificador y
+código de su versión de formulario y su esquema histórico completo, no el activo.
+
+El autor de un borrador puede **Estimar IC**: primero se guarda lo pendiente y el
+resultado se rotula como preliminar. Una nueva edición invalida la estimación
+mostrada. En una publicada, Catedrático y Administrador consultan recálculos;
+solo el Administrador obtiene los juegos compatibles y puede ejecutar uno nuevo.
+
 ## Verificación
 
 ```sh

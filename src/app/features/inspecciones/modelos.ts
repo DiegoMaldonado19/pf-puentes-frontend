@@ -155,7 +155,7 @@ export interface ArchivoDTO {
   readonly capturada_en: string | null;
   readonly tamano: number;
   /** Las URL vencen a los 15 min (DT-SEC-09): no son fuente de verdad. */
-  readonly url: string;
+  readonly url: string | null;
   readonly url_miniatura: string | null;
 }
 

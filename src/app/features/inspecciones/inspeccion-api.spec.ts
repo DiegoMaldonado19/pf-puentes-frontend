@@ -49,6 +49,15 @@ describe('InspeccionApi', () => {
     req.flush({});
   });
 
+  it('lista archivos remotos con url_miniatura y URL nullable', () => {
+    const archivos = [{ id: 'pdf', tipo: 'DOCUMENTO', url: null, url_miniatura: null }];
+    api.archivos('i1').subscribe((respuesta) => expect(respuesta).toEqual(archivos));
+    const req = http.expectOne('/api/v1/inspecciones/i1/archivos');
+    expect(req.request.method).toBe('GET');
+    expect(req.request.headers.has('Idempotency-Key')).toBe(false);
+    req.flush(archivos);
+  });
+
   it('listar: paginación, orden por fecha y solo los filtros con valor', () => {
     api.listar({ estado: 'BORRADOR', puente_id: undefined, fecha_desde: '' }, 2, 10).subscribe();
     const req = http.expectOne((r) => r.url === '/api/v1/inspecciones');

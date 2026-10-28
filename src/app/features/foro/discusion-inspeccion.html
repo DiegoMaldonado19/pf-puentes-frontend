@@ -41,7 +41,9 @@
           <ul class="space-y-3">
             @for (comentario of comentarios(); track comentario.id) {
               <li class="rounded-lg border border-slate-200 p-3">
-                <p class="text-sm wrap-break-word">{{ comentario.texto }}</p>
+                <p class="text-sm wrap-break-word">
+                  {{ comentario.eliminado ? 'Comentario eliminado' : comentario.texto }}
+                </p>
                 <p class="mt-1 text-xs text-slate-600">
                   {{ textos.autor }}: {{ comentario.autorNombre || textos.autorNoDisponible }} ·
                   {{ textos.publicadoEl }}
@@ -56,7 +58,51 @@
             }
           </ul>
         }
-        <p class="mt-4 text-xs text-slate-600">{{ textos.soloLectura }}</p>
+        @if (pagina()?.siguienteCursor) {
+          <button type="button" class="mt-3 min-h-11 underline" (click)="cargarMas()">
+            Cargar más comentarios
+          </button>
+        }
+        @if (contexto()?.cerrado) {
+          <p role="status" class="mt-4">El hilo está cerrado.</p>
+        } @else if (auth.usuario()) {
+          <form class="mt-4 grid gap-3" [formGroup]="formulario" (ngSubmit)="comentar()">
+            <label for="comentario-inspeccion">Comentario (puedes mencionar a @usuario)</label>
+            <textarea
+              id="comentario-inspeccion"
+              formControlName="texto"
+              maxlength="10000"
+              required
+              class="rounded border p-3"
+              [readOnly]="publicando()"
+            ></textarea>
+            <label for="elemento-comentario">Elemento de la inspección (opcional)</label>
+            <select
+              id="elemento-comentario"
+              formControlName="elementoRef"
+              class="min-h-11 rounded border p-2"
+            >
+              <option value="">Sin anclaje</option>
+              @for (anclaje of pagina()?.anclajesDisponibles ?? []; track anclaje.elementoRef) {
+                <option [value]="anclaje.elementoRef">{{ anclaje.etiqueta }}</option>
+              }
+            </select>
+            <button
+              type="submit"
+              class="min-h-11 rounded bg-blue-700 px-4 text-white disabled:opacity-50"
+              [disabled]="
+                publicando() || formulario.invalid || !formulario.controls.texto.value.trim()
+              "
+            >
+              {{ publicando() ? 'Publicando…' : 'Publicar comentario' }}
+            </button>
+          </form>
+        } @else {
+          <p class="mt-4">Inicia sesión para comentar.</p>
+        }
+        @if (errorComentario()) {
+          <p role="alert" class="mt-3 text-red-800">{{ errorComentario() }}</p>
+        }
       </section>
     }
   }

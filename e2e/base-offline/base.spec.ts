@@ -473,7 +473,7 @@ test('B06 — indicador cuenta entidades y diagnóstico accesible coincide con I
   await expect(page.getByRole('alert').filter({ hasText: 'Rechazo de negocio' })).toBeVisible();
   await expect(page.getByText(/Último intento: \d+/)).toBeVisible();
   await page.evaluate(() => (window.__offlineDemo!.transporte.resultado = 'ack'));
-  await page.getByRole('button', { name: 'Sincronizar simulación' }).click();
+  await page.getByRole('button', { name: 'Sincronizar ahora' }).click();
   await expect(
     diagnostico
       .getByRole('status')
