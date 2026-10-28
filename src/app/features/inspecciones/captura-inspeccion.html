@@ -196,6 +196,7 @@
         [esquema]="version.esquema"
         [datos]="store.datosIniciales()"
         [modo]="store.editable() ? 'edicion' : 'lectura'"
+        [impresion]="impresion()"
         [erroresServidor]="store.erroresMotor()"
         (datosChange)="store.alCambiarDatos($event)"
         (validoChange)="store.formularioValido.set($event)"

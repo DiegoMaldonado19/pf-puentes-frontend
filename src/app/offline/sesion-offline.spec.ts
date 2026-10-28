@@ -30,17 +30,18 @@ describe('sesión remota offline P2 (sin transporte productivo)', () => {
   let db: BaseLocal, local: PersistenciaOffline, motor: MotorSync | undefined;
   let eventos: EventoSesion[];
   beforeEach(() => {
+    db = new BaseLocal(`sesion-${v7()}`);
     TestBed.configureTestingModule({
       providers: [
         provideHttpClient(withInterceptors([authInterceptor])),
         provideHttpClientTesting(),
         provideRouter([{ path: 'puentes', children: [] }]),
+        { provide: BaseLocal, useValue: db },
       ],
     });
     auth = TestBed.inject(AuthService);
     adaptador = TestBed.inject(SesionOffline);
     http = TestBed.inject(HttpTestingController);
-    db = new BaseLocal(`sesion-${v7()}`);
     local = new PersistenciaOffline(db);
     eventos = [];
     auth.eventosSesion.subscribe((evento) => eventos.push(evento));
@@ -78,6 +79,26 @@ describe('sesión remota offline P2 (sin transporte productivo)', () => {
     await entrar();
     expect(await adaptador.preparar(bea)).toBe(false);
     http.expectNone('/api/v1/auth/renovar');
+  });
+
+  it('recupera cookie en arranque frío solo para el propietario local habilitado', async () => {
+    await db.acceso_local.put({ id: 'ultima', propietario_id: ana, revocados: [] });
+    expect(await adaptador.recuperarPropietario()).toBe(ana);
+    const preparada = adaptador.preparar(ana);
+    await vi.waitFor(() => http.expectOne('/api/v1/auth/renovar').flush(sesion(ana)));
+    expect(await preparada).toBe(true);
+    expect(adaptador.propietarioActual()).toBe(ana);
+  });
+
+  it('rechaza cookie de otro propietario y no recupera habilitación revocada', async () => {
+    await db.acceso_local.put({ id: 'ultima', propietario_id: ana, revocados: [ana] });
+    expect(await adaptador.recuperarPropietario()).toBeNull();
+    expect(await adaptador.preparar(ana)).toBe(false);
+    http.expectNone('/api/v1/auth/renovar');
+    await db.acceso_local.put({ id: 'ultima', propietario_id: ana, revocados: [] });
+    const preparada = adaptador.preparar(ana);
+    await vi.waitFor(() => http.expectOne('/api/v1/auth/renovar').flush(sesion(bea)));
+    expect(await preparada).toBe(false);
   });
 
   it('comparte renovación con el interceptor y conserva su reintento Bearer', async () => {
@@ -120,7 +141,7 @@ describe('sesión remota offline P2 (sin transporte productivo)', () => {
   });
 
   it.each([401, 0])(
-    'renovación fallida %s pausa sin enviar ni consumir intentos',
+    'renovación fallida %s conserva cola y solo pausa rechazo definitivo',
     async (estado) => {
       await entrar();
       const i = await local.crear(ana, v7(), v7());
@@ -135,7 +156,8 @@ describe('sesión remota offline P2 (sin transporte productivo)', () => {
       else peticion.flush(null, { status: estado, statusText: 'Unauthorized' });
       await trabajo;
       expect(ejecutar).not.toHaveBeenCalled();
-      expect(motor.pausa()).not.toBeNull();
+      if (estado === 401) expect(motor.pausa()).not.toBeNull();
+      else expect(motor.pausa()).toBeNull();
       expect(await local.operaciones(ana)).toEqual(originales);
       expect(await local.inspeccion(ana, i.id)).toEqual(i);
     },

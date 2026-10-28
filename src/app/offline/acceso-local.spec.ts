@@ -293,7 +293,7 @@ describe('habilitación local durable y coordinación de pestañas', () => {
     '%s en otra pestaña cancela el transporte en vuelo sin ACK ni siguiente operación',
     async (tipo) => {
       const captura = await local.crear(ana, v7(), v7(), { primera: true });
-      await local.editar(ana, captura.id, { nueva: true });
+      await local.editar(ana, captura.id, { nueva: true }, captura.version_local);
       const original = await local.inspeccion(ana, captura.id);
       const cola = await local.operaciones(ana);
       await preparar();

@@ -77,7 +77,7 @@ describe('regresiones de sincronización productiva', () => {
     expect(preparar).not.toHaveBeenCalled();
     expect(await db.bloqueos.count()).toBe(0);
     const i = await local.crear(propietario, v7(), v7());
-    await local.editar(propietario, i.id, { editada: true });
+    await local.editar(propietario, i.id, { editada: true }, i.version_local);
     const [primera, dependiente] = await local.operaciones(propietario, i.id);
     await db.cola_sync.update(primera.id, { estado: 'requiere_intervencion' });
     await motor.drenar();
@@ -125,6 +125,7 @@ describe('regresiones de sincronización productiva', () => {
       propietario,
       i.id,
       { identificacion: 'puente' },
+      i.version_local,
       {
         permanentes: { identificacion: 'puente' },
         permanentes_confirmados_en: 'ahora',
@@ -140,7 +141,7 @@ describe('regresiones de sincronización productiva', () => {
     };
     db.cola_sync.hook('creating', fallar);
     await expect(
-      local.editar(propietario, i.id, { otra: 1 }, { curso_id: 'ajeno' }),
+      local.editar(propietario, i.id, { otra: 1 }, guardada.version_local, { curso_id: 'ajeno' }),
     ).rejects.toThrow();
     expect(await local.inspeccion(propietario, i.id)).toEqual(guardada);
     expect(await db.cola_sync.count()).toBe(2);

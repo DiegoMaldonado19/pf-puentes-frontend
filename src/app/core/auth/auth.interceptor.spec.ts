@@ -7,7 +7,7 @@ import {
 } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { TEXTOS } from '../../shared/textos';
 import { erroresInterceptor, mensajeAdjuntado } from '../errores/errores.interceptor';
@@ -58,6 +58,18 @@ describe('authInterceptor', () => {
     http.expectOne('/api/v1/auth/login').flush(sesion(token));
     await respuesta;
   }
+
+  it('propaga el fallo transitorio de renovación sin redirigir ni borrar identidad', async () => {
+    await entrar();
+    const navegar = vi.spyOn(TestBed.inject(Router), 'navigateByUrl');
+    const respuesta = firstValueFrom(cliente.get('/api/v1/usuarios/me'));
+    const rechazo = expect(respuesta).rejects.toMatchObject({ status: 502 });
+    http.expectOne('/api/v1/usuarios/me').flush({}, { status: 401, statusText: 'Unauthorized' });
+    http.expectOne('/api/v1/auth/renovar').flush({}, { status: 502, statusText: 'Bad Gateway' });
+    await rechazo;
+    expect(auth.usuario()?.id).toBe('u1');
+    expect(navegar).not.toHaveBeenCalled();
+  });
 
   it('un 401 privado dispara un solo renovar y reintenta con el token nuevo', async () => {
     await entrar('tok-1');

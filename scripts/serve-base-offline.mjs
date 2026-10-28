@@ -1,6 +1,6 @@
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
-import { resolve, extname } from 'node:path';
+import { resolve, extname, sep } from 'node:path';
 const root = resolve('dist/pf-puentes-frontend/browser');
 const mime = {
   '.html': 'text/html',
@@ -18,7 +18,7 @@ createServer(async (request, response) => {
     root,
     '.' + (ruta === '/' || ruta === '/offline/demo' ? '/index.html' : ruta),
   );
-  if (!archivo.startsWith(root + '/')) {
+  if (!archivo.startsWith(root + sep)) {
     response.writeHead(403).end();
     return;
   }

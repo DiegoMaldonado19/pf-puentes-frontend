@@ -33,7 +33,7 @@ import { PreparacionLocal, ProgresoPreparacion, ResultadoPreparacion } from './p
     @if (preparada(); as salida) {
       <section aria-labelledby="puentes-preparados">
         <h2 id="puentes-preparados">Puentes preparados</h2>
-        @for (a of salida.asignaciones; track a.id) {
+        @for (a of contextos(); track a.id) {
           <article>
             <h3>{{ a.puente_codigo }} · {{ a.puente_nombre }}</h3>
             <p>{{ a.curso_nombre }}</p>
@@ -102,12 +102,29 @@ export class VistaLocal implements OnDestroy {
   readonly db = inject(BaseLocal);
   readonly motor = inject(MotorSync, { optional: true }) ?? undefined;
   readonly preparada = signal<PreparacionCompleta | null>(null);
+  readonly contextos = computed(() => {
+    const p = this.preparada();
+    return [
+      ...(p?.asignaciones ?? []),
+      ...(p?.inspeccionables ?? [])
+        .filter((i) => !i.borrador_en_curso)
+        .map((i) => ({
+          id: `${i.id}:${i.curso_id ?? ''}`,
+          puente_id: i.id,
+          puente_codigo: i.codigo,
+          puente_nombre: i.nombre,
+          curso_nombre: i.curso_nombre ?? '',
+        })),
+    ];
+  });
   readonly iniciando = signal(false);
   readonly capturas = signal<InspeccionLocal[]>([]);
   readonly propietario = signal<string | null>(null);
   readonly error = signal('');
   readonly puedePreparar = computed(
-    () => this.auth.autenticado() && this.auth.rol() === 'ESTUDIANTE',
+    () =>
+      this.auth.autenticado() &&
+      ['ESTUDIANTE', 'CATEDRATICO', 'PROFESIONAL_EXTERNO'].includes(this.auth.rol() ?? ''),
   );
   readonly preparando = signal(false);
   readonly progreso = signal<ProgresoPreparacion | null>(null);
@@ -127,10 +144,7 @@ export class VistaLocal implements OnDestroy {
 
   constructor() {
     effect(() => {
-      const identidad =
-        this.auth.autenticado() && this.auth.rol() === 'ESTUDIANTE'
-          ? (this.auth.usuario()?.id ?? null)
-          : null;
+      const identidad = this.puedePreparar() ? (this.auth.usuario()?.id ?? null) : null;
       if (this.identidadRemota !== undefined && this.identidadRemota !== identidad) {
         this.limpiarPreparacion();
       }
@@ -143,13 +157,13 @@ export class VistaLocal implements OnDestroy {
   async preparar(): Promise<void> {
     if (this.preparando()) return;
     const usuario = this.auth.usuario();
-    if (!this.auth.autenticado() || usuario?.rol !== 'ESTUDIANTE' || !usuario.id) return;
+    if (!this.puedePreparar() || !usuario?.id) return;
     const propietario = usuario.id;
     const revision = ++this.revisionPreparacion;
     const vigente = () =>
       revision === this.revisionPreparacion &&
       this.auth.autenticado() &&
-      this.auth.rol() === 'ESTUDIANTE' &&
+      this.puedePreparar() &&
       this.auth.usuario()?.id === propietario;
 
     this.preparando.set(true);
@@ -210,22 +224,24 @@ export class VistaLocal implements OnDestroy {
     this.error.set('');
     try {
       const propietario = await this.acceso.propietarioActual();
-      if (!propietario) throw new Error('Prepara una salida con tu sesión de estudiante.');
+      if (!propietario) throw new Error('Prepara una salida con tu sesión de inspector.');
       const preparacion = await this.acceso.consultarPropias(propietario, () =>
         this.db.preparaciones.get(propietario),
       );
       const asignacion = preparacion?.asignaciones.find(
         (a) => a.id === asignacionId && a.estudiante_id === propietario,
       );
+      const inspeccionable = preparacion?.inspeccionables?.find(
+        (i) => `${i.id}:${i.curso_id ?? ''}` === asignacionId && !i.borrador_en_curso,
+      );
+      const puenteId = asignacion?.puente_id ?? inspeccionable?.id;
       const referencia = preparacion?.esquemas_formulario.find(
         (r) => r.id === preparacion.formulario_version_id && r.propietario_id === propietario,
       );
       const esquema = (referencia?.datos as { esquema?: EsquemaFormulario } | undefined)?.esquema;
-      if (!preparacion || !asignacion || !esquema?.properties)
+      if (!preparacion || !puenteId || !esquema?.properties)
         throw new Error('No hay preparación completa para esta asignación.');
-      const publicacion = preparacion.publicaciones.find(
-        (p) => p.puente_id === asignacion.puente_id,
-      );
+      const publicacion = preparacion.publicaciones.find((p) => p.puente_id === puenteId);
       const precarga =
         (
           publicacion?.publicacion?.datos as
@@ -237,8 +253,8 @@ export class VistaLocal implements OnDestroy {
       const gps = await ubicacionActual();
       if (this.destruida || (await this.acceso.propietarioActual()) !== propietario)
         throw new Error('La sesión cambió al iniciar la captura.');
-      const puente = preparacion.puentes.find((p) => p.id === asignacion.puente_id)
-        ?.datos as unknown as PuenteDTO | undefined;
+      const puente = preparacion.puentes.find((p) => p.id === puenteId)?.datos as unknown as
+        PuenteDTO | undefined;
       const distancia =
         gps && typeof puente?.latitud === 'number' && typeof puente.longitud === 'number'
           ? distanciaMetros(gps, { latitud: puente.latitud, longitud: puente.longitud })
@@ -255,13 +271,16 @@ export class VistaLocal implements OnDestroy {
       });
       const captura = await this.local.crear(
         propietario,
-        asignacion.puente_id,
+        puenteId,
         preparacion.formulario_version_id,
         extraerPermanentes(fusionarProfundo(precarga, inventario), esquema) as Json,
         {
           fecha_inspeccion: hoyGuatemala(),
-          asignacion_id: asignacion.id,
-          curso_id: asignacion.curso_id,
+          ...(asignacion
+            ? { asignacion_id: asignacion.id, curso_id: asignacion.curso_id }
+            : inspeccionable?.curso_id
+              ? { curso_id: inspeccionable.curso_id }
+              : {}),
           latitud: gps?.latitud ?? null,
           longitud: gps?.longitud ?? null,
           aviso_ubicacion:

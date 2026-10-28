@@ -169,7 +169,7 @@
               rows="4"
               maxlength="10000"
               formControlName="observacion"
-              [required]="decision.controls.veredicto.value !== 'APROBADA'"
+              required
             ></textarea>
           </label>
           @if (decision.controls.veredicto.value === 'APROBADA') {

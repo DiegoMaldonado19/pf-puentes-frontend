@@ -61,7 +61,7 @@ export class DetalleRevision {
   private generacion = 0;
   readonly decision = this.fb.nonNullable.group({
     veredicto: ['CAMBIOS_SOLICITADOS' as Veredicto, Validators.required],
-    observacion: ['', Validators.maxLength(10000)],
+    observacion: ['', [Validators.required, Validators.pattern(/\S/), Validators.maxLength(10000)]],
     estado: ['' as '' | 'BUENO' | 'REGULAR' | 'MALO'],
     justificacion: ['', Validators.maxLength(10000)],
   });
@@ -151,7 +151,7 @@ export class DetalleRevision {
     const datos = this.decision.getRawValue();
     return (
       !this.decision.invalid &&
-      (datos.veredicto === 'APROBADA' || !!datos.observacion.trim()) &&
+      !!datos.observacion.trim() &&
       (datos.veredicto !== 'APROBADA' || this.confirmacionValida())
     );
   }

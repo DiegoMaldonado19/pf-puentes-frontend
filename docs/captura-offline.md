@@ -1,8 +1,13 @@
 # Captura offline productiva
 
 La aplicación registra el motor real en `app.config.ts`; no es necesario
-activar la demo. Con sesión de estudiante, entrar en `/offline/local`,
-preparar la salida e iniciar una inspección asignada. La preparación conserva
+activar la demo. Con sesión de estudiante, catedrático o profesional externo
+habilitado por el backend, entrar en `/offline/local`, preparar la salida e
+iniciar una inspección. Estudiantes usan sus asignaciones; los demás descargan
+las páginas reales de `GET /api/v1/puentes-inspeccionables`, sin fabricar
+asignaciones. La verificación profesional debe ser autorizada por el backend:
+el token actual solo informa id, nombre y rol, no acredita colegiado.
+La preparación conserva
 puentes, asignaciones, precarga y la versión exacta de SIECA.
 
 En `/offline/captura/:id`, confirmar permanentes antes del resto; después se
@@ -16,6 +21,25 @@ corregir el error y guardar antes de salir. No cerrar a la fuerza mientras se
 guarda. El almacenamiento depende de cuota y permisos del navegador, visibles
 en el diagnóstico. GPS denegado no impide capturar; sin coordenadas preparadas
 del puente no existe aviso local de distancia.
+
+Las escrituras de respuestas comparan la versión leída dentro de la misma
+transacción IndexedDB. Una pestaña limpia recibe cambios externos; una con
+edición pendiente conserva sus respuestas y muestra el conflicto al guardar.
+Copiar esos cambios antes de recargar y conciliarlos con la versión guardada;
+no se sobrescribe silenciosamente ni se fusionan respuestas incompatibles.
+
+Una foto o PDF rechazado permanentemente ofrece «Retirar … para corregir».
+Con el motor sin operación en curso, la retirada elimina únicamente ese archivo
+local no confirmado, reconstruye las dependencias y retira el envío aún no
+confirmado en una transacción. Después se puede adjuntar el contenido corregido
+(nuevo UUID y nueva clave de operación) y volver a encolar envío. No elimina
+archivos confirmados ni ejecuta eliminaciones remotas.
+
+Al reconectar, el motor puede recuperar la cookie desde la última habilitación
+local no revocada si la identidad remota está vacía. Solo renueva con trabajo
+reclamable, valida el propietario devuelto y reintenta fallos transitorios sin
+cerrar sesión ni pausar permanentemente. Una identidad remota distinta nunca
+sincroniza la cola del propietario anterior.
 
 ## Recorrido real aislado
 

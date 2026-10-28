@@ -11,6 +11,8 @@ import { InspeccionApi } from './inspeccion-api';
 import { InspeccionDTO } from './modelos';
 import { InspeccionStore } from './inspeccion-store';
 import { PesosService } from '../admin/pesos/pesos.service';
+import { MotorFormularioComponent } from '../formulario/motor-formulario/motor-formulario';
+import { By } from '@angular/platform-browser';
 
 const pesos = {
   estimarIcPreliminarPorInspeccion: vi.fn(() =>
@@ -138,7 +140,13 @@ describe('CapturaInspeccion', () => {
     const fixture = await montar(inspeccion({ estado: 'PUBLICADA' }));
     expect(botones(fixture)).toContain('Imprimir');
     expect(botones(fixture)).toContain('Exportar JSON');
-    const imprimir = vi.spyOn(window, 'print').mockImplementation(() => undefined);
+    const motor = fixture.debugElement.query(By.directive(MotorFormularioComponent))
+      .componentInstance as MotorFormularioComponent;
+    const imprimir = vi.spyOn(window, 'print').mockImplementation(() => {
+      expect(motor.impresion).toBe(true);
+      expect(motor.modo).toBe('lectura');
+      expect(motor.esquema).toEqual(VERSION.esquema);
+    });
     const crearUrl = vi.fn<(blob: Blob) => string>().mockReturnValue('blob:exportacion');
     const revocarUrl = vi.fn();
     Object.defineProperty(URL, 'createObjectURL', { configurable: true, value: crearUrl });
@@ -150,6 +158,7 @@ describe('CapturaInspeccion', () => {
     elementos.find((boton) => boton.textContent?.trim() === 'Imprimir')?.click();
     elementos.find((boton) => boton.textContent?.trim() === 'Exportar JSON')?.click();
     expect(imprimir).toHaveBeenCalledOnce();
+    expect(motor.impresion).toBe(false);
     const blob = crearUrl.mock.calls[0][0];
     const contenido =
       typeof blob.text === 'function'
