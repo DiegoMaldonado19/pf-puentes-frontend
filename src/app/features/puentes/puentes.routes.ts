@@ -1,10 +1,18 @@
 import { Routes } from '@angular/router';
 import { rolGuard } from '../../core/auth/rol.guard';
+import { sesionGuard } from '../../core/auth/sesion.guard';
 import type { GestionMantenimiento } from '../mantenimiento/gestion-mantenimiento';
 import { TEXTOS } from '../../shared/textos';
 
 /** RN-USR-10: alta, edición y solicitudes piden sesión y rol. El backend igual rechaza 401/403. */
 const RUTAS_PRIVADAS: Routes = [
+  {
+    path: ':id/inspecciones',
+    title: TEXTOS.inspecciones.delPuente.titulo,
+    canActivate: [sesionGuard],
+    loadComponent: () =>
+      import('../inspecciones/inspecciones-puente').then((m) => m.InspeccionesPuente),
+  },
   {
     path: ':id/mantenimiento',
     title: TEXTOS.mantenimiento.gestion.titulo,
