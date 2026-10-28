@@ -55,6 +55,15 @@
               <span class="text-slate-300"> · {{ roles[rol] }}</span>
             }
           </p>
+          @if (auth.rol() !== 'ADMINISTRADOR') {
+            <a
+              routerLink="/inspecciones"
+              routerLinkActive="underline"
+              ariaCurrentWhenActive="page"
+              class="hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+              >{{ textosInspecciones.nav }}</a
+            >
+          }
           @if (auth.rol() === 'CATEDRATICO') {
             <a
               routerLink="/revisiones"

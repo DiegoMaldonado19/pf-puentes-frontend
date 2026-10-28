@@ -1,0 +1,334 @@
+<section class="mx-auto max-w-6xl p-4" aria-labelledby="titulo-captura">
+  <a routerLink="/inspecciones" class="text-blue-800 underline">← {{ comun.volver }}</a>
+
+  @if (store.cargando() && !store.inspeccion()) {
+    <p role="status" class="mt-4">{{ t.cargando }}</p>
+  } @else if (store.noEncontrada()) {
+    <h1 id="titulo-captura" class="mt-4 text-2xl font-bold">{{ t.noEncontrada }}</h1>
+    <p role="alert" class="mt-3 rounded border border-slate-500 bg-slate-100 p-3">
+      {{ t.noEncontradaDetalle }}
+    </p>
+  } @else if (store.error() && !store.inspeccion()) {
+    <h1 id="titulo-captura" class="sr-only">{{ t.cargando }}</h1>
+    <p role="alert" class="mt-4 rounded border border-red-700 bg-red-50 p-3 text-red-900">
+      {{ store.error() }}
+      <button type="button" class="ml-3 underline" (click)="store.cargar(id())">
+        {{ comun.reintentar }}
+      </button>
+    </p>
+  } @else if (store.inspeccion(); as inspeccion) {
+    <header class="mt-3 flex flex-wrap items-start justify-between gap-3">
+      <div>
+        <p class="font-mono text-sm text-slate-700">{{ inspeccion.puente.codigo }}</p>
+        <h1 id="titulo-captura" class="text-2xl font-bold">{{ inspeccion.puente.nombre }}</h1>
+        <p class="text-sm text-slate-700">
+          {{ comun.fecha }}: {{ fechaSinHora(inspeccion.fecha_inspeccion) }} ·
+          {{ t.codigoFormulario.replace('{codigo}', inspeccion.formulario.codigo) }}
+        </p>
+      </div>
+      <div class="grid justify-items-end gap-2">
+        <app-chip-estado-inspeccion [estado]="inspeccion.estado" />
+        <span class="text-sm font-medium">
+          {{ store.editable() ? t.editando : t.soloLectura }}
+        </span>
+        <a
+          class="text-blue-800 underline"
+          [routerLink]="['/inspecciones', inspeccion.id, 'historial']"
+          >{{ t.historial }}</a
+        >
+      </div>
+    </header>
+
+    @if (!enConexion()) {
+      <p role="status" class="mt-3 rounded border border-amber-700 bg-amber-50 p-3 text-amber-900">
+        {{ comun.sinConexion }}
+      </p>
+    }
+
+    @if (inspeccion.advertencia_ubicacion) {
+      <p role="note" class="mt-3 rounded border border-amber-700 bg-amber-50 p-3 text-amber-900">
+        {{ inspeccion.advertencia_ubicacion }} {{ distancia() }}
+      </p>
+    } @else if (!inspeccion.gps_disponible) {
+      <p role="note" class="mt-3 rounded border border-slate-500 bg-slate-100 p-3 text-slate-900">
+        {{ t.gpsNoDisponible }}
+      </p>
+    }
+    @for (aviso of inspeccion.advertencias ?? []; track aviso) {
+      <p role="note" class="mt-3 rounded border border-amber-700 bg-amber-50 p-3 text-amber-900">
+        {{ aviso }}
+      </p>
+    }
+    @if (inspeccion.supersede_a_id) {
+      <p class="mt-3 text-sm text-slate-700">
+        {{ t.correccionDe.replace('{id}', inspeccion.supersede_a_id) }}
+        @if (inspeccion.motivo_correccion) {
+          <span class="block">{{ inspeccion.motivo_correccion }}</span>
+        }
+      </p>
+    }
+    @if (inspeccion.superada && inspeccion.superada_por) {
+      <p class="mt-3 text-sm text-slate-700">
+        {{ t.superadaPor.replace('{id}', inspeccion.superada_por) }}
+      </p>
+    }
+
+    @if (!store.editable()) {
+      <p role="note" class="mt-3 rounded border border-slate-500 bg-slate-100 p-3 text-slate-900">
+        {{ inspeccion.estado === 'BORRADOR' ? t.soloLecturaAjena : t.soloLecturaEstado }}
+      </p>
+    }
+
+    @if (inspeccion.estado === 'PUBLICADA') {
+      <section class="mt-4 rounded border border-green-700 bg-green-50 p-4" aria-live="polite">
+        <p class="font-semibold text-green-900">{{ t.publicada }}</p>
+        @if (inspeccion.indice_condicion !== undefined) {
+          <p class="mt-1">
+            {{ t.indice }}: <strong>{{ inspeccion.indice_condicion | number: '1.0-2' }}</strong>
+          </p>
+        }
+        @if (inspeccion.estado_confirmado ?? inspeccion.estado_calculado; as estado) {
+          <p>{{ t.estadoPuente }}: {{ estado }}</p>
+        }
+        @if (inspeccion.justificacion_estado) {
+          <p>{{ t.justificacion }}: {{ inspeccion.justificacion_estado }}</p>
+        }
+        <div class="mt-3 flex flex-wrap gap-4">
+          <a
+            class="text-blue-800 underline"
+            [routerLink]="['/inspecciones', inspeccion.id, 'foro']"
+            >{{ comun.verForo }}</a
+          >
+          @if (puedeCorregir()) {
+            <a
+              class="text-blue-800 underline"
+              [routerLink]="corregirRuta()"
+              [queryParams]="{ corrige: inspeccion.id }"
+              >{{ t.corregir }}</a
+            >
+          }
+        </div>
+      </section>
+    } @else if (inspeccion.estado === 'ENVIADA' && rol() === 'ESTUDIANTE' && esAutor()) {
+      <p
+        role="status"
+        class="mt-4 rounded border border-blue-700 bg-blue-50 p-3 font-medium text-blue-900"
+      >
+        {{ t.enviadaEstudiante }}
+      </p>
+    }
+
+    @if (store.conflicto()) {
+      <section
+        role="alertdialog"
+        aria-labelledby="titulo-conflicto"
+        class="mt-4 rounded border border-orange-700 bg-orange-50 p-4"
+      >
+        <h2 id="titulo-conflicto" class="font-semibold text-orange-900">{{ t.conflictoTitulo }}</h2>
+        <p class="mt-1 text-orange-900">{{ t.conflictoDetalle }}</p>
+        <div class="mt-3 flex flex-wrap gap-3">
+          <button
+            type="button"
+            class="min-h-11 rounded bg-blue-700 px-4 text-white"
+            (click)="store.resolverConflicto(true)"
+          >
+            {{ t.conservarMio }}
+          </button>
+          <button
+            type="button"
+            class="min-h-11 rounded border border-blue-700 px-4 text-blue-800"
+            (click)="store.resolverConflicto(false)"
+          >
+            {{ t.usarServidor }}
+          </button>
+        </div>
+      </section>
+    }
+
+    @if (store.errores().length) {
+      <section
+        role="alert"
+        class="mt-4 rounded border border-red-700 bg-red-50 p-4 text-red-900"
+        aria-labelledby="titulo-errores-envio"
+      >
+        <h2 id="titulo-errores-envio" class="font-semibold">{{ t.erroresEnvio }}</h2>
+        <ul class="mt-2 list-disc pl-5">
+          @for (error of store.errores(); track $index) {
+            <li>
+              <span class="break-all font-mono text-sm">{{ error.campo }}</span
+              >: {{ error.mensaje }}
+            </li>
+          }
+        </ul>
+      </section>
+    } @else if (store.error() && !store.conflicto()) {
+      <p role="alert" class="mt-4 rounded border border-red-700 bg-red-50 p-3 text-red-900">
+        {{ store.error() }}
+      </p>
+    }
+
+    <div class="mt-4 flex flex-wrap items-center gap-3">
+      <a
+        class="inline-flex min-h-11 items-center rounded border border-blue-700 px-4 text-blue-800"
+        [routerLink]="['/inspecciones', inspeccion.id, 'permanentes']"
+      >
+        {{ store.editable() ? t.confirmarPermanentes : t.verPermanentes }}
+      </a>
+      @if (store.permanentesConfirmados()) {
+        <span class="text-sm font-medium text-green-800">{{ t.permanentesConfirmados }}</span>
+      } @else if (store.editable()) {
+        <span class="text-sm font-medium text-amber-900">{{ t.permanentesPendiente }}</span>
+      }
+    </div>
+
+    <h2 class="mb-2 mt-6 text-xl font-semibold">{{ t.secciones }}</h2>
+    @if (store.version(); as version) {
+      <app-motor-formulario
+        [esquema]="version.esquema"
+        [datos]="store.datosIniciales()"
+        [modo]="store.editable() ? 'edicion' : 'lectura'"
+        [erroresServidor]="store.erroresMotor()"
+        (datosChange)="store.alCambiarDatos($event)"
+        (validoChange)="store.formularioValido.set($event)"
+        (grupoSinDanos)="store.alMarcarGrupoSano($event)"
+      />
+    }
+
+    <div class="mt-6 grid gap-4 lg:grid-cols-2">
+      <app-panel-archivos
+        class="lg:col-span-2"
+        [archivos]="store.archivos()"
+        [editable]="store.editable()"
+        [referencias]="referencias()"
+        [puedeFoto]="store.puedeAgregarFoto()"
+        [puedeDocumento]="store.puedeAgregarDocumento()"
+        (foto)="subirFoto($event)"
+        (documento)="store.subirDocumento($event)"
+        (reintentar)="store.reintentarArchivo($event)"
+        (quitar)="store.eliminarArchivo($event)"
+      />
+      <app-panel-acompanantes
+        class="lg:col-span-2"
+        [acompanantes]="store.acompanantes()"
+        [editable]="store.editable()"
+        [ocupado]="store.ocupado()"
+        (agregar)="store.agregarAcompanante()"
+        (cambiar)="store.cambiarAcompanante($event.indice, $event.nombre)"
+        (quitar)="store.quitarAcompanante($event)"
+        (guardar)="store.guardarAcompanantes()"
+      />
+    </div>
+
+    @if (store.editable()) {
+      <section class="mt-6 rounded border border-slate-300 p-4" aria-labelledby="titulo-acciones">
+        <h2 id="titulo-acciones" class="text-lg font-semibold">{{ t.checklist }}</h2>
+        <ul class="mt-2 grid gap-1 text-sm">
+          <li [class.text-green-800]="store.permanentesConfirmados()">
+            {{ store.permanentesConfirmados() ? '✔' : '✖' }} {{ t.checkPermanentes }}
+          </li>
+          <li [class.text-green-800]="store.fotosSuficientes()">
+            {{ store.fotosSuficientes() ? '✔' : '✖' }} {{ etiquetaFotos() }}
+          </li>
+          <li [class.text-green-800]="store.formularioValido()">
+            {{ store.formularioValido() ? '✔' : '•' }}
+            {{ store.formularioValido() ? t.checkFormulario : t.checkFormularioPendiente }}
+          </li>
+        </ul>
+        @if (store.fotosSubidas() < minimoFotos) {
+          <label class="mt-2 flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              class="size-5"
+              [checked]="store.fotosPrevias()"
+              (change)="store.fotosPrevias.set($any($event.target).checked)"
+            />
+            {{ t.checkFotosPrevias.replace('{minimo}', '' + minimoFotos) }}
+          </label>
+        }
+
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            class="min-h-11 rounded border border-blue-700 px-4 text-blue-800 disabled:opacity-50"
+            [disabled]="store.ocupado() || !store.sucio() || !!store.conflicto()"
+            (click)="store.guardar()"
+          >
+            {{ store.guardando() ? t.guardando : t.guardar }}
+          </button>
+          <span class="text-sm text-slate-700" role="status">
+            {{ store.sucio() ? t.sinGuardar : horaGuardado() }}
+          </span>
+          <button
+            type="button"
+            class="min-h-11 rounded bg-blue-700 px-4 font-medium text-white disabled:opacity-50"
+            [disabled]="!store.puedeEnviar()"
+            (click)="confirmandoEnvio.set(true)"
+          >
+            {{ store.enviando() ? t.enviando : textoEnviar() }}
+          </button>
+          <button
+            type="button"
+            class="ml-auto min-h-11 text-red-800 underline disabled:opacity-50"
+            [disabled]="store.ocupado()"
+            (click)="confirmandoBaja.set(true)"
+          >
+            {{ t.eliminar }}
+          </button>
+        </div>
+
+        @if (confirmandoEnvio()) {
+          <div
+            role="alertdialog"
+            aria-labelledby="texto-envio"
+            class="mt-4 rounded border border-blue-700 bg-blue-50 p-4"
+          >
+            <p id="texto-envio">
+              {{ publica() ? t.confirmarEnvioPublica : t.confirmarEnvioEstudiante }}
+            </p>
+            <div class="mt-3 flex gap-3">
+              <button
+                type="button"
+                class="min-h-11 rounded bg-blue-700 px-4 text-white"
+                (click)="confirmarEnvio()"
+              >
+                {{ t.confirmarEnvioSi }}
+              </button>
+              <button
+                type="button"
+                class="min-h-11 rounded border px-4"
+                (click)="confirmandoEnvio.set(false)"
+              >
+                {{ t.cancelar }}
+              </button>
+            </div>
+          </div>
+        }
+        @if (confirmandoBaja()) {
+          <div
+            role="alertdialog"
+            aria-labelledby="texto-baja"
+            class="mt-4 rounded border border-red-700 bg-red-50 p-4"
+          >
+            <p id="texto-baja">{{ t.eliminarConfirmar }}</p>
+            <div class="mt-3 flex gap-3">
+              <button
+                type="button"
+                class="min-h-11 rounded bg-red-700 px-4 text-white"
+                (click)="eliminar()"
+              >
+                {{ t.eliminarSi }}
+              </button>
+              <button
+                type="button"
+                class="min-h-11 rounded border px-4"
+                (click)="confirmandoBaja.set(false)"
+              >
+                {{ t.cancelar }}
+              </button>
+            </div>
+          </div>
+        }
+      </section>
+    }
+  }
+</section>

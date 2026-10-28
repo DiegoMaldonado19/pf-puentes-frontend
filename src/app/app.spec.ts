@@ -157,6 +157,7 @@ describe('App', () => {
       '/puentes/mapa',
       '/offline/local',
       '/foro',
+      '/inspecciones',
       '/mis-revisiones',
       '/mis-asignaciones',
       '/perfil',
@@ -170,6 +171,7 @@ describe('App', () => {
     await fixture.whenStable();
     expect(hrefs(fixture.nativeElement)).toContain('/revisiones');
     expect(hrefs(fixture.nativeElement)).toContain('/cursos');
+    expect(hrefs(fixture.nativeElement)).toContain('/inspecciones');
   });
 
   it('muestra administración solo al administrador', async () => {

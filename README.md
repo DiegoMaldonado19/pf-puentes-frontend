@@ -1,5 +1,13 @@
 # pf-puentes-frontend
 
+## Inspecciones (P5) — 27/10/2026
+
+Captura de inspecciones en línea contra el backend de P5 (`feature/puente-inspecciones`). Rutas: `/inspecciones` (mías, con filtros), `/inspecciones/puentes` (puentes que puedo inspeccionar), `/inspecciones/nueva/:puenteId` (fecha, GPS opcional y motivo si es corrección), `/inspecciones/:id` (captura del borrador propio o lectura de cualquier otra), `/inspecciones/:id/permanentes`, `/inspecciones/:id/historial` y `/puentes/:id/inspecciones`.
+
+Recorrido: iniciar → confirmar datos permanentes → capturar con el motor del formulario (autoguardado) → fotos y acompañantes → enviar. El estudiante queda en «Enviada a revisión»; catedrático y profesional verificado publican en el mismo acto. El 422 de envío se muestra completo sin salir de la pantalla. Sin conexión, la captura aún no se encola: la integración con la cola de `offline/` queda para el siguiente incremento. [ADR 0038](docs/adr/0038-captura-de-inspecciones-p5.md).
+
+Verificación local: 943 pruebas aprobadas (72 nuevas del módulo, más el ajuste de la cabecera en `app.spec.ts`), ESLint y build de producción aprobados. No se ejecutó recorrido en navegador contra el backend real.
+
 ## Revisión académica — 27/10/2026
 
 Seguimiento: `/mis-revisiones` para pendientes e inspecciones propias con revisión; `/historial-revisiones/:inspeccionId` para ciclos y resoluciones sin perder los anteriores. La calificación opcional tiene un componente y endpoint privado por ciclo: lectura de autor/revisor y edición por el revisor asignado. Los avisos de 15 días usan la campana existente y enlazan a la bandeja. [ADR 0036](docs/adr/0036-pendientes-historial-y-calificacion-privada.md).
