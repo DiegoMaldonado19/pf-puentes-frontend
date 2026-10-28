@@ -85,9 +85,21 @@ import { PersistenciaOffline } from './persistencia';
             <figure>
               <img [src]="miniatura(foto)" width="150" alt="Foto guardada localmente" />
               <figcaption>{{ foto.elemento_ref || 'General' }}</figcaption>
+              @if (rechazados().includes(foto.id)) {
+                <button type="button" [disabled]="ocupado()" (click)="retirarArchivo(foto.id)">
+                  Retirar foto rechazada para corregir
+                </button>
+              }
             </figure>
           }
           <p>Documentos PDF guardados: {{ documentos().length }}</p>
+          @for (documento of documentos(); track documento.id) {
+            @if (rechazados().includes(documento.id)) {
+              <button type="button" [disabled]="ocupado()" (click)="retirarArchivo(documento.id)">
+                Retirar PDF rechazado para corregir
+              </button>
+            }
+          }
           <button type="button" [disabled]="!puedeEnviar()" (click)="enviar()">
             Encolar envío
           </button>
@@ -118,6 +130,7 @@ export class CapturaLocal implements OnDestroy {
   readonly datosFormulario = signal<Record<string, unknown>>({});
   readonly fotos = signal<ArchivoLocal[]>([]);
   readonly documentos = signal<ArchivoLocal[]>([]);
+  readonly rechazados = signal<string[]>([]);
   readonly error = signal('');
   readonly ocupado = signal(false);
   readonly transicion = signal(false);
@@ -147,6 +160,7 @@ export class CapturaLocal implements OnDestroy {
   );
   elemento = '';
   private ultimoGuardado = '';
+  private versionEdicion = 0;
   private temporizador?: ReturnType<typeof setTimeout>;
   private escrituras: Promise<void> = Promise.resolve();
   private destruida = false;
@@ -198,15 +212,27 @@ export class CapturaLocal implements OnDestroy {
         );
         return;
       }
-      if (!this.inspeccion()) {
+      if (
+        !this.inspeccion() ||
+        (!this.ocupado() && JSON.stringify(podarVacios(this.respuestas())) === this.ultimoGuardado)
+      ) {
         this.respuestas.set(datos.i.respuestas as Record<string, unknown>);
         this.datosFormulario.set(datos.i.respuestas as Record<string, unknown>);
         this.ultimoGuardado = JSON.stringify(podarVacios(this.respuestas()));
+        this.versionEdicion = datos.i.version_local;
         this.esquema.set(esquema);
       }
       this.inspeccion.set(datos.i);
       this.fotos.set(datos.fotos);
       this.documentos.set(datos.documentos);
+      this.rechazados.set(
+        datos.operaciones
+          .filter(
+            (o) =>
+              o.estado === 'requiere_intervencion' && (o.tipo === 'foto' || o.tipo === 'documento'),
+          )
+          .map((o) => o.entidad_id),
+      );
       this.intervencion.set(datos.operaciones.some((o) => o.estado === 'requiere_intervencion'));
     },
     error: (error: unknown) =>
@@ -287,7 +313,14 @@ export class CapturaLocal implements OnDestroy {
     const podadas = podarVacios(datos);
     const huella = JSON.stringify(podadas);
     if (!metadatos && huella === this.ultimoGuardado) return;
-    const guardada = await this.local.editar(i.propietario_id, i.id, podadas as Json, metadatos);
+    const guardada = await this.local.editar(
+      i.propietario_id,
+      i.id,
+      podadas as Json,
+      this.versionEdicion,
+      metadatos,
+    );
+    this.versionEdicion = guardada.version_local;
     this.ultimoGuardado = huella;
     await this.comprobarAcceso();
     this.inspeccion.set(guardada);
@@ -327,6 +360,7 @@ export class CapturaLocal implements OnDestroy {
         foto,
         elemento ? { origen: 'grupo_dano', elemento_ref: elemento } : { origen: 'general' },
       );
+      this.versionEdicion = (await this.local.inspeccion(i.propietario_id, i.id)).version_local;
     });
   }
   documento(selector: HTMLInputElement): Promise<boolean> {
@@ -340,6 +374,7 @@ export class CapturaLocal implements OnDestroy {
         throw new Error('La captura no admite archivos ahora.');
       await this.persistir(datos);
       await this.local.documento(i.propietario_id, i.id, archivo);
+      this.versionEdicion = (await this.local.inspeccion(i.propietario_id, i.id)).version_local;
     });
   }
   enviar(): Promise<boolean> {
@@ -364,6 +399,16 @@ export class CapturaLocal implements OnDestroy {
       await this.local.enviar(i.propietario_id, i.id);
       this.inspeccion.set(await this.local.inspeccion(i.propietario_id, i.id));
     }).finally(() => this.transicion.set(false));
+  }
+  retirarArchivo(id: string): Promise<boolean> {
+    return this.ejecutar(async () => {
+      const i = await this.comprobarAcceso();
+      const guardada = await this.local.retirarArchivo(i.propietario_id, i.id, id);
+      this.inspeccion.set(guardada);
+      // Si había edición sin guardar, conservar su versión para detectar conflictos.
+      if (JSON.stringify(podarVacios(this.respuestas())) === this.ultimoGuardado)
+        this.versionEdicion = guardada.version_local;
+    });
   }
   async puedeSalir(): Promise<boolean> {
     if (!this.inspeccion()) return true;

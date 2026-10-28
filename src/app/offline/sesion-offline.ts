@@ -3,11 +3,13 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../core/auth/auth';
 import { SesionOffline as PuertoSesionOffline } from './modelos';
+import { BaseLocal } from './base-local';
 
 /** Adaptador remoto P2. No habilita acceso local ni configura transporte. */
 @Injectable({ providedIn: 'root' })
 export class SesionOffline implements PuertoSesionOffline {
   private readonly auth = inject(AuthService);
+  private readonly db = inject(BaseLocal);
   private revision = 0;
   private comprobarAcceso?: (propietario: string) => Promise<boolean>;
   private readonly cancelaciones = new Set<() => void>();
@@ -32,7 +34,8 @@ export class SesionOffline implements PuertoSesionOffline {
   }
 
   async preparar(propietario_id: string): Promise<boolean> {
-    if (this.propietarioActual() !== propietario_id) return false;
+    const remoto = this.propietarioActual();
+    if ((remoto ?? (await this.recuperarPropietario())) !== propietario_id) return false;
     const revision = this.revision;
     if (this.comprobarAcceso && !(await this.comprobarAcceso(propietario_id))) return false;
     const sesion = await firstValueFrom(this.auth.renovar());
@@ -43,6 +46,15 @@ export class SesionOffline implements PuertoSesionOffline {
       sesion?.usuario.id === propietario_id &&
       this.propietarioActual() === propietario_id
     );
+  }
+
+  async recuperarPropietario(): Promise<string | null> {
+    const remoto = this.propietarioActual();
+    if (remoto) return remoto;
+    const registro = await this.db.acceso_local.get('ultima');
+    return registro && !registro.revocados.includes(registro.propietario_id)
+      ? registro.propietario_id
+      : null;
   }
 
   alInvalidar(cancelar: () => void): () => void {

@@ -1,5 +1,13 @@
 # Discusión de una inspección publicada (P9)
 
+La discusión permite editar comentarios propios durante la ventana de edición y eliminar
+comentarios propios. Catedráticos y administradores pueden ocultar comentarios y cerrar
+el hilo mediante el diálogo de moderación existente, con motivo obligatorio. Los cambios
+se envían por `FORO_INSPECCION_MUTACIONES_API` y recargan esta misma discusión, sin
+navegar al detalle genérico de hilos (que excluye los hilos de inspección).
+Los errores conservan el borrador y el motivo para reintentar; el servidor valida permisos
+y plazo nuevamente.
+
 La pantalla del foro de una inspección usa HTTP real:
 
 - `GET /api/v1/inspecciones/{id}/hilo`.

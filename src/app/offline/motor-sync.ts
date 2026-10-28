@@ -73,17 +73,23 @@ export class MotorSync {
   }
   drenar(): Promise<void> {
     if (this.activo) return this.activo;
-    const propietario = this.sesion.propietarioActual();
-    if (!propietario || !this.transporte || !this.conectado() || this.pausa())
-      return Promise.resolve();
+    if (!this.transporte || !this.conectado() || this.pausa()) return Promise.resolve();
     const liberar = this.sesion.alInvalidar?.(() => {
       this.generacion++;
       this.controlador?.abort();
     });
-    this.activo = this.procesar(propietario, this.generacion).finally(() => {
-      liberar?.();
-      this.activo = null;
-    });
+    const generacion = this.generacion;
+    this.activo = Promise.resolve()
+      .then(async () => {
+        const propietario =
+          this.sesion.propietarioActual() ?? (await this.sesion.recuperarPropietario?.());
+        if (propietario && generacion === this.generacion)
+          await this.procesar(propietario, generacion);
+      })
+      .finally(() => {
+        liberar?.();
+        this.activo = null;
+      });
     return this.activo;
   }
   private async procesar(propietario_id: string, generacion: number) {
@@ -105,7 +111,11 @@ export class MotorSync {
           .equals(propietario_id)
           .sortBy('id');
         if (!siguienteReclamable(operaciones, this.reloj())) return false;
-        if (generacion !== this.generacion || this.sesion.propietarioActual() !== propietario_id)
+        if (
+          generacion !== this.generacion ||
+          (this.sesion.propietarioActual() !== null &&
+            this.sesion.propietarioActual() !== propietario_id)
+        )
           return false;
         await this.db.bloqueos.put({ propietario_id, token, vence_en: this.reloj() + LEASE_MS });
         return true;
@@ -127,10 +137,13 @@ export class MotorSync {
         .catch(() => controlador.abort());
     }, 3000);
     try {
-      if (controlador.signal.aborted || this.sesion.propietarioActual() !== propietario_id) return;
-      const preparada = await Promise.resolve()
-        .then(() => this.sesion.preparar(propietario_id))
-        .catch(() => false);
+      if (controlador.signal.aborted) return;
+      let preparada: boolean;
+      try {
+        preparada = await this.sesion.preparar(propietario_id);
+      } catch {
+        return; // Un fallo transitorio conserva la cola y permite el próximo intento.
+      }
       if (!preparada) {
         const actual = this.sesion.propietarioActual();
         if (actual === null || (!controlador.signal.aborted && actual === propietario_id))

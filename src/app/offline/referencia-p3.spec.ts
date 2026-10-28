@@ -28,14 +28,17 @@ describe('referencia P3/P7 con sesión remota G2', () => {
   let invalidar: (() => void) | undefined;
   let preparar: ReturnType<typeof vi.fn>;
   let liberar: ReturnType<typeof vi.fn>;
+  let rol: string;
   beforeEach(() => {
     propietario = 'ana';
+    rol = 'ESTUDIANTE';
     preparar = vi.fn().mockResolvedValue(true);
     liberar = vi.fn();
     TestBed.configureTestingModule({
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
+        { provide: AuthService, useValue: { rol: () => rol } },
         {
           provide: SesionOffline,
           useValue: {
@@ -65,6 +68,34 @@ describe('referencia P3/P7 con sesión remota G2', () => {
       });
     });
   }
+
+  it.each(['CATEDRATICO', 'PROFESIONAL_EXTERNO'])(
+    'prepara %s con contextos reales inspeccionables sin inventar asignaciones',
+    async (actual) => {
+      rol = actual;
+      const resultado = servicio.descargar('ana');
+      const inspeccionable = {
+        id: 'p1',
+        codigo: 'GT-01',
+        nombre: 'Puente',
+        curso_id: null,
+        curso_nombre: null,
+        borrador_en_curso: false,
+      };
+      await vi.waitFor(() =>
+        http
+          .expectOne('/api/v1/puentes-inspeccionables?page=0&size=100')
+          .flush({ content: [inspeccionable], number: 0, total_pages: 1 }),
+      );
+      await vi.waitFor(() => http.expectOne('/api/v1/puentes/p1').flush(puente({ id: 'p1' })));
+      expect(await resultado).toEqual({
+        asignaciones: [],
+        inspeccionables: [inspeccionable],
+        puentes: [puente({ id: 'p1' })],
+      });
+      http.expectNone((r) => r.url === '/api/v1/mis-asignaciones');
+    },
+  );
 
   it('conserva contextos y descarga una ficha P3 por puente sin usar el catálogo activo', async () => {
     const resultado = servicio.descargar('ana');

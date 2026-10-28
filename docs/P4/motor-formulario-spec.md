@@ -50,6 +50,17 @@ export class MotorFormularioComponent implements OnInit, OnChanges, OnDestroy {
 
 ## 2. Mapeo: JSON Schema ➔ Controles de Angular
 
+El input `impresion` renderiza todas las secciones con los mismos controles, datos y
+esquema congelado. Captura lo activa antes de `window.print()` y restaura la pestaña
+activa al terminar; no cambia el modo `lectura` ni crea otro editor. La prueba del motor
+comprueba ocho secciones imprimibles y la de captura comprueba el modo durante la llamada.
+
+Revisión de restricciones del esquema SIECA distribuido en
+`pf-puentes-backend/src/main/resources/formulario/formulario-sieca-v1.json`: utiliza
+`required`, `minimum`, `maximum`, tipos y `enum`, ya cubiertos por el motor. No declara
+`minLength`, `maxLength`, `pattern`, `format` ni límites de arrays; no se añaden reglas
+cliente inventadas para esas restricciones.
+
 | Tipo en JSON Schema     | Metadatos Adicionales                          | Control Angular Generado                                         | Validadores / Comportamiento                                                                            |
 | ----------------------- | ---------------------------------------------- | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
 | `object`                | —                                              | `FormGroup` anidado                                              | Subagrupación por `x-grupo`                                                                             |

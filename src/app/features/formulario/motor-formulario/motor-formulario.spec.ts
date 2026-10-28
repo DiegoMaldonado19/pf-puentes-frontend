@@ -4,6 +4,35 @@ import { EsquemaFormulario } from '../modelos';
 import { MotorFormularioComponent } from './motor-formulario';
 
 describe('MotorFormularioComponent', () => {
+  it('imprime las ocho secciones del esquema congelado con los mismos campos en lectura', async () => {
+    const fixture = TestBed.createComponent(MotorFormularioComponent);
+    const properties = Object.fromEntries(
+      Array.from({ length: 8 }, (_, i) => [
+        `seccion_${i + 1}`,
+        {
+          type: 'object',
+          title: `Sección ${i + 1}: Congelada`,
+          properties: {
+            valor: { type: 'string', title: `Campo congelado ${i + 1}`, readOnly: true },
+          },
+        },
+      ]),
+    );
+    fixture.componentRef.setInput('esquema', { title: 'Congelado', type: 'object', properties });
+    fixture.componentRef.setInput('modo', 'lectura');
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelectorAll('input').length).toBe(1);
+    fixture.componentRef.setInput('impresion', true);
+    fixture.detectChanges();
+    const campos = Array.from(
+      fixture.nativeElement.querySelectorAll('input'),
+    ) as HTMLInputElement[];
+    expect(campos).toHaveLength(8);
+    expect(campos.every((campo) => campo.disabled || campo.readOnly)).toBe(true);
+    fixture.componentRef.setInput('impresion', false);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelectorAll('input')).toHaveLength(1);
+  });
   const esquemaPrueba: EsquemaFormulario = {
     title: 'Esquema de Prueba',
     type: 'object',

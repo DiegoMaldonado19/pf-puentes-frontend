@@ -107,7 +107,7 @@ describe('EstadoLocal', () => {
     const estado = TestBed.inject(EstadoLocal);
     await vi.waitFor(() => expect(estado.operaciones()).toHaveLength(1));
     bloquearLectura = true;
-    await persistencia.editar(ana, captura.id, { tardia: true });
+    await persistencia.editar(ana, captura.id, { tardia: true }, captura.version_local);
     await iniciada;
     propietario = null;
     invalidar();

@@ -19,7 +19,12 @@ test('G4 — diagnóstico local G2 accesible, aislado y sin transporte que confi
     await h.entrar();
     await h.preparar();
     const [captura] = await h.acceso.inspecciones();
-    await h.persistencia.editar(h.propietario, captura.id, { diagnostico: 'G4' });
+    await h.persistencia.editar(
+      h.propietario,
+      captura.id,
+      { diagnostico: 'G4' },
+      captura.version_local,
+    );
     await h.persistencia.foto(
       h.propietario,
       captura.id,

@@ -54,6 +54,7 @@ export class MotorFormularioComponent implements OnInit, OnChanges, OnDestroy {
   @Input({ required: true }) esquema!: EsquemaFormulario;
   @Input() datos: Record<string, unknown> = {};
   @Input() modo: ModoFormulario = 'edicion';
+  @Input() impresion = false;
   @Input() erroresServidor: Record<string, string> = {};
 
   @Output() datosChange = new EventEmitter<Record<string, unknown>>();

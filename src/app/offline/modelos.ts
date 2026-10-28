@@ -1,4 +1,5 @@
 import type { AsignacionP7DTO } from './asignaciones-p7';
+import type { PuenteInspeccionableDTO } from '../features/inspecciones/modelos';
 
 export type Json = null | boolean | number | string | Json[] | { [clave: string]: Json };
 export interface RegistroLocal {
@@ -84,6 +85,7 @@ export interface TransporteSync {
 }
 export interface SesionOffline {
   propietarioActual(): string | null;
+  recuperarPropietario?(): Promise<string | null>;
   preparar(propietario_id: string): Promise<boolean>;
   /** Cancela ejecución remota; no elimina capturas ni operaciones. */
   alInvalidar?(cancelar: () => void): () => void;
@@ -92,6 +94,7 @@ export interface PreparacionCompleta extends RegistroLocal {
   preparada_en: string;
   formulario_version_id: string;
   asignaciones: AsignacionP7DTO[];
+  inspeccionables?: PuenteInspeccionableDTO[];
   publicaciones: { puente_id: string; publicacion: ReferenciaLocal | null }[];
   puentes: ReferenciaLocal[];
   esquemas_formulario: ReferenciaLocal[];

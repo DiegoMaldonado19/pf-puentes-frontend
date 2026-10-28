@@ -167,7 +167,10 @@ export class DemoOffline implements OnDestroy {
     return this.accion(() => this.persistencia.crear(this.propietario(), PUENTE, FORMULARIO));
   }
   guardar(id: string, json: string) {
-    return this.accion(() => this.persistencia.editar(this.propietario(), id, JSON.parse(json)));
+    return this.accion(async () => {
+      const i = await this.persistencia.inspeccion(this.propietario(), id);
+      return this.persistencia.editar(this.propietario(), id, JSON.parse(json), i.version_local);
+    });
   }
   foto(id: string, f: FotoCapturada, anclaje: string) {
     return this.accion(() => this.persistencia.foto(this.propietario(), id, f, anclaje));

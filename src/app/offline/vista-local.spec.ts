@@ -86,6 +86,63 @@ describe('navegación de acceso local', () => {
     expect(rutaExigeSesion('/perfil')).toBe(true);
   });
 
+  it.each(['CATEDRATICO', 'PROFESIONAL_EXTERNO'] as const)(
+    'inicia %s desde puente inspeccionable sin asignación ficticia',
+    async (rol) => {
+      db = new BaseLocal(`vista-${v7()}`);
+      const propietario = v7(),
+        puente = v7(),
+        formulario = v7();
+      const referencia = {
+        id: formulario,
+        propietario_id: propietario,
+        modelo_version: 1,
+        preparada_en: '2026-10-28T15:00:00Z',
+        datos: { esquema: { type: 'object', properties: {} } },
+      };
+      await db.preparaciones.put({
+        id: v7(),
+        propietario_id: propietario,
+        modelo_version: 1,
+        preparada_en: '2026-10-28T15:00:00Z',
+        formulario_version_id: formulario,
+        asignaciones: [],
+        publicaciones: [],
+        puentes: [],
+        esquemas_formulario: [referencia],
+        inspeccionables: [
+          {
+            id: puente,
+            codigo: 'P1',
+            nombre: 'Puente',
+            curso_id: null,
+            curso_nombre: null,
+            borrador_en_curso: false,
+          },
+        ],
+      });
+      configurar(
+        db,
+        {
+          propietarioActual: async () => propietario,
+          inspecciones: async () => [],
+          consultarPropias: async (_p: string, leer: () => Promise<unknown>) => leer(),
+          alInvalidar: () => vi.fn(),
+        },
+        undefined,
+        crearSesion(rol, propietario),
+      );
+      const navegar = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+      const fixture = TestBed.createComponent(VistaLocal);
+      await fixture.componentInstance.iniciar(`${puente}:`);
+      const [captura] = await db.inspecciones.toArray();
+      expect(captura.puente_id).toBe(puente);
+      expect(captura.metadatos).not.toHaveProperty('asignacion_id');
+      expect(captura.metadatos).not.toHaveProperty('curso_id');
+      expect(navegar).toHaveBeenCalledWith(['/offline/captura', captura.id]);
+    },
+  );
+
   it('inicia desde una preparación completa con permanentes, asignación, día Guatemala y aviso GPS', async () => {
     db = new BaseLocal(`vista-${v7()}`);
     const propietario = v7(),
@@ -288,7 +345,7 @@ describe('navegación de acceso local', () => {
     expect(liberar).toHaveBeenCalledOnce();
   });
 
-  it('ofrece preparación solo a una sesión remota de estudiante', () => {
+  it('ofrece preparación a inspectores, no administrador ni sesión vacía', () => {
     db = new BaseLocal(`vista-${v7()}`);
     for (const rol of ['ADMINISTRADOR', 'CATEDRATICO', 'PROFESIONAL_EXTERNO'] as const) {
       configurar(
@@ -303,7 +360,9 @@ describe('navegación de acceso local', () => {
       );
       const fixture = TestBed.createComponent(VistaLocal);
       fixture.detectChanges();
-      expect(fixture.nativeElement.textContent).not.toContain('Preparar para uso sin conexión');
+      expect(fixture.nativeElement.textContent.includes('Preparar para uso sin conexión')).toBe(
+        rol !== 'ADMINISTRADOR',
+      );
       fixture.destroy();
       TestBed.resetTestingModule();
     }
