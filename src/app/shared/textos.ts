@@ -1109,6 +1109,8 @@ export const TEXTOS = {
       resumenSeccion: 'Resumen de la sección',
       obligatorio: 'Este campo es obligatorio',
       danoInvalido: 'La calificación debe estar entre 0 y 4',
+      enteroInvalido: 'Debe ser un número entero',
+      opcionInvalida: 'Seleccione una opción de la lista',
       agregarTramo: '+ Agregar Tramo',
       eliminarTramo: 'Eliminar Tramo',
       listadoTramos: 'Listado de Tramos (Claros del Puente)',

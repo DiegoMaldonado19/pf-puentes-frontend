@@ -19,6 +19,7 @@ import { proveedoresFicticios } from './preparacion-fixtures';
     { provide: BaseLocal, useFactory: () => new BaseLocal('puentes-offline-sesion-demo') },
     SesionOffline,
     { provide: AccesoLocal, useFactory: crearAccesoLocal },
+    { provide: MotorSync, useValue: null },
   ],
   template: `
     <h1>{{ t.harness }}</h1>

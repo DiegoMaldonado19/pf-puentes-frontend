@@ -59,7 +59,12 @@ import { TransporteSimulado } from './transporte-simulado';
           <button type="button" (click)="enviar(i.id)">{{ t.enviar }}</button>
         </section>
       }
-      <app-diagnostico-offline [db]="db" [propietario]="propietario()" [motor]="motor" />
+      <app-diagnostico-offline
+        [db]="db"
+        [propietario]="propietario()"
+        [motor]="motor"
+        [aislado]="true"
+      />
     </main>
   `,
 })

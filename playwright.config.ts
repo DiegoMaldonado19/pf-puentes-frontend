@@ -7,6 +7,7 @@ export default defineConfig({
   reporter: [['list'], ['html', { outputFolder: 'playwright-report/base-offline', open: 'never' }]],
   outputDir: 'test-results/base-offline',
   use: {
+    launchOptions: { executablePath: process.env['PLAYWRIGHT_CHROMIUM_EXECUTABLE'] },
     baseURL: 'http://localhost:8090',
     trace: 'on',
     screenshot: 'only-on-failure',

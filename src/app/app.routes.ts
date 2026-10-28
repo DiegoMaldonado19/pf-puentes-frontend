@@ -6,6 +6,14 @@ import { TEXTOS } from './shared/textos';
 
 export const routes: Routes = [
   {
+    path: 'offline/captura/:id',
+    title: 'Captura sin conexión',
+    canDeactivate: [
+      (componente: { puedeSalir: () => Promise<boolean> }) => componente.puedeSalir(),
+    ],
+    loadComponent: () => import('./offline/captura-local').then((m) => m.CapturaLocal),
+  },
+  {
     path: 'mis-revisiones',
     title: TEXTOS.revision.misPendientes,
     canActivate: [rolGuard('ESTUDIANTE')],

@@ -96,6 +96,7 @@
                     [value]="borradorParticipacion()"
                     (input)="borradorParticipacion.set($any($event.target).value)"
                   ></textarea>
+                  <app-compositor-menciones class="mt-3 block" />
                   @if (errorFormulario(); as errorForm) {
                     <p role="alert" class="mt-2 text-sm text-red-700">{{ errorForm }}</p>
                   }

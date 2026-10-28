@@ -1,13 +1,27 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { Observable, of, throwError } from 'rxjs';
+import { Observable, of, Subject, throwError } from 'rxjs';
 import { AuthService } from '../../core/auth/auth';
 import { FormularioService } from '../formulario/formulario.service';
 import { FormularioVersionDTO } from '../formulario/modelos';
 import { InspeccionApi } from './inspeccion-api';
 import { InspeccionStore } from './inspeccion-store';
-import { InspeccionDTO } from './modelos';
+import { ArchivoDTO, InspeccionDTO } from './modelos';
+
+function fotoRemota(id: string): ArchivoDTO {
+  return {
+    id,
+    tipo: 'FOTO',
+    elemento_ref: 'estribo',
+    latitud: null,
+    longitud: null,
+    capturada_en: null,
+    tamano: 100,
+    url: `https://archivos.test/${id}`,
+    url_miniatura: `https://archivos.test/${id}-miniatura`,
+  };
+}
 
 const VERSION: FormularioVersionDTO = {
   id: 'f1',
@@ -62,6 +76,7 @@ function baja(): Observable<never> {
 describe('InspeccionStore', () => {
   const api = {
     detalle: vi.fn(),
+    archivos: vi.fn(),
     guardarAvance: vi.fn(),
     confirmarPermanentes: vi.fn(),
     reemplazarAcompanantes: vi.fn(),
@@ -85,6 +100,7 @@ describe('InspeccionStore', () => {
 
   beforeEach(() => {
     vi.resetAllMocks();
+    api.archivos.mockReturnValue(of([]));
     usuario.set({ id: 'autor', nombre: 'Ana', rol: 'ESTUDIANTE' });
     TestBed.configureTestingModule({
       providers: [
@@ -98,6 +114,47 @@ describe('InspeccionStore', () => {
   });
 
   describe('carga y editabilidad', () => {
+    it('hidrata fotos y PDF anteriores, cuenta límites y permite borrarlos', async () => {
+      api.archivos.mockReturnValue(
+        of([
+          ...Array.from({ length: 60 }, (_, i) => fotoRemota(`foto-${i}`)),
+          { ...fotoRemota('pdf'), tipo: 'DOCUMENTO', url_miniatura: null, url: null },
+        ]),
+      );
+      await iniciar();
+      expect(api.archivos).toHaveBeenCalledWith('i1');
+      expect(store.fotosSubidas()).toBe(60);
+      expect(store.documentosSubidos()).toBe(1);
+      expect(store.fotosSuficientes()).toBe(true);
+      expect(store.puedeAgregarFoto()).toBe(false);
+      expect(store.archivos()[0]).toMatchObject({
+        estado: 'subida',
+        miniaturaUrl: 'https://archivos.test/foto-0-miniatura',
+        url: 'https://archivos.test/foto-0',
+      });
+      api.eliminarArchivo.mockReturnValue(of(undefined));
+      await store.eliminarArchivo('foto-0');
+      expect(api.eliminarArchivo).toHaveBeenCalledWith(
+        'foto-0',
+        expect.objectContaining({ clave: expect.any(String) }),
+      );
+      expect(store.fotosSubidas()).toBe(59);
+      expect(store.puedeAgregarFoto()).toBe(true);
+    });
+
+    it('recargar reemplaza el inventario remoto sin duplicar archivos', async () => {
+      api.archivos.mockReturnValue(of([fotoRemota('f1')]));
+      await iniciar();
+      await iniciar();
+      expect(store.archivos()).toHaveLength(1);
+    });
+
+    it('un fallo del inventario es explícito y nunca habilita envío por fotos desconocidas', async () => {
+      api.archivos.mockReturnValue(baja());
+      await iniciar();
+      expect(store.error()).not.toBe('');
+      expect(store.fotosSuficientes()).toBe(false);
+    });
     it('pinta la inspección con su versión de formulario congelada, no con la activa', async () => {
       await iniciar();
       const formularios = TestBed.inject(FormularioService) as unknown as {
@@ -138,6 +195,36 @@ describe('InspeccionStore', () => {
       await iniciar();
     });
     afterEach(() => vi.useRealTimers());
+
+    it('PUT A no limpia B y espera a que el segundo PUT guarde la última edición', async () => {
+      const a = new Subject<InspeccionDTO>();
+      const b = new Subject<InspeccionDTO>();
+      api.guardarAvance.mockReturnValueOnce(a).mockReturnValueOnce(b);
+      store.alCambiarDatos({ texto: 'A' });
+      const guardado = store.guardar();
+      store.alCambiarDatos({ texto: 'B' });
+      a.next(inspeccion({ version: 2, datos: { texto: 'A' } }));
+      await vi.advanceTimersByTimeAsync(0);
+      expect(store.sucio()).toBe(true);
+      expect(api.guardarAvance.mock.calls[1][1]).toEqual({ datos: { texto: 'B' }, version: 2 });
+      b.next(inspeccion({ version: 3, datos: { texto: 'B' } }));
+      expect(await guardado).toBe(true);
+      expect(store.sucio()).toBe(false);
+    });
+
+    it('guardar para salir durante A no permite salir si falla el guardado de B', async () => {
+      const a = new Subject<InspeccionDTO>();
+      api.guardarAvance.mockReturnValueOnce(a).mockReturnValueOnce(baja());
+      store.alCambiarDatos({ texto: 'A' });
+      const autoguardado = store.guardar();
+      store.alCambiarDatos({ texto: 'B' });
+      const salida = store.guardar();
+      a.next(inspeccion({ version: 2 }));
+      await vi.advanceTimersByTimeAsync(60);
+      expect(await autoguardado).toBe(false);
+      expect(await salida).toBe(false);
+      expect(store.sucio()).toBe(true);
+    });
 
     it('envía solo lo respondido y toma la nueva versión de la respuesta, sin incrementarla a mano', async () => {
       api.guardarAvance.mockReturnValue(of(inspeccion({ version: 7 })));
@@ -228,6 +315,19 @@ describe('InspeccionStore', () => {
   });
 
   describe('datos permanentes y envío', () => {
+    function cargarFotos(): void {
+      store.archivos.set(
+        Array.from({ length: 4 }, (_, i) => ({
+          id: `f-${i}`,
+          tipo: 'FOTO',
+          nombre: `Foto ${i}`,
+          miniaturaUrl: null,
+          elemento_ref: null,
+          estado: 'subida',
+          mensaje: '',
+        })),
+      );
+    }
     beforeEach(async () => {
       await iniciar();
     });
@@ -248,19 +348,19 @@ describe('InspeccionStore', () => {
     });
 
     it('no se puede enviar sin confirmar los permanentes', async () => {
-      store.fotosPrevias.set(true);
+      cargarFotos();
       expect(store.puedeEnviar()).toBe(false);
       expect(await store.enviar()).toBe(false);
       expect(api.enviar).not.toHaveBeenCalled();
     });
 
-    it('no se puede enviar sin al menos 4 fotos, salvo que ya estén subidas de antes', async () => {
+    it('no se puede enviar sin al menos 4 fotos reales de esta sesión o anteriores', async () => {
       api.confirmarPermanentes.mockReturnValue(
         of(inspeccion({ datos_permanentes_confirmados_en: '2026-10-27T13:00:00Z' })),
       );
       await store.confirmarPermanentes({});
       expect(store.puedeEnviar()).toBe(false);
-      store.fotosPrevias.set(true);
+      cargarFotos();
       expect(store.puedeEnviar()).toBe(true);
     });
 
@@ -269,7 +369,7 @@ describe('InspeccionStore', () => {
         of(inspeccion({ datos_permanentes_confirmados_en: '2026-10-27T13:00:00Z' })),
       );
       await store.confirmarPermanentes({});
-      store.fotosPrevias.set(true);
+      cargarFotos();
       api.enviar.mockReturnValue(
         of(inspeccion({ estado: 'ENVIADA', datos_permanentes_confirmados_en: 'x', version: 3 })),
       );
@@ -284,7 +384,7 @@ describe('InspeccionStore', () => {
         of(inspeccion({ datos_permanentes_confirmados_en: '2026-10-27T13:00:00Z' })),
       );
       await store.confirmarPermanentes({});
-      store.fotosPrevias.set(true);
+      cargarFotos();
       api.enviar.mockReturnValue(
         throwError(() =>
           error(422, 'inspeccion-no-publicable', [
@@ -306,13 +406,15 @@ describe('InspeccionStore', () => {
         of(inspeccion({ datos_permanentes_confirmados_en: '2026-10-27T13:00:00Z' })),
       );
       await store.confirmarPermanentes({});
-      store.fotosPrevias.set(true);
+      cargarFotos();
       api.enviar
         .mockReturnValueOnce(baja())
         .mockReturnValueOnce(of(inspeccion({ estado: 'ENVIADA' })));
       await store.enviar();
       await store.enviar();
       expect(api.enviar.mock.calls[1][2].clave).toBe(api.enviar.mock.calls[0][2].clave);
+      expect(api.enviar.mock.calls[1][1]).toBe(api.enviar.mock.calls[0][1]);
+      expect(api.enviar.mock.calls[1][1].enviada_en).toBe(api.enviar.mock.calls[0][1].enviada_en);
     });
   });
 

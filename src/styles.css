@@ -26,3 +26,30 @@ body {
 .bg-slate-100 dd {
   color: #0f172a !important;
 }
+
+@media print {
+  nav,
+  aside,
+  app-header,
+  app-navbar,
+  app-campana-notificaciones,
+  button,
+  input[type='file'],
+  [data-no-imprimir] {
+    display: none !important;
+  }
+
+  body {
+    background: white;
+    color: black;
+  }
+
+  app-captura-inspeccion section {
+    max-width: none;
+    break-inside: avoid;
+  }
+
+  app-captura-inspeccion a {
+    display: none !important;
+  }
+}

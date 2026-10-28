@@ -2,6 +2,7 @@ import 'fake-indexeddb/auto';
 import { computed, signal, WritableSignal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Subject } from 'rxjs';
+import { provideRouter, Router } from '@angular/router';
 import { v7 } from 'uuid';
 import { routes } from '../app.routes';
 import { rutaExigeSesion } from '../core/auth/rutas-sesion';
@@ -11,7 +12,9 @@ import { AccesoLocal } from './acceso-local';
 import { BaseLocal } from './base-local';
 import { PersistenciaOffline } from './persistencia';
 import { PreparacionLocal, ProgresoPreparacion, ResultadoPreparacion } from './preparacion';
-import { VistaLocal } from './vista-local';
+import { distanciaMetros, VistaLocal } from './vista-local';
+import { hoyGuatemala } from '../features/inspecciones/dispositivo';
+import { PreparacionCompleta } from './modelos';
 
 interface SesionDePrueba {
   auth: AuthService;
@@ -51,6 +54,7 @@ function configurar(
 ): SesionDePrueba {
   TestBed.configureTestingModule({
     providers: [
+      provideRouter([]),
       { provide: AccesoLocal, useValue: acceso },
       { provide: BaseLocal, useValue: db },
       { provide: AuthService, useValue: sesion.auth },
@@ -62,8 +66,15 @@ function configurar(
 
 describe('navegación de acceso local', () => {
   let db: BaseLocal;
+  let geolocalizacion: PropertyDescriptor | undefined;
+  beforeEach(() => {
+    geolocalizacion = Object.getOwnPropertyDescriptor(navigator, 'geolocation');
+  });
   afterEach(async () => {
     TestBed.resetTestingModule();
+    vi.restoreAllMocks();
+    if (geolocalizacion) Object.defineProperty(navigator, 'geolocation', geolocalizacion);
+    else Reflect.deleteProperty(navigator, 'geolocation');
     await db?.delete();
   });
 
@@ -73,6 +84,126 @@ describe('navegación de acceso local', () => {
     expect(ruta?.canActivate).toBeUndefined();
     expect(rutaExigeSesion('/offline/local')).toBe(false);
     expect(rutaExigeSesion('/perfil')).toBe(true);
+  });
+
+  it('inicia desde una preparación completa con permanentes, asignación, día Guatemala y aviso GPS', async () => {
+    db = new BaseLocal(`vista-${v7()}`);
+    const propietario = v7(),
+      puente = v7(),
+      formulario = v7(),
+      asignacion = v7(),
+      curso = v7();
+    const preparada: PreparacionCompleta = {
+      id: v7(),
+      propietario_id: propietario,
+      modelo_version: 1,
+      preparada_en: '2026-10-28T15:00:00Z',
+      formulario_version_id: formulario,
+      asignaciones: [
+        {
+          id: asignacion,
+          curso_id: curso,
+          puente_id: puente,
+          estudiante_id: propietario,
+          inscripcion_id: v7(),
+          curso_nombre: 'Análisis',
+          puente_codigo: 'P1',
+          puente_nombre: 'Samalá',
+          creado_en: '2026-10-28T15:00:00Z',
+        },
+      ],
+      puentes: [
+        {
+          id: puente,
+          propietario_id: propietario,
+          modelo_version: 1,
+          preparada_en: '2026-10-28T15:00:00Z',
+          datos: { latitud: 14.8, longitud: -91.5 },
+        },
+      ],
+      esquemas_formulario: [
+        {
+          id: formulario,
+          propietario_id: propietario,
+          modelo_version: 1,
+          preparada_en: '2026-10-28T15:00:00Z',
+          datos: {
+            esquema: {
+              title: 'SIECA',
+              type: 'object',
+              properties: {
+                identificacion: {
+                  type: 'object',
+                  properties: {
+                    nombre: { type: 'string', 'x-permanente': true },
+                    dano: { type: 'integer', 'x-dano': true },
+                  },
+                },
+              },
+            },
+          },
+        },
+      ],
+      publicaciones: [
+        {
+          puente_id: puente,
+          publicacion: {
+            id: v7(),
+            propietario_id: propietario,
+            modelo_version: 1,
+            preparada_en: '2026-10-28T15:00:00Z',
+            datos: { precarga: { datos: { identificacion: { nombre: 'Publicado', dano: 4 } } } },
+          },
+        },
+      ],
+    };
+    await db.preparaciones.put(preparada);
+    configurar(db, {
+      alInvalidar: () => vi.fn(),
+      propietarioActual: async () => propietario,
+      inspecciones: async () => [],
+      consultarPropias: async <T>(_id: string, leer: () => Promise<T>) => leer(),
+    });
+    const navegar = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+    Object.defineProperty(navigator, 'geolocation', {
+      configurable: true,
+      value: {
+        getCurrentPosition: vi.fn((resolver: PositionCallback) =>
+          resolver({
+            coords: { latitude: 14.6, longitude: -90.5 },
+            timestamp: Date.now(),
+          } as GeolocationPosition),
+        ),
+      },
+    });
+    const fixture = TestBed.createComponent(VistaLocal);
+    await vi.waitFor(() => expect(fixture.componentInstance.preparada()?.id).toBe(preparada.id));
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Iniciar inspección sin conexión');
+    await fixture.componentInstance.iniciar(asignacion);
+    const [captura] = await db.inspecciones.toArray();
+    expect(captura.respuestas).toEqual({ identificacion: { nombre: 'Publicado' } });
+    expect(captura.metadatos).toMatchObject({
+      fecha_inspeccion: hoyGuatemala(),
+      asignacion_id: asignacion,
+      curso_id: curso,
+      latitud: 14.6,
+      longitud: -90.5,
+      aviso_ubicacion: expect.stringContaining('más de 500 m'),
+    });
+    expect(captura.formulario_version_id).toBe(formulario);
+    expect(navegar).toHaveBeenCalledWith(['/offline/captura', captura.id]);
+    expect(await db.cola_sync.count()).toBe(1);
+    await fixture.componentInstance.iniciar('asignacion-ajena');
+    expect(await db.inspecciones.count()).toBe(1);
+    expect(fixture.componentInstance.error()).toContain('No hay preparación completa');
+  });
+
+  it('haversine avisa lejos sin confundir metros y grados', () => {
+    expect(distanciaMetros({ latitud: 14, longitud: -91 }, { latitud: 14, longitud: -91 })).toBe(0);
+    expect(
+      distanciaMetros({ latitud: 0, longitud: 0 }, { latitud: 0, longitud: 0.001 }),
+    ).toBeCloseTo(111.195, 2);
   });
 
   it('muestra capturas autorizadas y las retira al invalidar sin esperar otra lectura', async () => {
@@ -142,7 +273,7 @@ describe('navegación de acceso local', () => {
       ),
     );
     expect(fixture.nativeElement.textContent).toContain(
-      'Esta vista no incluye editor, nueva captura, transporte ni motor de reintentos.',
+      'Las capturas, fotos y PDF se conservan aquí',
     );
     expect(fixture.nativeElement.querySelectorAll('button')).toHaveLength(0);
     expect(fixture.nativeElement.textContent).not.toContain(ajeno);

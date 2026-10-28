@@ -9,10 +9,7 @@ export interface FotoParaSubir {
   readonly elementoRef: string | null;
 }
 
-/**
- * Fotos y PDF de la inspección (P1). El servidor no lista lo ya subido, así que se muestra el
- * inventario de la sesión. La compresión y la miniatura las hace `<app-captura-foto>`.
- */
+/** Fotos y PDF remotos y de la sesión; CapturaFoto comprime las nuevas imágenes. */
 @Component({
   selector: 'app-panel-archivos',
   imports: [CapturaFoto],
@@ -20,7 +17,6 @@ export interface FotoParaSubir {
     <section class="rounded border border-slate-300 p-4" aria-labelledby="titulo-archivos">
       <h2 id="titulo-archivos" class="text-lg font-semibold">{{ t.titulo }}</h2>
       <p class="mt-1 text-sm text-slate-700">{{ t.sugerencia }}</p>
-      <p class="mt-1 text-sm text-slate-600">{{ t.noListadas }}</p>
 
       @if (editable()) {
         @if (referencias().length) {
@@ -73,9 +69,9 @@ export interface FotoParaSubir {
       <ul class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3" [attr.aria-label]="t.titulo">
         @for (archivo of archivos(); track archivo.id) {
           <li class="flex items-start gap-3 rounded border border-slate-300 p-3">
-            @if (archivo.miniaturaUrl) {
+            @if (archivo.miniaturaUrl || (archivo.tipo === 'FOTO' && archivo.url)) {
               <img
-                [src]="archivo.miniaturaUrl"
+                [src]="archivo.miniaturaUrl || archivo.url"
                 alt=""
                 class="size-16 shrink-0 rounded object-cover"
               />
@@ -83,13 +79,24 @@ export interface FotoParaSubir {
               <span
                 class="flex size-16 shrink-0 items-center justify-center rounded bg-slate-100 text-sm font-bold"
                 aria-hidden="true"
-                >PDF</span
+                >{{ archivo.tipo === 'DOCUMENTO' ? 'PDF' : 'FOTO' }}</span
               >
             }
             <div class="min-w-0 flex-1">
               <p class="break-all text-sm font-medium">
                 {{ archivo.tipo === 'FOTO' ? t.fotos : t.documentos }} · {{ archivo.nombre }}
               </p>
+              @if (archivo.url) {
+                <a
+                  [href]="archivo.url"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="text-sm text-blue-800 underline"
+                  >Abrir archivo</a
+                >
+              } @else if (archivo.estado === 'subida') {
+                <p class="text-sm text-slate-600">Archivo no disponible.</p>
+              }
               @if (archivo.elemento_ref) {
                 <p class="break-all text-xs text-slate-600">{{ archivo.elemento_ref }}</p>
               }

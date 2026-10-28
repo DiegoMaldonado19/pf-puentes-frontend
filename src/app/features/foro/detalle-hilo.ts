@@ -7,6 +7,7 @@ import {
   effect,
   inject,
   signal,
+  untracked,
   viewChild,
 } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -14,14 +15,15 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { TEXTOS } from '../../shared/textos';
 import { ForoService } from './foro.service';
 import { ForoLecturaService } from './foro-lectura.service';
+import { CompositorMenciones } from './compositor-menciones';
 import { DialogoModeracion } from './dialogo-moderacion';
 import { ItemComentario } from './item-comentario';
-import { Comentario, Hilo, esUuid, formatearFechaUtc } from './modelos';
+import { Comentario, Hilo, conMenciones, esUuid, formatearFechaUtc } from './modelos';
 
 @Component({
   selector: 'app-detalle-hilo',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, DialogoModeracion, ItemComentario],
+  imports: [RouterLink, DialogoModeracion, ItemComentario, CompositorMenciones],
   templateUrl: './detalle-hilo.html',
 })
 export class DetalleHilo {
@@ -44,6 +46,7 @@ export class DetalleHilo {
   protected readonly errorFormulario = signal<string | null>(null);
   private readonly dialogoParticipacion =
     viewChild<ElementRef<HTMLDialogElement>>('dialogoParticipacion');
+  private readonly compositor = viewChild(CompositorMenciones);
 
   protected readonly respuestaObjetivo = computed(
     () => this.lectura.comentarios().find((c) => c.id === this.respondiendoRaiz()) ?? null,
@@ -176,9 +179,10 @@ export class DetalleHilo {
     const hilo = this.hiloId();
     const generacion = this.servicio.generacion();
     const enviadoCrudo = this.borradorParticipacion();
+    const textoEnvio = conMenciones(texto, this.compositor()?.idsSeleccionados());
     const creado = raizId
-      ? await this.servicio.responder(hilo, raizId, texto)
-      : await this.servicio.comentar(hilo, texto);
+      ? await this.servicio.responder(hilo, raizId, textoEnvio)
+      : await this.servicio.comentar(hilo, textoEnvio);
     if (!creado || !this.sigueVigente(hilo, generacion)) {
       return;
     }
@@ -334,6 +338,8 @@ export class DetalleHilo {
     this.respondiendoRaiz.set(raizId);
     this.borradorParticipacion.set('');
     this.errorFormulario.set(null);
+    // El effect de cambio de hilo llama aquí: sin untracked dependería de la selección y cerraría el diálogo
+    untracked(() => this.compositor()?.reiniciar());
   }
 
   private abrirDialogoModeracion(dialogo: {

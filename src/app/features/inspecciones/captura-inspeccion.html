@@ -42,6 +42,7 @@
     @if (!enConexion()) {
       <p role="status" class="mt-3 rounded border border-amber-700 bg-amber-50 p-3 text-amber-900">
         {{ comun.sinConexion }}
+        <a routerLink="/offline/local" class="ml-2 underline">Abrir captura local sin conexión</a>
       </p>
     }
 
@@ -77,6 +78,14 @@
       <p role="note" class="mt-3 rounded border border-slate-500 bg-slate-100 p-3 text-slate-900">
         {{ inspeccion.estado === 'BORRADOR' ? t.soloLecturaAjena : t.soloLecturaEstado }}
       </p>
+      <div class="mt-3 flex gap-4" data-no-imprimir>
+        <button type="button" class="min-h-11 text-blue-800 underline" (click)="imprimir()">
+          Imprimir
+        </button>
+        <button type="button" class="min-h-11 text-blue-800 underline" (click)="exportarJson()">
+          Exportar JSON
+        </button>
+      </div>
     }
 
     @if (inspeccion.estado === 'PUBLICADA') {
@@ -220,6 +229,40 @@
     </div>
 
     @if (store.editable()) {
+      <section class="mt-4" aria-label="Estimación preliminar del IC">
+        <button
+          type="button"
+          class="min-h-11 rounded border px-4 text-blue-800 disabled:opacity-50"
+          [disabled]="estimando() || store.ocupado() || !!store.conflicto()"
+          (click)="estimarIc()"
+        >
+          {{ estimando() ? 'Estimando IC…' : 'Estimar IC' }}
+        </button>
+        @if (errorIc()) {
+          <p role="alert" class="text-red-800">{{ errorIc() }}</p>
+        }
+        @if (estimacion(); as ic) {
+          <app-ic-preliminar
+            [indice]="ic.indice_condicion"
+            [estado]="ic.estado_calculado"
+            [anulaciones]="ic.anulaciones"
+            [esPreliminar]="ic.preliminar"
+          />
+        }
+      </section>
+    }
+    @if (puedeVerRecalculos()) {
+      @if (errorJuegos()) {
+        <p role="alert" class="text-red-800">{{ errorJuegos() }}</p>
+      }
+      <app-recalculo-ic
+        [inspeccionId]="inspeccion.id"
+        [puedeRecalcular]="rol() === 'ADMINISTRADOR'"
+        [juegosDisponibles]="juegos()"
+      />
+    }
+
+    @if (store.editable()) {
       <section class="mt-6 rounded border border-slate-300 p-4" aria-labelledby="titulo-acciones">
         <h2 id="titulo-acciones" class="text-lg font-semibold">{{ t.checklist }}</h2>
         <ul class="mt-2 grid gap-1 text-sm">
@@ -234,17 +277,6 @@
             {{ store.formularioValido() ? t.checkFormulario : t.checkFormularioPendiente }}
           </li>
         </ul>
-        @if (store.fotosSubidas() < minimoFotos) {
-          <label class="mt-2 flex items-center gap-2 text-sm">
-            <input
-              type="checkbox"
-              class="size-5"
-              [checked]="store.fotosPrevias()"
-              (change)="store.fotosPrevias.set($any($event.target).checked)"
-            />
-            {{ t.checkFotosPrevias.replace('{minimo}', '' + minimoFotos) }}
-          </label>
-        }
 
         <div class="mt-4 flex flex-wrap items-center gap-3">
           <button

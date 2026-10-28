@@ -1,6 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { EsquemaFormulario } from '../formulario/modelos';
+import { AnulacionIc } from '../admin/pesos/modelos';
 
 export type Veredicto = 'APROBADA' | 'CAMBIOS_SOLICITADOS' | 'RECHAZADA';
 export interface ObservacionRevision {
@@ -84,14 +85,14 @@ export interface ArchivoDTO {
   id: string;
   tipo: string;
   url: string | null;
-  miniatura_url: string | null;
+  url_miniatura: string | null;
   elemento_ref?: string | null;
 }
 
 export interface EstimacionPreliminarIcDTO {
   indice_condicion: number;
   estado_calculado: 'BUENO' | 'REGULAR' | 'MALO';
-  anulaciones: string[];
+  anulaciones: AnulacionIc[];
   version_pesos_id: string;
   preliminar: boolean;
   rotulo: string;

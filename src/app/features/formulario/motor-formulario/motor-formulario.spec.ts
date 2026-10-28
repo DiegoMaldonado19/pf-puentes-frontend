@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { TEXTOS } from '../../../shared/textos';
 import { EsquemaFormulario } from '../modelos';
 import { MotorFormularioComponent } from './motor-formulario';
 
@@ -193,5 +194,50 @@ describe('MotorFormularioComponent', () => {
     expect(datosEmitidos).toBeTruthy();
     // Aunque codigo esté deshabilitado por readOnly, getRawValue lo preserva
     expect(datosEmitidos?.['identificacion']?.['codigo']).toBe('GT-01-001');
+  });
+
+  it('un campo integer rechaza decimales y acepta enteros (RN-FRM-08)', () => {
+    const fixture = TestBed.createComponent(MotorFormularioComponent);
+    fixture.componentRef.setInput('esquema', esquemaPrueba);
+    fixture.detectChanges();
+
+    const control = fixture.componentInstance.formGroup.get('subestructura.dano_estribo');
+    control?.setValue(2.5);
+    expect(control?.hasError('entero')).toBe(true);
+    control?.setValue(3);
+    expect(control?.valid).toBe(true);
+  });
+
+  it('un campo con enum rechaza valores fuera de la lista y acepta los listados (RN-FRM-08)', () => {
+    const fixture = TestBed.createComponent(MotorFormularioComponent);
+    fixture.componentRef.setInput('esquema', esquemaPrueba);
+    fixture.detectChanges();
+
+    const control = fixture.componentInstance.obtenerFormArray('tramos').at(0).get('tipo_tramo');
+    control?.setValue('Voladizo');
+    expect(control?.hasError('opcion')).toBe(true);
+    control?.setValue('Continuo');
+    expect(control?.valid).toBe(true);
+  });
+
+  it('muestra el mensaje de entero y de opción en los campos tocados (RN-FRM-08)', () => {
+    const fixture = TestBed.createComponent(MotorFormularioComponent);
+    fixture.componentRef.setInput('esquema', esquemaPrueba);
+    fixture.detectChanges();
+
+    const comp = fixture.componentInstance;
+    const dano = comp.obtenerControl('subestructura', 'dano_estribo');
+    dano?.setValue(2.5);
+    dano?.markAsTouched();
+    expect(comp.obtenerError('subestructura', 'dano_estribo')).toBe(
+      TEXTOS.formulario.motor.enteroInvalido,
+    );
+
+    const tipo = comp.obtenerFormArray('tramos').at(0).get('tipo_tramo');
+    tipo?.setValue('Voladizo');
+    tipo?.markAsTouched();
+    expect(comp.obtenerErrorArray('tramos', 0, 'tipo_tramo')).toBe(
+      TEXTOS.formulario.motor.opcionInvalida,
+    );
   });
 });

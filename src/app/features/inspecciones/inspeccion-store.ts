@@ -11,6 +11,8 @@ import { estadoHttp, exigeRecarga, mensajeInspeccion, tipoDeError } from './erro
 import { InspeccionApi } from './inspeccion-api';
 import {
   AcompananteDTO,
+  ArchivoDTO,
+  EnviarInspeccionDTO,
   esEditable,
   InspeccionDTO,
   MAXIMO_DOCUMENTOS,
@@ -23,12 +25,12 @@ const ESPERA_AUTOGUARDADO_MS = 1500;
 
 export type EstadoArchivoLocal = 'subiendo' | 'subida' | 'error';
 
-/** El detalle no incrusta archivos y no hay GET de fotos: el inventario es de la sesión. */
 export interface ArchivoLocal {
   readonly id: string;
   readonly tipo: TipoArchivo;
   readonly nombre: string;
   readonly miniaturaUrl: string | null;
+  readonly url?: string | null;
   readonly elemento_ref: string | null;
   readonly estado: EstadoArchivoLocal;
   readonly mensaje: string;
@@ -63,7 +65,6 @@ export class InspeccionStore {
   readonly sucio = signal(false);
   readonly guardadoEn = signal<Date | null>(null);
   readonly formularioValido = signal(true);
-  readonly fotosPrevias = signal(false);
   readonly error = signal('');
   readonly errores = signal<readonly ErrorDeCampo[]>([]);
   /** Última versión del servidor cuando otra pestaña guardó antes (409 version-desactualizada). */
@@ -89,9 +90,7 @@ export class InspeccionStore {
   readonly puedeAgregarDocumento = computed(
     () => this.archivos().filter((a) => a.tipo === 'DOCUMENTO').length < MAXIMO_DOCUMENTOS,
   );
-  readonly fotosSuficientes = computed(
-    () => this.fotosSubidas() >= MINIMO_FOTOS_ENVIO || this.fotosPrevias(),
-  );
+  readonly fotosSuficientes = computed(() => this.fotosSubidas() >= MINIMO_FOTOS_ENVIO);
   readonly ocupado = computed(
     () => this.guardando() || this.confirmando() || this.enviando() || this.subiendo(),
   );
@@ -107,10 +106,11 @@ export class InspeccionStore {
   private datosActuales: Datos = {};
   private gruposSanos = new Set<string>();
   private temporizador: ReturnType<typeof setTimeout> | null = null;
-  private guardadoPendiente = false;
+  private revisionEdicion = 0;
   private firmaGuardado: string | null = null;
   private claveGuardado = nuevaClave();
   private claveEnvio: string | null = null;
+  private cuerpoEnvio: EnviarInspeccionDTO | null = null;
   private readonly clavesArchivo = new Map<string, string>();
   private readonly originales = new Map<string, FotoCapturada | File>();
   private generacion = 0;
@@ -125,6 +125,11 @@ export class InspeccionStore {
 
   async cargar(id: string): Promise<void> {
     const generacion = ++this.generacion;
+    if (this.inspeccion()?.id !== id) {
+      this.claveEnvio = null;
+      this.cuerpoEnvio = null;
+      this.firmaGuardado = null;
+    }
     this.cargando.set(true);
     this.noEncontrada.set(false);
     this.error.set('');
@@ -132,7 +137,21 @@ export class InspeccionStore {
       const inspeccion = await firstValueFrom(this.api.detalle(id));
       // RN-FRM-05: la inspección se pinta con SU versión congelada, no con la activa.
       const version = await firstValueFrom(this.formularios.detalle(inspeccion.formulario.id));
+      const archivos = await firstValueFrom(this.api.archivos(id));
       if (generacion !== this.generacion) return;
+      const locales =
+        this.inspeccion()?.id === id
+          ? this.archivos().filter((archivo) => archivo.estado !== 'subida')
+          : [];
+      for (const archivo of this.archivos()) {
+        if (!locales.includes(archivo) && archivo.miniaturaUrl?.startsWith('blob:')) {
+          URL.revokeObjectURL(archivo.miniaturaUrl);
+        }
+      }
+      this.archivos.set([
+        ...archivos.map((archivo) => this.archivoRemoto(archivo)),
+        ...locales.filter((local) => !archivos.some((archivo) => archivo.id === local.id)),
+      ]);
       this.aplicarServidor(inspeccion);
       this.version.set(version);
       this.reiniciarDatos(inspeccion);
@@ -164,6 +183,7 @@ export class InspeccionStore {
   alCambiarDatos(datos: Datos): void {
     if (!this.editable()) return;
     this.datosActuales = datos;
+    this.revisionEdicion++;
     this.sucio.set(true);
     this.programarGuardado();
   }
@@ -184,26 +204,24 @@ export class InspeccionStore {
     const inspeccion = this.inspeccion();
     if (!inspeccion || !this.editable() || this.conflicto()) return false;
     if (this.guardando()) {
-      this.guardadoPendiente = true;
-      return false;
+      while (this.guardando()) await new Promise((resolver) => setTimeout(resolver, 50));
+      return this.sucio() ? this.guardar() : !this.error();
     }
+    const revision = this.revisionEdicion;
+    let guardado = false;
     this.guardando.set(true);
     this.error.set('');
     try {
       const respuesta = await this.putAvance(inspeccion);
-      this.aplicarRespuestaGuardado(respuesta);
+      this.aplicarRespuestaGuardado(respuesta, revision);
       this.errores.set([]);
-      return true;
+      guardado = true;
     } catch (error) {
       await this.alFallarEscritura(error);
-      return false;
     } finally {
       this.guardando.set(false);
-      if (this.guardadoPendiente && this.sucio()) {
-        this.guardadoPendiente = false;
-        void this.guardar();
-      }
     }
+    return guardado && (this.sucio() ? this.guardar() : true);
   }
 
   private async putAvance(inspeccion: InspeccionDTO): Promise<InspeccionDTO> {
@@ -239,13 +257,12 @@ export class InspeccionStore {
     }
   }
 
-  private aplicarRespuestaGuardado(respuesta: InspeccionDTO): void {
+  private aplicarRespuestaGuardado(respuesta: InspeccionDTO, revision: number): void {
     this.inspeccion.set(respuesta);
     this.firmaGuardado = null;
-    this.gruposSanos.clear();
+    if (revision === this.revisionEdicion) this.gruposSanos.clear();
     this.guardadoEn.set(new Date());
-    // Si el usuario siguió escribiendo durante el PUT, `sucio` se mantiene vía alCambiarDatos.
-    if (!this.guardadoPendiente) this.sucio.set(false);
+    this.sucio.set(revision !== this.revisionEdicion);
   }
 
   private async alFallarEscritura(error: unknown): Promise<void> {
@@ -344,6 +361,19 @@ export class InspeccionStore {
 
   // ---------------------------------------------------------- archivos
 
+  private archivoRemoto(archivo: ArchivoDTO): ArchivoLocal {
+    return {
+      id: archivo.id,
+      tipo: archivo.tipo,
+      nombre: archivo.id.slice(0, 8),
+      miniaturaUrl: archivo.url_miniatura,
+      url: archivo.url,
+      elemento_ref: archivo.elemento_ref,
+      estado: 'subida',
+      mensaje: '',
+    };
+  }
+
   async subirFoto(foto: FotoCapturada, elementoRef: string | null): Promise<void> {
     if (!this.editable() || !this.puedeAgregarFoto()) return;
     const id = nuevoId();
@@ -391,12 +421,13 @@ export class InspeccionStore {
     if (!inspeccion || !original || !archivo) return;
     const opciones = { clave: this.clavesArchivo.get(id) };
     try {
-      await firstValueFrom(
+      const respuesta = await firstValueFrom(
         original instanceof File
           ? this.api.subirDocumento(inspeccion.id, id, original, opciones)
           : this.api.subirFoto(inspeccion.id, id, original, archivo.elemento_ref, opciones),
       );
-      this.actualizarArchivo(id, { estado: 'subida', mensaje: '' });
+      if (archivo.miniaturaUrl?.startsWith('blob:')) URL.revokeObjectURL(archivo.miniaturaUrl);
+      this.actualizarArchivo(id, { ...this.archivoRemoto(respuesta), nombre: archivo.nombre });
       this.originales.delete(id);
     } catch (error) {
       this.actualizarArchivo(id, { estado: 'error', mensaje: mensajeInspeccion(error) });
@@ -431,7 +462,7 @@ export class InspeccionStore {
 
   private quitarArchivoLocal(id: string): void {
     const archivo = this.archivos().find((a) => a.id === id);
-    if (archivo?.miniaturaUrl) URL.revokeObjectURL(archivo.miniaturaUrl);
+    if (archivo?.miniaturaUrl?.startsWith('blob:')) URL.revokeObjectURL(archivo.miniaturaUrl);
     this.originales.delete(id);
     this.clavesArchivo.delete(id);
     this.archivos.update((lista) => lista.filter((a) => a.id !== id));
@@ -453,18 +484,19 @@ export class InspeccionStore {
       if (this.sucio() && !(await this.guardarAntesDeEnviar())) return false;
       const actual = this.inspeccion() ?? inspeccion;
       this.claveEnvio ??= nuevaClave();
+      this.cuerpoEnvio ??= { enviada_en: new Date().toISOString() };
       const respuesta = await firstValueFrom(
-        this.api.enviar(
-          actual.id,
-          { enviada_en: new Date().toISOString() },
-          { clave: this.claveEnvio },
-        ),
+        this.api.enviar(actual.id, this.cuerpoEnvio, { clave: this.claveEnvio }),
       );
       this.claveEnvio = null;
+      this.cuerpoEnvio = null;
       this.aplicarServidor(respuesta);
       return true;
     } catch (error) {
-      if (estadoHttp(error) === 422) this.claveEnvio = null;
+      if (estadoHttp(error) === 422) {
+        this.claveEnvio = null;
+        this.cuerpoEnvio = null;
+      }
       await this.alFallarEscritura(error);
       return false;
     } finally {
@@ -497,7 +529,7 @@ export class InspeccionStore {
     this.generacion++;
     if (this.temporizador) clearTimeout(this.temporizador);
     for (const archivo of this.archivos()) {
-      if (archivo.miniaturaUrl) URL.revokeObjectURL(archivo.miniaturaUrl);
+      if (archivo.miniaturaUrl?.startsWith('blob:')) URL.revokeObjectURL(archivo.miniaturaUrl);
     }
   }
 }

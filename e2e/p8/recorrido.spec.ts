@@ -266,6 +266,9 @@ for (const [cuenta, numero] of [
       0,
     );
     if (cuenta === 'admin') {
+      await page
+        .getByRole('region', { name: 'Fotografías de evidencia', exact: true })
+        .scrollIntoViewIfNeeded();
       const foto = page.getByRole('img', { name: 'Miniatura de la evidencia', exact: true });
       await expect(foto).toBeVisible();
       expect((await page.request.get((await foto.getAttribute('src'))!)).ok()).toBe(true);
