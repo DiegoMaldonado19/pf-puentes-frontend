@@ -1,5 +1,9 @@
 # Base offline autónoma — P6, grupo 1
 
+> La descripción histórica de G1–G4 de este documento corresponde al harness.
+> La captura y sincronización productivas están descritas en
+> [captura-offline.md](captura-offline.md) y [ADR 0040](adr/0040-captura-offline-y-sincronizacion-productiva.md).
+
 ## Ejecutar la demo
 
 Desde este repositorio, con Node 24.21.0 y npm 11.19.0:
@@ -80,7 +84,7 @@ queda pendiente de ejecución y registro por el equipo.
   con versión/identidad incompatible o token de ejecución vencido.
 - `SesionOffline`: UUID actual y `preparar` antes de drenar; no almacena tokens.
   `ReferenciaOffline` delimita lecturas de referencia sin asumir endpoints.
-- `MotorSync`: `iniciar`, `detener`, `drenar`, `reintentar`; `pausa` es signal.
+- `MotorSync`: `iniciar`, `detener`, `drenar`, `reintentar`, `reanudar`; `pausa` es signal.
   Lease de 15 s, renovación de 3 s. Tras cierre de pestaña se recupera trabajo
   al vencer el lease, con ids/claves/contador anteriores. El reintento manual
   reinicia el ciclo conservando snapshot y clave. Los fallos esperan
@@ -89,14 +93,15 @@ queda pendiente de ejecución y registro por el equipo.
   con entrada de operaciones del propietario actual y contadores computed.
 - `DiagnosticoOffline`: componente standalone reusable con entradas base,
   propietario y motor opcional. Cuenta entidades distintas, no filas ni intentos.
-  Sin motor consulta con `AccesoLocal.consultarPropias` y es de solo lectura; el
-  harness G1 recibe el motor simulado explícitamente. La ocupación/cuota corresponde
+  Producción consulta con `AccesoLocal.consultarPropias`, también con motor real; el
+  harness G1 declara `aislado` y recibe el motor simulado explícitamente. La ocupación/cuota corresponde
   al origen completo, no solo a esta base.
 - `consultarAlmacenamiento(true)`: solicitar persistencia al entrar en captura;
   resultado/denegación/ausencia visibles. `mensajeEscritura` distingue cuota y
   validaciones. No se purgan pendientes ni blobs automáticamente.
 
-No hay adaptador real por defecto: `new MotorSync(db, sesion)` conserva la
+`app.config.ts` instala el adaptador real mediante `proveedores-sync.ts`.
+Construir manualmente `new MotorSync(db, sesion)` sin transporte conserva la
 cola pendiente. El simulador se importa solo desde el harness y las pruebas.
 Los límites locales son 60 fotos, 10 PDF y 20 MiB por PDF; el contrato de P1
 garantiza el formato/dimensiones de `FotoCapturada`. El objetivo de 200–400 KB

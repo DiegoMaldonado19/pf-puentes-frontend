@@ -82,6 +82,10 @@ export class InspeccionApi {
     return this.http.get<InspeccionDTO>(`${API}/inspecciones/${encodeURIComponent(id)}`);
   }
 
+  archivos(id: string): Observable<ArchivoDTO[]> {
+    return this.http.get<ArchivoDTO[]>(`${API}/inspecciones/${encodeURIComponent(id)}/archivos`);
+  }
+
   guardarAvance(
     id: string,
     cuerpo: GuardarAvanceDTO,

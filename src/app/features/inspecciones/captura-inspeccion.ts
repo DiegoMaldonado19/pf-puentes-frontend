@@ -10,12 +10,18 @@ import {
   untracked,
 } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
+import { EMPTY, expand, firstValueFrom, reduce } from 'rxjs';
 import { AuthService } from '../../core/auth/auth';
+import { IcPreliminar } from '../../shared/ic-preliminar/ic-preliminar';
+import { EstimacionPreliminarIcDTO, JuegoPesosDTO } from '../admin/pesos/modelos';
+import { PesosService } from '../admin/pesos/pesos.service';
+import { RecalculoIc } from '../admin/pesos/recalculo-ic';
 import { MotorFormularioComponent } from '../formulario/motor-formulario/motor-formulario';
 import { TEXTOS } from '../../shared/textos';
 import { fechaSinHora } from '../puentes/formato';
 import { ChipEstadoInspeccion } from './chip-estado-inspeccion';
 import { referenciasDeElemento } from './esquema';
+import { mensajeInspeccion } from './errores';
 import { InspeccionStore } from './inspeccion-store';
 import { MINIMO_FOTOS_ENVIO, publicaAlEnviar } from './modelos';
 import { FotoParaSubir, PanelArchivos } from './panel-archivos';
@@ -35,6 +41,8 @@ import { PanelAcompanantes } from './panel-acompanantes';
     PanelAcompanantes,
     PanelArchivos,
     RouterLink,
+    IcPreliminar,
+    RecalculoIc,
   ],
   providers: [InspeccionStore],
   templateUrl: './captura-inspeccion.html',
@@ -51,11 +59,22 @@ export class CapturaInspeccion {
   protected readonly confirmandoEnvio = signal(false);
   protected readonly confirmandoBaja = signal(false);
   protected readonly enConexion = signal(typeof navigator === 'undefined' || navigator.onLine);
+  protected readonly estimacion = signal<EstimacionPreliminarIcDTO | null>(null);
+  protected readonly estimando = signal(false);
+  protected readonly errorIc = signal('');
+  protected readonly juegos = signal<readonly JuegoPesosDTO[]>([]);
+  protected readonly errorJuegos = signal('');
 
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly pesos = inject(PesosService);
 
   protected readonly rol = this.auth.rol;
+  protected readonly puedeVerRecalculos = computed(
+    () =>
+      this.store.inspeccion()?.estado === 'PUBLICADA' &&
+      (this.rol() === 'CATEDRATICO' || this.rol() === 'ADMINISTRADOR'),
+  );
   protected readonly referencias = computed(() => {
     const esquema = this.store.version()?.esquema;
     return esquema ? referenciasDeElemento(esquema) : [];
@@ -90,7 +109,33 @@ export class CapturaInspeccion {
   constructor() {
     effect(() => {
       const id = this.id();
+      this.estimacion.set(null);
       untracked(() => void this.store.cargar(id));
+    });
+    effect(() => {
+      if (this.store.sucio()) this.estimacion.set(null);
+    });
+    effect((limpiar) => {
+      const inspeccion = this.store.inspeccion();
+      this.juegos.set([]);
+      this.errorJuegos.set('');
+      if (inspeccion?.estado !== 'PUBLICADA' || this.rol() !== 'ADMINISTRADOR') return;
+      const sub = this.pesos
+        .listarJuegos(inspeccion.formulario.id, 0, 100)
+        .pipe(
+          expand((pagina) =>
+            pagina.page + 1 < pagina.total_pages
+              ? this.pesos.listarJuegos(inspeccion.formulario.id, pagina.page + 1, 100)
+              : EMPTY,
+          ),
+          reduce((juegos, pagina) => [...juegos, ...pagina.content], [] as JuegoPesosDTO[]),
+        )
+        .subscribe({
+          next: (juegos) => this.juegos.set(juegos),
+          error: () =>
+            this.errorJuegos.set('No se pudieron cargar los juegos de pesos para recalcular.'),
+        });
+      limpiar(() => sub.unsubscribe());
     });
     const alCambiarRed = () => this.enConexion.set(navigator.onLine);
     window.addEventListener('online', alCambiarRed);
@@ -105,6 +150,57 @@ export class CapturaInspeccion {
   async puedeSalir(): Promise<boolean> {
     if (!this.store.editable() || !this.store.sucio()) return true;
     return this.store.guardar();
+  }
+
+  protected imprimir(): void {
+    if (!this.store.editable()) window.print();
+  }
+
+  protected exportarJson(): void {
+    const inspeccion = this.store.inspeccion();
+    const version = this.store.version();
+    if (!inspeccion || !version || this.store.editable()) return;
+    const url = URL.createObjectURL(
+      new Blob(
+        [
+          JSON.stringify(
+            {
+              inspeccion,
+              formulario: { id: version.id, codigo: version.codigo, esquema: version.esquema },
+            },
+            null,
+            2,
+          ),
+        ],
+        { type: 'application/json' },
+      ),
+    );
+    const enlace = document.createElement('a');
+    enlace.href = url;
+    enlace.download = `inspeccion-${inspeccion.id}-${version.codigo}.json`;
+    enlace.click();
+    setTimeout(() => URL.revokeObjectURL(url), 0);
+  }
+
+  protected async estimarIc(): Promise<void> {
+    if (!this.store.editable() || this.estimando() || this.store.ocupado()) return;
+    this.estimando.set(true);
+    this.errorIc.set('');
+    this.estimacion.set(null);
+    try {
+      if (this.store.sucio() && !(await this.store.guardar())) return;
+      const inspeccion = this.store.inspeccion();
+      if (!inspeccion) return;
+      const resultado = await firstValueFrom(
+        this.pesos.estimarIcPreliminarPorInspeccion(inspeccion.id),
+      );
+      if (this.store.inspeccion() === inspeccion && !this.store.sucio())
+        this.estimacion.set(resultado);
+    } catch (error) {
+      this.errorIc.set(mensajeInspeccion(error));
+    } finally {
+      this.estimando.set(false);
+    }
   }
 
   protected corregirRuta(): string[] {

@@ -142,6 +142,8 @@ export class MotorFormularioComponent implements OnInit, OnChanges, OnDestroy {
     if (control && control.touched && control.invalid) {
       if (control.hasError('required')) return this.textos.obligatorio;
       if (control.hasError('min') || control.hasError('max')) return this.textos.danoInvalido;
+      if (control.hasError('entero')) return this.textos.enteroInvalido;
+      if (control.hasError('opcion')) return this.textos.opcionInvalida;
     }
     return null;
   }
@@ -197,6 +199,8 @@ export class MotorFormularioComponent implements OnInit, OnChanges, OnDestroy {
     if (control && control.touched && control.invalid) {
       if (control.hasError('required')) return this.textos.obligatorio;
       if (control.hasError('min') || control.hasError('max')) return 'Valor fuera de rango';
+      if (control.hasError('entero')) return this.textos.enteroInvalido;
+      if (control.hasError('opcion')) return this.textos.opcionInvalida;
     }
     return null;
   }
@@ -206,17 +210,8 @@ export class MotorFormularioComponent implements OnInit, OnChanges, OnDestroy {
 
     for (const prop of seccion.itemPropiedades) {
       const valorInicial = valoresItem ? valoresItem[prop.clave] : null;
-      const validadores: ValidatorFn[] = [];
-
-      if (seccion.itemRequired.includes(prop.clave)) {
-        validadores.push(Validators.required);
-      }
-      if (prop.esquema.minimum !== undefined) {
-        validadores.push(Validators.min(prop.esquema.minimum));
-      }
-      if (prop.esquema.maximum !== undefined) {
-        validadores.push(Validators.max(prop.esquema.maximum));
-      }
+      const requerido = seccion.itemRequired.includes(prop.clave);
+      const validadores = this.validadoresDe(prop.esquema, requerido);
 
       const control = new FormControl(
         {
@@ -230,6 +225,34 @@ export class MotorFormularioComponent implements OnInit, OnChanges, OnDestroy {
     }
 
     return new FormGroup(controlesItem);
+  }
+
+  private validadoresDe(esquema: PropiedadEsquema, requerido: boolean): ValidatorFn[] {
+    const vacio = (valor: unknown) => valor === undefined || valor === null || valor === '';
+    const validadores: ValidatorFn[] = [];
+
+    if (requerido) {
+      validadores.push(Validators.required);
+    }
+    if (esquema.minimum !== undefined) {
+      validadores.push(Validators.min(esquema.minimum));
+    }
+    if (esquema.maximum !== undefined) {
+      validadores.push(Validators.max(esquema.maximum));
+    }
+    if (esquema.type === 'integer') {
+      validadores.push((control) =>
+        vacio(control.value) || Number.isInteger(control.value) ? null : { entero: true },
+      );
+    }
+    if (esquema.enum) {
+      const opciones = esquema.enum;
+      validadores.push((control) =>
+        vacio(control.value) || opciones.includes(control.value) ? null : { opcion: true },
+      );
+    }
+
+    return validadores;
   }
 
   private calcularOrdenSeccion(clave: string, prop: PropiedadEsquema): number {
@@ -379,20 +402,11 @@ export class MotorFormularioComponent implements OnInit, OnChanges, OnDestroy {
         grupoRaiz[seccion.clave] = arrayForm;
       } else {
         const controlesSeccion: Record<string, FormControl> = {};
+        const requeridos = this.esquema.properties[seccion.clave]?.required ?? [];
 
         for (const prop of seccion.propiedades) {
           const valorInicial = valoresSeccion ? valoresSeccion[prop.clave] : null;
-          const validadores: ValidatorFn[] = [];
-
-          if (this.esquema.properties[seccion.clave]?.required?.includes(prop.clave)) {
-            validadores.push(Validators.required);
-          }
-          if (prop.esquema.minimum !== undefined) {
-            validadores.push(Validators.min(prop.esquema.minimum));
-          }
-          if (prop.esquema.maximum !== undefined) {
-            validadores.push(Validators.max(prop.esquema.maximum));
-          }
+          const validadores = this.validadoresDe(prop.esquema, requeridos.includes(prop.clave));
 
           const control = new FormControl(
             {

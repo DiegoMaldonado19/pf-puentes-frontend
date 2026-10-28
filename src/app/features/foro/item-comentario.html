@@ -39,7 +39,7 @@
     {{ textos.eliminado }}
   </p>
 } @else {
-  <p class="text-sm wrap-break-word">{{ comentario().texto }}</p>
+  <p class="text-sm wrap-break-word">{{ textoVisible() }}</p>
 }
 <p class="mt-1 text-xs text-slate-500">
   {{ textos.autor }}: {{ comentario().autor_nombre || textos.autorNoDisponible }} ·

@@ -109,11 +109,21 @@ export class PersistenciaOffline {
       modificada_en: i.modificada_en,
     };
   }
-  async editar(propietario_id: string, id: string, respuestas: Json) {
+  async editar(
+    propietario_id: string,
+    id: string,
+    respuestas: Json,
+    metadatos?: Record<string, Json>,
+  ) {
     return this.db.transaction('rw', this.db.inspecciones, this.db.cola_sync, async () => {
       const i = await this.inspeccion(propietario_id, id);
       const anteriores = await this.operaciones(propietario_id, id);
       i.respuestas = structuredClone(respuestas);
+      if (metadatos)
+        i.metadatos = {
+          ...(i.metadatos as Record<string, Json>),
+          ...structuredClone(metadatos),
+        };
       i.version_local++;
       i.intencion_envio_en = null;
       i.modificada_en = new Date().toISOString();

@@ -31,7 +31,7 @@ import { IndicadorOffline } from './indicador';
           @if (motor.pausa(); as pausa) {
             <p role="alert">{{ pausa }}</p>
           }
-          <button type="button" (click)="reintentar()">{{ t.sincronizar }}</button>
+          <button type="button" (click)="reintentar()">Sincronizar ahora</button>
         }
       }
       @if (error()) {
@@ -66,8 +66,9 @@ import { IndicadorOffline } from './indicador';
 export class DiagnosticoOffline {
   readonly db = input.required<BaseLocal>();
   readonly propietario = input<string | null>(null);
-  /** Solo el harness instala un motor con transporte simulado; producción omite esta entrada. */
+  /** El mismo diagnóstico acepta el motor real y el del harness aislado. */
   readonly motor = input<MotorSync>();
+  readonly aislado = input(false);
   readonly t = TEXTOS.offline;
   readonly operaciones = signal<Operacion[]>([]);
   readonly error = signal('');
@@ -86,7 +87,7 @@ export class DiagnosticoOffline {
     effect((onCleanup) => {
       const db = this.db();
       const propietario = this.propietario();
-      const motor = this.motor();
+      const aislado = this.aislado();
       const revision = ++this.revision;
       this.operaciones.set([]);
       this.error.set('');
@@ -98,7 +99,7 @@ export class DiagnosticoOffline {
       const sub = liveQuery(async () => {
         const leer = () => db.cola_sync.where('propietario_id').equals(propietario).sortBy('id');
         // El demo aislado conserva su identidad libre; producción pasa por la política durable G2.
-        return motor ? leer() : ((await this.acceso.consultarPropias(propietario, leer)) ?? []);
+        return aislado ? leer() : ((await this.acceso.consultarPropias(propietario, leer)) ?? []);
       }).subscribe({
         next: (operaciones) => {
           if (revision !== this.revision) return;
@@ -145,6 +146,8 @@ export class DiagnosticoOffline {
     const propietario = this.propietario();
     if (!motor || !propietario) return;
     try {
+      if (!this.aislado() && !(await this.acceso.consultarPropias(propietario, async () => true)))
+        return;
       await motor.reintentar(propietario, id);
     } catch {
       this.error.set(this.t.escrituraError);

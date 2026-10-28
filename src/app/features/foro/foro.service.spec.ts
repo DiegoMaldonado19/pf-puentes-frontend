@@ -1,5 +1,6 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 import { of } from 'rxjs';
@@ -9,6 +10,7 @@ import { ForoLecturaService } from './foro-lectura.service';
 import { Comentario, Hilo } from './modelos';
 import { ListadoHilos } from './listado-hilos';
 import { DetalleHilo } from './detalle-hilo';
+import { MENCIONES_P2, SESION_P2 } from './puertos';
 
 describe('ForoService', () => {
   const usuarioId = '00000000-0000-4000-8000-000000000001';
@@ -173,6 +175,7 @@ describe('Interfaz del foro', () => {
   const puenteId = '00000000-0000-4000-8000-000000000002';
   const hiloId = '00000000-0000-4000-8000-000000000003';
   const autorId = '00000000-0000-4000-8000-000000000004';
+  const personaId = '00000000-0000-4000-8000-000000000005';
   const hilo: Hilo = {
     id: hiloId,
     puente_id: puenteId,
@@ -205,6 +208,20 @@ describe('Interfaz del foro', () => {
         {
           provide: ActivatedRoute,
           useValue: { paramMap: of(parametros), snapshot: { paramMap: parametros } },
+        },
+        {
+          provide: SESION_P2,
+          useValue: { disponible: true, usuarioId: signal(autorId), roles: signal(['ESTUDIANTE']) },
+        },
+        {
+          provide: MENCIONES_P2,
+          useValue: {
+            disponible: true,
+            personas: signal([{ id: personaId, etiqueta: 'Ana Pérez' }]),
+            cargando: signal(false),
+            error: signal(null),
+            cargar: vi.fn(),
+          },
         },
       ],
     });
@@ -295,4 +312,50 @@ describe('Interfaz del foro', () => {
       http.expectNone((r) => r.method !== 'GET');
     },
   );
+
+  it('envía las menciones elegidas al final del comentario del hilo', async () => {
+    const fixture = TestBed.createComponent(DetalleHilo);
+    await fixture.whenStable();
+    http.expectOne(`/api/v1/hilos/${hiloId}`).flush(hilo);
+    http
+      .expectOne((r) => r.url === `/api/v1/hilos/${hiloId}/comentarios`)
+      .flush({
+        contenido: [comentario],
+        pagina: 0,
+        tamano: 50,
+        total_elementos: 1,
+        total_paginas: 1,
+      });
+    await fixture.whenStable();
+    const html = fixture.nativeElement as HTMLElement;
+    prepararDialogo(html);
+    pulsar(html, TEXTOS.foro.comentar);
+    const texto = html.querySelector('#participacion-texto') as HTMLTextAreaElement;
+    texto.value = 'Revisar';
+    texto.dispatchEvent(new Event('input'));
+    const busqueda = html.querySelector('#menciones-busqueda') as HTMLInputElement;
+    busqueda.value = 'ana';
+    busqueda.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+    (html.querySelector('#menciones-opciones button') as HTMLButtonElement).click();
+    html
+      .querySelector('form')
+      ?.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    const publicado = await vi.waitFor(() =>
+      http.expectOne((r) => r.method === 'POST' && r.url === `/api/v1/hilos/${hiloId}/comentarios`),
+    );
+    expect(publicado.request.body).toEqual({ texto: `Revisar @${personaId}` });
+    publicado.flush(comentario);
+    await vi.waitFor(() =>
+      http
+        .expectOne((r) => r.method === 'GET' && r.url === `/api/v1/hilos/${hiloId}/comentarios`)
+        .flush({
+          contenido: [comentario],
+          pagina: 0,
+          tamano: 50,
+          total_elementos: 1,
+          total_paginas: 1,
+        }),
+    );
+  });
 });

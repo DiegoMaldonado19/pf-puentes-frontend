@@ -1,7 +1,7 @@
 import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { of } from 'rxjs';
+import { of, Subject } from 'rxjs';
 import { AuthService } from '../../core/auth/auth';
 import { Rol } from '../../core/auth/modelos';
 import { FormularioService } from '../formulario/formulario.service';
@@ -9,6 +9,21 @@ import { FormularioVersionDTO } from '../formulario/modelos';
 import { CapturaInspeccion } from './captura-inspeccion';
 import { InspeccionApi } from './inspeccion-api';
 import { InspeccionDTO } from './modelos';
+import { InspeccionStore } from './inspeccion-store';
+import { PesosService } from '../admin/pesos/pesos.service';
+
+const pesos = {
+  estimarIcPreliminarPorInspeccion: vi.fn(() =>
+    of({
+      indice_condicion: 90,
+      estado_calculado: 'BUENO',
+      anulaciones: [],
+      preliminar: true,
+    }),
+  ),
+  consultarRecalculos: vi.fn(() => of(null)),
+  listarJuegos: vi.fn(() => of({ content: [], page: 0, total_pages: 0 })),
+};
 
 const VERSION: FormularioVersionDTO = {
   id: 'f1',
@@ -55,7 +70,11 @@ async function montar(
   TestBed.configureTestingModule({
     providers: [
       provideRouter([]),
-      { provide: InspeccionApi, useValue: { detalle: () => of(detalle) } },
+      {
+        provide: InspeccionApi,
+        useValue: { detalle: () => of(detalle), archivos: () => of([]), guardarAvance: vi.fn() },
+      },
+      { provide: PesosService, useValue: pesos },
       { provide: FormularioService, useValue: { detalle: () => of(VERSION) } },
       { provide: AuthService, useValue: { usuario, rol: signal(rol) } },
     ],
@@ -81,6 +100,96 @@ function botones(fixture: ComponentFixture<CapturaInspeccion>): string[] {
 }
 
 describe('CapturaInspeccion', () => {
+  const crearUrlOriginal = Object.getOwnPropertyDescriptor(URL, 'createObjectURL');
+  const revocarUrlOriginal = Object.getOwnPropertyDescriptor(URL, 'revokeObjectURL');
+  beforeEach(() => vi.clearAllMocks());
+  afterEach(() => {
+    vi.restoreAllMocks();
+    if (crearUrlOriginal) Object.defineProperty(URL, 'createObjectURL', crearUrlOriginal);
+    else Reflect.deleteProperty(URL, 'createObjectURL');
+    if (revocarUrlOriginal) Object.defineProperty(URL, 'revokeObjectURL', revocarUrlOriginal);
+    else Reflect.deleteProperty(URL, 'revokeObjectURL');
+  });
+
+  it('el guard real espera B tras A y no sale si B no fue aceptado', async () => {
+    const fixture = await montar(inspeccion());
+    const store = fixture.debugElement.injector.get(InspeccionStore);
+    const api = TestBed.inject(InspeccionApi);
+    const a = new Subject<InspeccionDTO>();
+    const b = new Subject<InspeccionDTO>();
+    vi.mocked(api.guardarAvance).mockReturnValueOnce(a).mockReturnValueOnce(b);
+    store.alCambiarDatos({ longitud: 10 });
+    const guardado = store.guardar();
+    store.alCambiarDatos({ longitud: 20 });
+    const salida = fixture.componentInstance.puedeSalir();
+    a.next(inspeccion({ version: 2 }));
+    await vi.waitFor(() => expect(api.guardarAvance).toHaveBeenCalledTimes(2));
+    expect(store.sucio()).toBe(true);
+    expect(vi.mocked(api.guardarAvance).mock.calls[1][1]).toEqual({
+      datos: { longitud: 20 },
+      version: 2,
+    });
+    b.next(inspeccion({ version: 3 }));
+    expect(await guardado).toBe(true);
+    expect(await salida).toBe(true);
+  });
+
+  it('la lectura histórica permite imprimir y exportar el esquema congelado', async () => {
+    const fixture = await montar(inspeccion({ estado: 'PUBLICADA' }));
+    expect(botones(fixture)).toContain('Imprimir');
+    expect(botones(fixture)).toContain('Exportar JSON');
+    const imprimir = vi.spyOn(window, 'print').mockImplementation(() => undefined);
+    const crearUrl = vi.fn<(blob: Blob) => string>().mockReturnValue('blob:exportacion');
+    const revocarUrl = vi.fn();
+    Object.defineProperty(URL, 'createObjectURL', { configurable: true, value: crearUrl });
+    Object.defineProperty(URL, 'revokeObjectURL', { configurable: true, value: revocarUrl });
+    const click = vi
+      .spyOn(HTMLAnchorElement.prototype, 'click')
+      .mockImplementation(() => undefined);
+    const elementos = Array.from((fixture.nativeElement as HTMLElement).querySelectorAll('button'));
+    elementos.find((boton) => boton.textContent?.trim() === 'Imprimir')?.click();
+    elementos.find((boton) => boton.textContent?.trim() === 'Exportar JSON')?.click();
+    expect(imprimir).toHaveBeenCalledOnce();
+    const blob = crearUrl.mock.calls[0][0];
+    const contenido =
+      typeof blob.text === 'function'
+        ? await blob.text()
+        : await new Promise<string>((resolver) => {
+            const lector = new FileReader();
+            lector.onload = () => resolver(String(lector.result));
+            lector.readAsText(blob);
+          });
+    expect(JSON.parse(contenido)).toEqual({
+      inspeccion: inspeccion({ estado: 'PUBLICADA' }),
+      formulario: { id: VERSION.id, codigo: VERSION.codigo, esquema: VERSION.esquema },
+    });
+    expect(click).toHaveBeenCalledOnce();
+    await vi.waitFor(() => expect(revocarUrl).toHaveBeenCalledWith('blob:exportacion'));
+  });
+
+  it('estima el IC del borrador propio con el componente existente', async () => {
+    const fixture = await montar(inspeccion());
+    const boton = Array.from(
+      (fixture.nativeElement as HTMLElement).querySelectorAll('button'),
+    ).find((elemento) => elemento.textContent?.trim() === 'Estimar IC');
+    boton?.click();
+    await fixture.whenStable();
+    expect(pesos.estimarIcPreliminarPorInspeccion).toHaveBeenCalledWith('i1');
+    expect(fixture.nativeElement.querySelector('app-ic-preliminar')).not.toBeNull();
+  });
+
+  it('consulta recálculos para docentes sin listar juegos exclusivos del administrador', async () => {
+    const fixture = await montar(inspeccion({ estado: 'PUBLICADA' }), 'docente', 'CATEDRATICO');
+    expect(fixture.nativeElement.querySelector('app-recalculo-ic')).not.toBeNull();
+    expect(pesos.listarJuegos).not.toHaveBeenCalled();
+    expect(pesos.consultarRecalculos).toHaveBeenCalledWith('i1', 0);
+  });
+
+  it('el administrador carga juegos compatibles y puede recalcular', async () => {
+    const fixture = await montar(inspeccion({ estado: 'PUBLICADA' }), 'admin', 'ADMINISTRADOR');
+    expect(pesos.listarJuegos).toHaveBeenCalledWith('f1', 0, 100);
+    expect(fixture.nativeElement.querySelector('app-recalculo-ic')).not.toBeNull();
+  });
   it('el autor de un borrador edita: ve el motor, la lista previa al envío y «Enviar a revisión» deshabilitado', async () => {
     const fixture = await montar(inspeccion());
     expect(texto(fixture)).toContain('Las Rosas');

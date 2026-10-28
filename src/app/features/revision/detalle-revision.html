@@ -21,6 +21,14 @@
   }
   @if (detalle(); as actual) {
     <app-calificacion-revision [revisionId]="actual.id" [editable]="true" />
+    @if (icPreliminar(); as ic) {
+      <app-ic-preliminar
+        [indice]="ic.indice_condicion"
+        [estado]="ic.estado_calculado"
+        [anulaciones]="ic.anulaciones"
+        [esPreliminar]="ic.preliminar"
+      />
+    }
     <p class="break-all text-sm text-slate-600">
       {{ t.ciclo }}: {{ actual.id }} · {{ actual.estado }}
       <a class="ml-3 underline text-blue-700" [routerLink]="['/inspecciones', actual.inspeccion_id]"
@@ -42,10 +50,20 @@
       @for (archivo of archivos(); track archivo.id) {
         <li class="rounded border border-slate-300 bg-white p-4">
           <p class="text-sm text-slate-600">{{ archivo.tipo }}</p>
-          @if (archivo.miniatura_url) {
-            <img [src]="archivo.miniatura_url" class="max-h-48 my-2" alt="miniatura" />
+          @if (archivo.url_miniatura) {
+            <img [src]="archivo.url_miniatura" class="max-h-48 my-2" alt="miniatura" />
           }
-          <a [href]="archivo.url" target="_blank" class="underline text-blue-700">Abrir archivo</a>
+          @if (archivo.url) {
+            <a
+              [href]="archivo.url"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="underline text-blue-700"
+              >Abrir archivo</a
+            >
+          } @else {
+            <p class="text-sm text-slate-600">Archivo no disponible.</p>
+          }
         </li>
       } @empty {
         <li class="rounded bg-slate-100 p-4">Sin archivos</li>
@@ -158,6 +176,7 @@
             @if (icPreliminar(); as ic) {
               <app-confirmacion-estado
                 [estadoCalculado]="ic.estado_calculado"
+                [anulacion]="ic.anulaciones[0] ?? null"
                 [deshabilitado]="guardando()"
                 (cambio)="onConfirmacionCambio($event)"
               />

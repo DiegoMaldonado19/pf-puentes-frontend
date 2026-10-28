@@ -6,12 +6,26 @@ import { Operacion, ResultadoTransporte, SesionOffline, TransporteSync } from '.
 
 export const BACKOFF = [2000, 4000, 8000, 16000] as const;
 export const LEASE_MS = 15000;
+export function siguienteReclamable(operaciones: Operacion[], ahora: number) {
+  const confirmadas = new Set(
+    operaciones.filter((o) => o.estado === 'confirmada').map((o) => o.id),
+  );
+  return operaciones.find(
+    (o) =>
+      o.estado === 'pendiente' &&
+      o.proximo_intento <= ahora &&
+      o.dependencias.every((d) => confirmadas.has(d)),
+  );
+}
 export class MotorSync {
   private activo: Promise<void> | null = null;
   private controlador: AbortController | null = null;
   private generacion = 0;
   private temporizador: ReturnType<typeof setInterval> | null = null;
   private readonly online = () => {
+    this.reanudar();
+  };
+  private readonly tick = () => {
     void this.drenar().catch(this.alError);
   };
   readonly pausa = signal<string | null>(null);
@@ -26,8 +40,12 @@ export class MotorSync {
   iniciar() {
     if (this.temporizador) return;
     window.addEventListener('online', this.online);
-    this.temporizador = setInterval(this.online, 1000);
-    this.online();
+    this.temporizador = setInterval(this.tick, 1000);
+    this.tick();
+  }
+  reanudar(): void {
+    this.pausa.set(null);
+    void (this.activo ?? Promise.resolve()).then(() => this.drenar()).catch(this.alError);
   }
   detener() {
     this.generacion++;
@@ -77,12 +95,19 @@ export class MotorSync {
       async () => {
         const anterior = await this.db.bloqueos.get(propietario_id);
         if (anterior && anterior.vence_en > this.reloj()) return false;
-        await this.db.bloqueos.put({ propietario_id, token, vence_en: this.reloj() + LEASE_MS });
         await this.db.cola_sync
           .where('propietario_id')
           .equals(propietario_id)
           .filter((o) => o.estado === 'en_proceso')
           .modify({ estado: 'pendiente', ejecucion: null });
+        const operaciones = await this.db.cola_sync
+          .where('propietario_id')
+          .equals(propietario_id)
+          .sortBy('id');
+        if (!siguienteReclamable(operaciones, this.reloj())) return false;
+        if (generacion !== this.generacion || this.sesion.propietarioActual() !== propietario_id)
+          return false;
+        await this.db.bloqueos.put({ propietario_id, token, vence_en: this.reloj() + LEASE_MS });
         return true;
       },
     );
@@ -107,7 +132,9 @@ export class MotorSync {
         .then(() => this.sesion.preparar(propietario_id))
         .catch(() => false);
       if (!preparada) {
-        this.pausa.set(TEXTOS.offline.pausa);
+        const actual = this.sesion.propietarioActual();
+        if (actual === null || (!controlador.signal.aborted && actual === propietario_id))
+          this.pausa.set(TEXTOS.offline.pausa);
         return;
       }
       while (
@@ -178,15 +205,7 @@ export class MotorSync {
         .where('propietario_id')
         .equals(propietario)
         .sortBy('id');
-      const confirmadas = new Set(
-        operaciones.filter((o) => o.estado === 'confirmada').map((o) => o.id),
-      );
-      const siguiente = operaciones.find(
-        (o) =>
-          o.estado === 'pendiente' &&
-          o.proximo_intento <= this.reloj() &&
-          o.dependencias.every((d) => confirmadas.has(d)),
-      );
+      const siguiente = siguienteReclamable(operaciones, this.reloj());
       if (!siguiente) return undefined;
       siguiente.estado = 'en_proceso';
       siguiente.ejecucion = token;
