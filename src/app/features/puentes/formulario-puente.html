@@ -1,58 +1,58 @@
 <section class="mx-auto max-w-4xl p-4" aria-labelledby="titulo-formulario">
-  <a routerLink="/puentes" class="text-blue-800 underline">← {{ t.ficha.volver }}</a>
-  <h1 id="titulo-formulario" class="mt-2 text-2xl font-bold">{{ titulo() }}</h1>
+  <a routerLink="/puentes" class="hvc-link">← {{ t.ficha.volver }}</a>
+  <h1 id="titulo-formulario" class="text-h1 mt-2">{{ titulo() }}</h1>
   @if (modo() === 'solicitud') {
-    <p class="text-slate-700">{{ f.explicacionSolicitud }}</p>
+    <p class="text-muted">{{ f.explicacionSolicitud }}</p>
   }
-  <p class="text-sm text-slate-700">{{ f.obligatorios }}</p>
+  <p class="text-muted">{{ f.obligatorios }}</p>
 
   @if (solicitudEnviada()) {
-    <div role="status" class="mt-3 rounded border border-green-700 bg-green-50 p-3 text-green-900">
+    <div role="status" class="hvc-alert hvc-alert--ok mt-3">
       <p>{{ f.solicitudEnviada }}</p>
-      <a routerLink="/puentes/solicitudes" class="underline">{{ f.verSolicitudes }}</a>
+      <a routerLink="/puentes/solicitudes" class="hvc-link">{{ f.verSolicitudes }}</a>
     </div>
   }
 
   @if (original.isLoading()) {
     <p role="status" class="mt-3">{{ f.cargando }}</p>
   } @else if (original.error()) {
-    <p role="alert" class="mt-3 rounded border border-red-700 bg-red-50 p-3 text-red-900">
+    <p role="alert" class="hvc-alert mt-3">
       {{ t.errores.noEncontrado }}
     </p>
   } @else {
     @if (original.value(); as p) {
       <dl class="mt-3 grid grid-cols-[auto_1fr] gap-x-4 rounded bg-slate-100 p-3 text-slate-900">
-        <dt class="font-medium text-slate-700">{{ t.campos.codigo }}</dt>
+        <dt class="text-muted">{{ t.campos.codigo }}</dt>
         <dd class="font-mono text-slate-900">{{ p.codigo }}</dd>
       </dl>
     } @else if (modo() === 'alta') {
-      <p class="mt-2 text-sm text-slate-700">{{ f.codigoAsignado }}</p>
+      <p class="text-muted mt-2">{{ f.codigoAsignado }}</p>
     }
 
     <form class="mt-4 grid gap-4" [formGroup]="form" (ngSubmit)="enviar()" novalidate>
       <div class="flex flex-col">
-        <label for="nombre" class="font-medium">{{ t.campos.nombre }} *</label>
+        <label for="nombre" class="hvc-label">{{ t.campos.nombre }} *</label>
         <input
           id="nombre"
           formControlName="nombre"
           maxlength="200"
           autocomplete="off"
-          class="rounded border border-slate-400 p-2"
+          class="hvc-input"
           [attr.aria-invalid]="invalido('nombre')"
           [attr.aria-describedby]="invalido('nombre') ? 'error-nombre' : null"
         />
         @if (invalido('nombre')) {
-          <p id="error-nombre" class="text-sm text-red-800">{{ mensaje('nombre') }}</p>
+          <p id="error-nombre" class="hvc-error">{{ mensaje('nombre') }}</p>
         }
       </div>
 
       <div class="grid gap-4 sm:grid-cols-2">
         <div class="flex flex-col">
-          <label for="departamento" class="font-medium">{{ t.campos.departamento }} *</label>
+          <label for="departamento" class="hvc-label">{{ t.campos.departamento }} *</label>
           <select
             id="departamento"
             formControlName="departamento"
-            class="rounded border border-slate-400 p-2 disabled:bg-slate-100"
+            class="hvc-input"
             [attr.aria-invalid]="invalido('departamento')"
             [attr.aria-describedby]="
               modo() === 'edicion'
@@ -68,17 +68,17 @@
             }
           </select>
           @if (invalido('departamento')) {
-            <p id="error-departamento" class="text-sm text-red-800">
+            <p id="error-departamento" class="hvc-error">
               {{ mensaje('departamento') }}
             </p>
           }
         </div>
         <div class="flex flex-col">
-          <label for="municipio" class="font-medium">{{ t.campos.municipio }} *</label>
+          <label for="municipio" class="hvc-label">{{ t.campos.municipio }} *</label>
           <select
             id="municipio"
             formControlName="municipio"
-            class="rounded border border-slate-400 p-2 disabled:bg-slate-100"
+            class="hvc-input"
             [attr.aria-invalid]="invalido('municipio')"
             [attr.aria-describedby]="
               modo() === 'edicion'
@@ -96,65 +96,65 @@
             }
           </select>
           @if (invalido('municipio')) {
-            <p id="error-municipio" class="text-sm text-red-800">{{ mensaje('municipio') }}</p>
+            <p id="error-municipio" class="hvc-error">{{ mensaje('municipio') }}</p>
           }
         </div>
         @if (modo() === 'edicion') {
-          <p id="nota-ubicacion-fija" class="text-sm text-slate-700 sm:col-span-2">
+          <p id="nota-ubicacion-fija" class="text-muted sm:col-span-2">
             {{ f.soloLectura }}
           </p>
         }
       </div>
 
       <div class="flex flex-col">
-        <label for="ruta" class="font-medium">{{ t.campos.ruta }} *</label>
+        <label for="ruta" class="hvc-label">{{ t.campos.ruta }} *</label>
         <input
           id="ruta"
           formControlName="ruta"
           maxlength="100"
           autocomplete="off"
-          class="rounded border border-slate-400 p-2"
+          class="hvc-input"
           [attr.aria-invalid]="invalido('ruta')"
           [attr.aria-describedby]="invalido('ruta') ? 'error-ruta' : null"
         />
         @if (invalido('ruta')) {
-          <p id="error-ruta" class="text-sm text-red-800">{{ mensaje('ruta') }}</p>
+          <p id="error-ruta" class="hvc-error">{{ mensaje('ruta') }}</p>
         }
       </div>
 
-      <fieldset class="rounded border border-slate-300 p-3">
+      <fieldset class="hvc-card">
         <legend class="px-1 font-medium">{{ t.mapa.ubicacion }} *</legend>
         <div class="grid gap-4 sm:grid-cols-2">
           <div class="flex flex-col">
-            <label for="latitud" class="font-medium">{{ t.campos.latitud }} *</label>
+            <label for="latitud" class="hvc-label">{{ t.campos.latitud }} *</label>
             <input
               id="latitud"
               type="number"
               step="0.000001"
               inputmode="decimal"
               formControlName="latitud"
-              class="rounded border border-slate-400 p-2"
+              class="hvc-input"
               [attr.aria-invalid]="invalido('latitud')"
               [attr.aria-describedby]="invalido('latitud') ? 'error-latitud' : null"
             />
             @if (invalido('latitud')) {
-              <p id="error-latitud" class="text-sm text-red-800">{{ mensaje('latitud') }}</p>
+              <p id="error-latitud" class="hvc-error">{{ mensaje('latitud') }}</p>
             }
           </div>
           <div class="flex flex-col">
-            <label for="longitud" class="font-medium">{{ t.campos.longitud }} *</label>
+            <label for="longitud" class="hvc-label">{{ t.campos.longitud }} *</label>
             <input
               id="longitud"
               type="number"
               step="0.000001"
               inputmode="decimal"
               formControlName="longitud"
-              class="rounded border border-slate-400 p-2"
+              class="hvc-input"
               [attr.aria-invalid]="invalido('longitud')"
               [attr.aria-describedby]="invalido('longitud') ? 'error-longitud' : null"
             />
             @if (invalido('longitud')) {
-              <p id="error-longitud" class="text-sm text-red-800">{{ mensaje('longitud') }}</p>
+              <p id="error-longitud" class="hvc-error">{{ mensaje('longitud') }}</p>
             }
           </div>
         </div>
@@ -170,7 +170,7 @@
 
       @if (modo() !== 'solicitud') {
         <div class="flex flex-col sm:max-w-xs">
-          <label for="anio" class="font-medium">{{ t.campos.anio }}</label>
+          <label for="anio" class="hvc-label">{{ t.campos.anio }}</label>
           <input
             id="anio"
             type="number"
@@ -179,12 +179,12 @@
             step="1"
             inputmode="numeric"
             formControlName="anio"
-            class="rounded border border-slate-400 p-2"
+            class="hvc-input"
             [attr.aria-invalid]="invalido('anio')"
             [attr.aria-describedby]="invalido('anio') ? 'error-anio' : null"
           />
           @if (invalido('anio')) {
-            <p id="error-anio" class="text-sm text-red-800">{{ mensaje('anio') }}</p>
+            <p id="error-anio" class="hvc-error">{{ mensaje('anio') }}</p>
           }
         </div>
       }
@@ -197,7 +197,7 @@
           <h2 id="titulo-derivados-edicion" class="font-semibold text-slate-900">
             {{ t.ficha.derivados }}
           </h2>
-          <p class="text-sm text-slate-700">{{ t.ficha.derivadosNota }}</p>
+          <p class="text-muted">{{ t.ficha.derivadosNota }}</p>
           <p class="text-slate-900">
             {{ t.campos.ic }}: {{ p.indice_condicion_actual ?? t.ficha.sinInspeccion }} ·
             {{ t.campos.ultimaInspeccion }}:
@@ -218,7 +218,7 @@
         />
       }
       @if (error()) {
-        <p role="alert" class="rounded border border-red-700 bg-red-50 p-3 text-red-900">
+        <p role="alert" class="hvc-alert">
           {{ error() }}
         </p>
       }
@@ -226,7 +226,7 @@
       <div class="flex flex-wrap gap-2">
         <button
           type="submit"
-          class="rounded bg-blue-700 px-4 py-2 font-medium text-white hover:bg-blue-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-900 disabled:opacity-50"
+          class="btn-hvc-primary"
           [disabled]="enviando() || cercanos() !== null"
         >
           {{ enviando() ? f.enviando : textoEnviar() }}

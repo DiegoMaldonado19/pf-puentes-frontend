@@ -14,7 +14,7 @@
     } @else if (juegos(); as pagina) {
       @if (pagina.content.length) {
         <div class="tabla" role="region" [attr.aria-label]="t.juegos" tabindex="0">
-          <table>
+          <table class="gc-table">
             <caption>
               {{
                 t.juegos
@@ -88,7 +88,7 @@
       } @else if (pesos(); as pagina) {
         @if (pagina.content.length) {
           <div class="tabla" role="region" [attr.aria-label]="t.detalle" tabindex="0">
-            <table>
+            <table class="gc-table">
               <caption>
                 {{
                   t.detalle

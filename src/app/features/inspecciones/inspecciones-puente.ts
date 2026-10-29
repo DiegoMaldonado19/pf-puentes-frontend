@@ -15,46 +15,44 @@ import { InspeccionApi, TAMANO_PAGINA } from './inspeccion-api';
   imports: [ChipEstadoInspeccion, DatePipe, RouterLink],
   template: `
     <section class="mx-auto max-w-5xl p-4" aria-labelledby="titulo-del-puente">
-      <a [routerLink]="['/puentes', id()]" class="text-blue-800 underline">← {{ comun.volver }}</a>
+      <a [routerLink]="['/puentes', id()]" class="hvc-link">← {{ comun.volver }}</a>
       <div class="mt-3 flex flex-wrap items-center justify-between gap-3">
-        <h1 id="titulo-del-puente" class="text-2xl font-bold">{{ t.titulo }}</h1>
+        <h1 id="titulo-del-puente" class="text-h1">{{ t.titulo }}</h1>
         @if (puedeInspeccionar()) {
           <a
-            class="inline-flex min-h-11 items-center rounded bg-blue-700 px-4 font-medium text-white"
+            class="btn-hvc-primary inline-flex items-center"
             [routerLink]="['/inspecciones/nueva', id()]"
             >{{ t.iniciar }}</a
           >
         }
       </div>
-      <p class="my-3 text-slate-700">{{ t.descripcion }}</p>
+      <p class="text-muted my-3">{{ t.descripcion }}</p>
 
       @if (inspecciones.isLoading() && !inspecciones.hasValue()) {
         <p role="status">{{ comun.cargando }}</p>
       } @else if (error()) {
-        <p role="alert" class="rounded border border-red-700 bg-red-50 p-3 text-red-900">
+        <p role="alert" class="hvc-alert">
           {{ error() }}
         </p>
       } @else if (inspecciones.value(); as datos) {
         <ul class="grid gap-3" [attr.aria-busy]="inspecciones.isLoading()">
           @for (fila of datos.content; track fila.id) {
-            <li
-              class="flex flex-wrap items-center justify-between gap-3 rounded border border-slate-300 p-4"
-            >
+            <li class="hvc-card flex flex-wrap items-center justify-between gap-3">
               <div>
-                <p class="font-medium">
+                <p class="hvc-label">
                   {{ comun.fecha }}: {{ fechaSinHora(fila.fecha_inspeccion) }}
                 </p>
-                <p class="text-xs text-slate-600">
+                <p class="text-muted">
                   {{ fila.creado_en | date: 'dd/MM/yyyy HH:mm' : '-0600' }}
                 </p>
                 @if (fila.superada) {
-                  <p class="text-sm text-slate-700">{{ comun.superada }}</p>
+                  <p class="text-muted">{{ comun.superada }}</p>
                 }
               </div>
               <div class="flex flex-wrap items-center gap-4">
                 <app-chip-estado-inspeccion [estado]="fila.estado" />
                 <a
-                  class="inline-flex min-h-11 items-center text-blue-800 underline"
+                  class="hvc-link inline-flex items-center"
                   [routerLink]="['/inspecciones', fila.id]"
                   >{{ comun.verDetalle }}</a
                 >

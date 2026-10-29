@@ -1,16 +1,16 @@
 <section class="mx-auto max-w-6xl p-4" aria-labelledby="titulo-captura">
-  <a routerLink="/inspecciones" class="text-blue-800 underline">← {{ comun.volver }}</a>
+  <a routerLink="/inspecciones" class="hvc-link">← {{ comun.volver }}</a>
 
   @if (store.cargando() && !store.inspeccion()) {
     <p role="status" class="mt-4">{{ t.cargando }}</p>
   } @else if (store.noEncontrada()) {
-    <h1 id="titulo-captura" class="mt-4 text-2xl font-bold">{{ t.noEncontrada }}</h1>
+    <h1 id="titulo-captura" class="text-h1 mt-4">{{ t.noEncontrada }}</h1>
     <p role="alert" class="mt-3 rounded border border-slate-500 bg-slate-100 p-3">
       {{ t.noEncontradaDetalle }}
     </p>
   } @else if (store.error() && !store.inspeccion()) {
     <h1 id="titulo-captura" class="sr-only">{{ t.cargando }}</h1>
-    <p role="alert" class="mt-4 rounded border border-red-700 bg-red-50 p-3 text-red-900">
+    <p role="alert" class="hvc-alert mt-4">
       {{ store.error() }}
       <button type="button" class="ml-3 underline" (click)="store.cargar(id())">
         {{ comun.reintentar }}
@@ -19,35 +19,33 @@
   } @else if (store.inspeccion(); as inspeccion) {
     <header class="mt-3 flex flex-wrap items-start justify-between gap-3">
       <div>
-        <p class="font-mono text-sm text-slate-700">{{ inspeccion.puente.codigo }}</p>
-        <h1 id="titulo-captura" class="text-2xl font-bold">{{ inspeccion.puente.nombre }}</h1>
-        <p class="text-sm text-slate-700">
+        <p class="text-muted font-mono">{{ inspeccion.puente.codigo }}</p>
+        <h1 id="titulo-captura" class="text-h1">{{ inspeccion.puente.nombre }}</h1>
+        <p class="text-muted">
           {{ comun.fecha }}: {{ fechaSinHora(inspeccion.fecha_inspeccion) }} ·
           {{ t.codigoFormulario.replace('{codigo}', inspeccion.formulario.codigo) }}
         </p>
       </div>
       <div class="grid justify-items-end gap-2">
         <app-chip-estado-inspeccion [estado]="inspeccion.estado" />
-        <span class="text-sm font-medium">
+        <span class="hvc-label">
           {{ store.editable() ? t.editando : t.soloLectura }}
         </span>
-        <a
-          class="text-blue-800 underline"
-          [routerLink]="['/inspecciones', inspeccion.id, 'historial']"
-          >{{ t.historial }}</a
-        >
+        <a class="hvc-link" [routerLink]="['/inspecciones', inspeccion.id, 'historial']">{{
+          t.historial
+        }}</a>
       </div>
     </header>
 
     @if (!enConexion()) {
-      <p role="status" class="mt-3 rounded border border-amber-700 bg-amber-50 p-3 text-amber-900">
+      <p role="status" class="hvc-alert hvc-alert--warn mt-3 bg-amber-50">
         {{ comun.sinConexion }}
         <a routerLink="/offline/local" class="ml-2 underline">Abrir captura local sin conexión</a>
       </p>
     }
 
     @if (inspeccion.advertencia_ubicacion) {
-      <p role="note" class="mt-3 rounded border border-amber-700 bg-amber-50 p-3 text-amber-900">
+      <p role="note" class="hvc-alert hvc-alert--warn mt-3 bg-amber-50">
         {{ inspeccion.advertencia_ubicacion }} {{ distancia() }}
       </p>
     } @else if (!inspeccion.gps_disponible) {
@@ -56,12 +54,12 @@
       </p>
     }
     @for (aviso of inspeccion.advertencias ?? []; track aviso) {
-      <p role="note" class="mt-3 rounded border border-amber-700 bg-amber-50 p-3 text-amber-900">
+      <p role="note" class="hvc-alert hvc-alert--warn mt-3 bg-amber-50">
         {{ aviso }}
       </p>
     }
     @if (inspeccion.supersede_a_id) {
-      <p class="mt-3 text-sm text-slate-700">
+      <p class="text-muted mt-3">
         {{ t.correccionDe.replace('{id}', inspeccion.supersede_a_id) }}
         @if (inspeccion.motivo_correccion) {
           <span class="block">{{ inspeccion.motivo_correccion }}</span>
@@ -69,7 +67,7 @@
       </p>
     }
     @if (inspeccion.superada && inspeccion.superada_por) {
-      <p class="mt-3 text-sm text-slate-700">
+      <p class="text-muted mt-3">
         {{ t.superadaPor.replace('{id}', inspeccion.superada_por) }}
       </p>
     }
@@ -79,17 +77,13 @@
         {{ inspeccion.estado === 'BORRADOR' ? t.soloLecturaAjena : t.soloLecturaEstado }}
       </p>
       <div class="mt-3 flex gap-4" data-no-imprimir>
-        <button type="button" class="min-h-11 text-blue-800 underline" (click)="imprimir()">
-          Imprimir
-        </button>
-        <button type="button" class="min-h-11 text-blue-800 underline" (click)="exportarJson()">
-          Exportar JSON
-        </button>
+        <button type="button" class="hvc-link" (click)="imprimir()">Imprimir</button>
+        <button type="button" class="hvc-link" (click)="exportarJson()">Exportar JSON</button>
       </div>
     }
 
     @if (inspeccion.estado === 'PUBLICADA') {
-      <section class="mt-4 rounded border border-green-700 bg-green-50 p-4" aria-live="polite">
+      <section class="hvc-alert hvc-alert--ok mt-4" aria-live="polite">
         <p class="font-semibold text-green-900">{{ t.publicada }}</p>
         @if (inspeccion.indice_condicion !== undefined) {
           <p class="mt-1">
@@ -103,14 +97,12 @@
           <p>{{ t.justificacion }}: {{ inspeccion.justificacion_estado }}</p>
         }
         <div class="mt-3 flex flex-wrap gap-4">
-          <a
-            class="text-blue-800 underline"
-            [routerLink]="['/inspecciones', inspeccion.id, 'foro']"
-            >{{ comun.verForo }}</a
-          >
+          <a class="hvc-link" [routerLink]="['/inspecciones', inspeccion.id, 'foro']">{{
+            comun.verForo
+          }}</a>
           @if (puedeCorregir()) {
             <a
-              class="text-blue-800 underline"
+              class="hvc-link"
               [routerLink]="corregirRuta()"
               [queryParams]="{ corrige: inspeccion.id }"
               >{{ t.corregir }}</a
@@ -119,10 +111,7 @@
         </div>
       </section>
     } @else if (inspeccion.estado === 'ENVIADA' && rol() === 'ESTUDIANTE' && esAutor()) {
-      <p
-        role="status"
-        class="mt-4 rounded border border-blue-700 bg-blue-50 p-3 font-medium text-blue-900"
-      >
+      <p role="status" class="hvc-note mt-4 bg-blue-50">
         {{ t.enviadaEstudiante }}
       </p>
     }
@@ -136,18 +125,10 @@
         <h2 id="titulo-conflicto" class="font-semibold text-orange-900">{{ t.conflictoTitulo }}</h2>
         <p class="mt-1 text-orange-900">{{ t.conflictoDetalle }}</p>
         <div class="mt-3 flex flex-wrap gap-3">
-          <button
-            type="button"
-            class="min-h-11 rounded bg-blue-700 px-4 text-white"
-            (click)="store.resolverConflicto(true)"
-          >
+          <button type="button" class="btn-hvc-primary" (click)="store.resolverConflicto(true)">
             {{ t.conservarMio }}
           </button>
-          <button
-            type="button"
-            class="min-h-11 rounded border border-blue-700 px-4 text-blue-800"
-            (click)="store.resolverConflicto(false)"
-          >
+          <button type="button" class="btn-hvc-secondary" (click)="store.resolverConflicto(false)">
             {{ t.usarServidor }}
           </button>
         </div>
@@ -155,12 +136,8 @@
     }
 
     @if (store.errores().length) {
-      <section
-        role="alert"
-        class="mt-4 rounded border border-red-700 bg-red-50 p-4 text-red-900"
-        aria-labelledby="titulo-errores-envio"
-      >
-        <h2 id="titulo-errores-envio" class="font-semibold">{{ t.erroresEnvio }}</h2>
+      <section role="alert" class="hvc-alert mt-4" aria-labelledby="titulo-errores-envio">
+        <h2 id="titulo-errores-envio" class="text-h2">{{ t.erroresEnvio }}</h2>
         <ul class="mt-2 list-disc pl-5">
           @for (error of store.errores(); track $index) {
             <li>
@@ -171,14 +148,14 @@
         </ul>
       </section>
     } @else if (store.error() && !store.conflicto()) {
-      <p role="alert" class="mt-4 rounded border border-red-700 bg-red-50 p-3 text-red-900">
+      <p role="alert" class="hvc-alert mt-4">
         {{ store.error() }}
       </p>
     }
 
     <div class="mt-4 flex flex-wrap items-center gap-3">
       <a
-        class="inline-flex min-h-11 items-center rounded border border-blue-700 px-4 text-blue-800"
+        class="btn-hvc-secondary inline-flex items-center"
         [routerLink]="['/inspecciones', inspeccion.id, 'permanentes']"
       >
         {{ store.editable() ? t.confirmarPermanentes : t.verPermanentes }}
@@ -240,7 +217,7 @@
           {{ estimando() ? 'Estimando IC…' : 'Estimar IC' }}
         </button>
         @if (errorIc()) {
-          <p role="alert" class="text-red-800">{{ errorIc() }}</p>
+          <p role="alert" class="hvc-error">{{ errorIc() }}</p>
         }
         @if (estimacion(); as ic) {
           <app-ic-preliminar
@@ -254,7 +231,7 @@
     }
     @if (puedeVerRecalculos()) {
       @if (errorJuegos()) {
-        <p role="alert" class="text-red-800">{{ errorJuegos() }}</p>
+        <p role="alert" class="hvc-error">{{ errorJuegos() }}</p>
       }
       <app-recalculo-ic
         [inspeccionId]="inspeccion.id"
@@ -264,7 +241,7 @@
     }
 
     @if (store.editable()) {
-      <section class="mt-6 rounded border border-slate-300 p-4" aria-labelledby="titulo-acciones">
+      <section class="hvc-card mt-6" aria-labelledby="titulo-acciones">
         <h2 id="titulo-acciones" class="text-lg font-semibold">{{ t.checklist }}</h2>
         <ul class="mt-2 grid gap-1 text-sm">
           <li [class.text-green-800]="store.permanentesConfirmados()">
@@ -282,18 +259,18 @@
         <div class="mt-4 flex flex-wrap items-center gap-3">
           <button
             type="button"
-            class="min-h-11 rounded border border-blue-700 px-4 text-blue-800 disabled:opacity-50"
+            class="btn-hvc-secondary"
             [disabled]="store.ocupado() || !store.sucio() || !!store.conflicto()"
             (click)="store.guardar()"
           >
             {{ store.guardando() ? t.guardando : t.guardar }}
           </button>
-          <span class="text-sm text-slate-700" role="status">
+          <span class="text-muted" role="status">
             {{ store.sucio() ? t.sinGuardar : horaGuardado() }}
           </span>
           <button
             type="button"
-            class="min-h-11 rounded bg-blue-700 px-4 font-medium text-white disabled:opacity-50"
+            class="btn-hvc-primary"
             [disabled]="!store.puedeEnviar()"
             (click)="confirmandoEnvio.set(true)"
           >
@@ -301,7 +278,7 @@
           </button>
           <button
             type="button"
-            class="ml-auto min-h-11 text-red-800 underline disabled:opacity-50"
+            class="btn-hvc-danger ml-auto"
             [disabled]="store.ocupado()"
             (click)="confirmandoBaja.set(true)"
           >
@@ -310,20 +287,12 @@
         </div>
 
         @if (confirmandoEnvio()) {
-          <div
-            role="alertdialog"
-            aria-labelledby="texto-envio"
-            class="mt-4 rounded border border-blue-700 bg-blue-50 p-4"
-          >
+          <div role="alertdialog" aria-labelledby="texto-envio" class="hvc-note mt-4 bg-blue-50">
             <p id="texto-envio">
               {{ publica() ? t.confirmarEnvioPublica : t.confirmarEnvioEstudiante }}
             </p>
             <div class="mt-3 flex gap-3">
-              <button
-                type="button"
-                class="min-h-11 rounded bg-blue-700 px-4 text-white"
-                (click)="confirmarEnvio()"
-              >
+              <button type="button" class="btn-hvc-primary" (click)="confirmarEnvio()">
                 {{ t.confirmarEnvioSi }}
               </button>
               <button
@@ -337,11 +306,7 @@
           </div>
         }
         @if (confirmandoBaja()) {
-          <div
-            role="alertdialog"
-            aria-labelledby="texto-baja"
-            class="mt-4 rounded border border-red-700 bg-red-50 p-4"
-          >
+          <div role="alertdialog" aria-labelledby="texto-baja" class="hvc-alert mt-4">
             <p id="texto-baja">{{ t.eliminarConfirmar }}</p>
             <div class="mt-3 flex gap-3">
               <button

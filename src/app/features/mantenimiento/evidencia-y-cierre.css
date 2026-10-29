@@ -17,7 +17,7 @@ label {
   gap: 0.25rem;
 }
 input {
-  border: 1px solid #64748b;
+  border: 1px solid var(--color-gray);
   border-radius: 0.25rem;
   padding: 0.75rem;
   min-width: 0;
@@ -35,7 +35,7 @@ input {
 .fotos a {
   display: grid;
   gap: 0.5rem;
-  color: #1d4ed8;
+  color: var(--color-primary);
   text-decoration: underline;
 }
 .fotos img {

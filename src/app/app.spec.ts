@@ -91,12 +91,12 @@ describe('App', () => {
     expect(html.querySelector('a[href="#contenido"]')?.textContent).toContain('Saltar');
     expect(hrefs(html)).toEqual([
       '/',
+      '/login',
+      '/registro',
       '/puentes',
       '/puentes/mapa',
       '/offline/local',
       '/foro',
-      '/login',
-      '/registro',
     ]);
     expect(html.querySelector('main#contenido router-outlet')).not.toBeNull();
     expect(html.querySelector('app-campana-notificaciones')).toBeNull();
@@ -106,7 +106,7 @@ describe('App', () => {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();
     await vi.waitFor(() =>
-      expect(fixture.nativeElement.querySelector('nav [role="status"]')?.textContent).toContain(
+      expect(fixture.nativeElement.querySelector('footer [role="status"]')?.textContent).toContain(
         'Inspecciones pendientes: 0 · Archivos pendientes: 0',
       ),
     );
@@ -126,7 +126,7 @@ describe('App', () => {
     await local.crear(v7(), v7(), v7());
 
     await vi.waitFor(() =>
-      expect(fixture.nativeElement.querySelector('nav [role="status"]')?.textContent).toContain(
+      expect(fixture.nativeElement.querySelector('footer [role="status"]')?.textContent).toContain(
         'Inspecciones pendientes: 1 · Archivos pendientes: 2',
       ),
     );
@@ -153,14 +153,14 @@ describe('App', () => {
     expect(html.textContent).toContain('Estudiante');
     expect(hrefs(html)).toEqual([
       '/',
-      '/puentes',
-      '/puentes/mapa',
-      '/offline/local',
-      '/foro',
       '/inspecciones',
       '/mis-revisiones',
       '/mis-asignaciones',
       '/perfil',
+      '/puentes',
+      '/puentes/mapa',
+      '/offline/local',
+      '/foro',
     ]);
     expect(html.querySelector('button')?.textContent).toContain('Cerrar sesión');
   });
@@ -183,16 +183,16 @@ describe('App', () => {
     expect(html.textContent).toContain('Administrador');
     expect(hrefs(html)).toEqual([
       '/',
-      '/puentes',
-      '/puentes/mapa',
-      '/offline/local',
-      '/foro',
       '/perfil',
       '/admin/pesos',
       '/admin/usuarios',
       '/admin/invitaciones',
       '/admin/auditoria',
       '/admin/formularios',
+      '/puentes',
+      '/puentes/mapa',
+      '/offline/local',
+      '/foro',
     ]);
   });
 

@@ -1,28 +1,28 @@
 <main class="mx-auto max-w-3xl p-4" aria-labelledby="titulo-foro-inspeccion">
-  <h1 id="titulo-foro-inspeccion" class="mb-4 text-2xl font-semibold">
+  <h1 id="titulo-foro-inspeccion" class="text-h1 mb-4">
     {{ textos.titulo }}
   </h1>
 
   @switch (estado()) {
     @case ('CARGANDO') {
-      <p role="status" class="text-sm text-slate-600">{{ textos.cargando }}</p>
+      <p role="status" class="text-muted">{{ textos.cargando }}</p>
     }
     @case ('NO_INTEGRADO') {
-      <p class="text-sm text-slate-600">{{ textos.noIntegrado }}</p>
+      <p class="text-muted">{{ textos.noIntegrado }}</p>
     }
     @case ('NO_PUBLICADA') {
-      <p class="text-sm text-slate-700">{{ textos.noPublicada }}</p>
+      <p class="text-muted">{{ textos.noPublicada }}</p>
     }
     @case ('SIN_PERMISOS') {
-      <p role="alert" class="text-sm text-slate-700">{{ textos.sinPermisos }}</p>
+      <p role="alert" class="text-muted">{{ textos.sinPermisos }}</p>
     }
     @case ('ERROR') {
-      <div role="alert" class="text-sm">
+      <div role="alert" class="hvc-alert">
         <p class="text-red-700">{{ textos.error }}</p>
         @if (mensajeError()) {
-          <p class="mt-1 text-slate-700">{{ mensajeError() }}</p>
+          <p class="text-muted mt-1">{{ mensajeError() }}</p>
         }
-        <button type="button" class="mt-2 underline" (click)="reintentar()">
+        <button type="button" class="hvc-link mt-2" (click)="reintentar()">
           {{ textos.reintentar }}
         </button>
       </div>
@@ -30,17 +30,15 @@
     @case ('PUBLICADA') {
       @if (contexto(); as contexto) {
         <p class="mb-3 flex gap-4 text-sm">
-          <a class="text-blue-800 underline" [routerLink]="['/inspecciones', contexto.inspeccionId]"
+          <a class="hvc-link" [routerLink]="['/inspecciones', contexto.inspeccionId]"
             >Ver inspección</a
           >
-          <a class="text-blue-800 underline" [routerLink]="['/puentes', contexto.puenteId]"
-            >Ver puente</a
-          >
+          <a class="hvc-link" [routerLink]="['/puentes', contexto.puenteId]">Ver puente</a>
         </p>
       }
       <section class="mt-4" [attr.aria-label]="textos.titulo">
         @if (comentarios().length === 0) {
-          <p class="text-sm text-slate-600">{{ textos.sinComentarios }}</p>
+          <p class="text-muted">{{ textos.sinComentarios }}</p>
         } @else {
           <ul class="space-y-3">
             @for (comentario of comentarios(); track comentario.id) {
@@ -58,7 +56,7 @@
                   <div class="mt-2 flex gap-2">
                     <button
                       type="button"
-                      class="rounded bg-blue-700 px-4 py-2 font-medium text-white hover:bg-blue-800 disabled:opacity-50"
+                      class="btn-hvc-primary"
                       [disabled]="publicando() || !borrador().trim()"
                       (click)="guardarEdicion(comentario)"
                     >
@@ -66,7 +64,7 @@
                     </button>
                     <button
                       type="button"
-                      class="rounded border border-slate-400 px-4 py-2 font-medium hover:bg-slate-100 disabled:opacity-50"
+                      class="btn-hvc-secondary"
                       [disabled]="publicando()"
                       (click)="editando.set(null)"
                     >
@@ -79,13 +77,13 @@
                     comentario.eliminado ? 'Comentario eliminado' : textoVisible(comentario.texto)
                   }}
                 </p>
-                <p class="mt-1 text-xs text-slate-600">
+                <p class="text-muted mt-1">
                   {{ textos.autor }}: {{ comentario.autorNombre || textos.autorNoDisponible }} ·
                   {{ textos.publicadoEl }}
                   {{ fechaUtc(comentario.creadoEn) }}
                 </p>
                 @if (comentario.elementoRef) {
-                  <p class="mt-1 text-xs text-slate-600">
+                  <p class="text-muted mt-1">
                     {{ textos.anclaje }}: <code>{{ comentario.elementoRef }}</code>
                   </p>
                 }
@@ -103,7 +101,7 @@
                   @if (esPropio(comentario)) {
                     <button
                       type="button"
-                      class="rounded px-2 py-1 text-red-700 hover:bg-red-50 disabled:opacity-50"
+                      class="btn-hvc-danger btn-hvc-compact"
                       [disabled]="publicando()"
                       (click)="borrar(comentario)"
                     >
@@ -157,7 +155,7 @@
             </select>
             <button
               type="submit"
-              class="min-h-11 rounded bg-blue-700 px-4 text-white disabled:opacity-50"
+              class="btn-hvc-primary"
               [disabled]="
                 publicando() || formulario.invalid || !formulario.controls.texto.value.trim()
               "
@@ -171,7 +169,7 @@
         @if (puedeModerar() && !contexto()?.cerrado) {
           <button
             type="button"
-            class="mt-4 rounded border border-red-700 px-4 py-2 font-medium text-red-800 hover:bg-red-50 disabled:opacity-50"
+            class="btn-hvc-danger mt-4"
             [disabled]="publicando()"
             (click)="abrirModeracion()"
           >
@@ -179,7 +177,7 @@
           </button>
         }
         @if (errorComentario()) {
-          <p role="alert" class="mt-3 text-red-800">{{ errorComentario() }}</p>
+          <p role="alert" class="hvc-error mt-3">{{ errorComentario() }}</p>
         }
       </section>
     }

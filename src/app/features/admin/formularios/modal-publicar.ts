@@ -22,7 +22,7 @@ import { FormularioVersionDTO } from '../../formulario/modelos';
         </div>
 
         <div
-          class="p-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-xl text-amber-900 dark:text-amber-200 text-xs leading-relaxed"
+          class="hvc-alert hvc-alert--warn bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-800 dark:text-amber-200"
         >
           ⚠️ <strong>{{ textos.advertenciaInmutable }}</strong>
         </div>
@@ -66,7 +66,7 @@ import { FormularioVersionDTO } from '../../formulario/modelos';
             type="button"
             (click)="confirmarPublicacion()"
             [disabled]="publicando"
-            class="px-4 py-2 text-sm font-semibold rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+            class="btn-hvc-primary"
           >
             {{ publicando ? 'Publicando…' : textos.publicar }}
           </button>

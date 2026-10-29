@@ -1,12 +1,12 @@
 <section class="mx-auto max-w-6xl p-4" [attr.aria-busy]="cargando() || guardando()">
   @if (!guardando()) {
-    <a routerLink="/revisiones" class="text-blue-800 underline">{{ t.volver }}</a>
+    <a routerLink="/revisiones" class="hvc-link">{{ t.volver }}</a>
   }
   <header class="my-5 flex flex-wrap items-center justify-between gap-3">
-    <h1 class="text-2xl font-bold">{{ t.detalle }}</h1>
+    <h1 class="text-h1">{{ t.detalle }}</h1>
     <button
       type="button"
-      class="min-h-11 rounded border border-slate-400 px-4 py-2 disabled:opacity-50"
+      class="btn-hvc-secondary"
       [disabled]="cargando() || guardando()"
       (click)="cargar()"
     >
@@ -14,7 +14,7 @@
     </button>
   </header>
   @if (error()) {
-    <p role="alert" class="my-3 rounded bg-red-50 p-4 text-red-800">{{ error() }}</p>
+    <p role="alert" class="hvc-alert my-3">{{ error() }}</p>
   }
   @if (cargando()) {
     <p role="status">{{ t.cargando }}</p>
@@ -29,29 +29,27 @@
         [esPreliminar]="ic.preliminar"
       />
     }
-    <p class="break-all text-sm text-slate-600">
+    <p class="text-muted break-all">
       {{ t.ciclo }}: {{ actual.id }} · {{ actual.estado }}
-      <a class="ml-3 underline text-blue-700" [routerLink]="['/inspecciones', actual.inspeccion_id]"
+      <a class="hvc-link ml-3" [routerLink]="['/inspecciones', actual.inspeccion_id]"
         >Ir a inspección</a
       >
     </p>
     @if (actual.veredicto) {
       <div role="status" class="my-4 rounded bg-slate-100 p-4">
-        <h2 class="font-semibold">
-          {{ t.decisionConfirmada }}: {{ t.veredictos[actual.veredicto] }}
-        </h2>
+        <h2 class="text-h3">{{ t.decisionConfirmada }}: {{ t.veredictos[actual.veredicto] }}</h2>
         <p class="whitespace-pre-wrap">{{ actual.observacion }}</p>
       </div>
     }
-    <details class="my-5 rounded border border-slate-300 p-4">
+    <details class="hvc-card my-5">
       <summary class="cursor-pointer font-semibold">{{ t.formularioOriginal }}</summary>
       <app-motor-formulario [esquema]="actual.esquema" [datos]="actual.datos" modo="lectura" />
     </details>
     <h2 class="my-4 text-xl font-semibold">Evidencia</h2>
     <ul class="my-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
       @for (archivo of archivos(); track archivo.id) {
-        <li class="rounded border border-slate-300 bg-white p-4">
-          <p class="text-sm text-slate-600">{{ archivo.tipo === 'PDF' ? 'PDF' : 'Foto' }}</p>
+        <li class="hvc-card">
+          <p class="text-muted">{{ archivo.tipo === 'PDF' ? 'PDF' : 'Foto' }}</p>
           @if (archivo.url_miniatura) {
             <img
               [src]="archivo.url_miniatura"
@@ -60,15 +58,11 @@
             />
           }
           @if (archivo.url) {
-            <a
-              [href]="archivo.url"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="underline text-blue-700"
+            <a [href]="archivo.url" target="_blank" rel="noopener noreferrer" class="hvc-link"
               >Abrir archivo</a
             >
           } @else {
-            <p class="text-sm text-slate-600">Archivo no disponible.</p>
+            <p class="text-muted">Archivo no disponible.</p>
           }
         </li>
       } @empty {
@@ -76,14 +70,14 @@
       }
     </ul>
     <h2 class="my-4 text-xl font-semibold">{{ t.campos }}</h2>
-    <p class="text-slate-600">{{ t.camposDescripcion }}</p>
+    <p class="text-muted">{{ t.camposDescripcion }}</p>
     <ul class="my-4 grid gap-4">
       @for (campo of actual.campos; track campo.referencia) {
-        <li class="min-w-0 rounded border border-slate-300 bg-white p-4">
-          <h3 class="font-semibold">{{ campo.titulo }}</h3>
-          <p class="break-all text-sm text-slate-600">{{ campo.referencia }}</p>
+        <li class="hvc-card min-w-0">
+          <h3 class="text-h3">{{ campo.titulo }}</h3>
+          <p class="text-muted break-all">{{ campo.referencia }}</p>
           <a
-            class="text-sm underline text-blue-700"
+            class="hvc-link"
             [routerLink]="['/inspecciones', actual.inspeccion_id]"
             [queryParams]="{ ref: campo.referencia }"
             >Ir a inspección</a
@@ -102,8 +96,8 @@
       }
     </ul>
     @if (seleccion(); as observacionSeleccionada) {
-      <div role="status" class="my-4 rounded border border-blue-300 bg-blue-50 p-4">
-        <h3 class="font-semibold">{{ observacionSeleccionada.elemento_ref }}</h3>
+      <div role="status" class="hvc-note my-4 bg-blue-50">
+        <h3 class="text-h3">{{ observacionSeleccionada.elemento_ref }}</h3>
         <p class="whitespace-pre-wrap">{{ observacionSeleccionada.texto }}</p>
       </div>
     }
@@ -117,10 +111,7 @@
           <legend class="mb-3 text-lg font-semibold">{{ t.agregarObservacion }}</legend>
           <label
             >{{ t.campo
-            }}<select
-              class="mt-1 block min-h-11 w-full rounded border border-slate-400 p-2"
-              formControlName="referencia"
-            >
+            }}<select class="hvc-input mt-1 block w-full" formControlName="referencia">
               @for (campo of actual.campos; track campo.referencia) {
                 <option [value]="campo.referencia">
                   {{ campo.titulo }} — {{ campo.referencia }}
@@ -140,7 +131,7 @@
           </label>
           <button
             type="submit"
-            class="min-h-11 justify-self-start rounded bg-blue-700 px-4 py-2 text-white disabled:opacity-50"
+            class="btn-hvc-primary justify-self-start"
             [disabled]="
               observacion.invalid || !observacion.controls.texto.value.trim() || guardando()
             "
@@ -156,13 +147,10 @@
       >
         <fieldset class="grid gap-4" [disabled]="guardando()">
           <legend class="mb-3 text-lg font-semibold">{{ t.emitirVeredicto }}</legend>
-          <p class="text-slate-700">{{ t.avisoDecision }}</p>
+          <p class="text-muted">{{ t.avisoDecision }}</p>
           <label
             >{{ t.veredicto
-            }}<select
-              class="mt-1 block min-h-11 w-full rounded border border-slate-400 p-2"
-              formControlName="veredicto"
-            >
+            }}<select class="hvc-input mt-1 block w-full" formControlName="veredicto">
               <option value="APROBADA">{{ t.aprobar }}</option>
               <option value="CAMBIOS_SOLICITADOS">{{ t.cambios }}</option>
               <option value="RECHAZADA">{{ t.rechazar }}</option>
@@ -187,12 +175,12 @@
                 (cambio)="onConfirmacionCambio($event)"
               />
             } @else {
-              <p class="text-sm text-slate-600">Cálculo de IC no disponible para este borrador.</p>
+              <p class="text-muted">Cálculo de IC no disponible para este borrador.</p>
             }
           }
           <button
             type="submit"
-            class="min-h-11 justify-self-start rounded bg-blue-700 px-4 py-2 text-white hover:bg-blue-800 disabled:opacity-50"
+            class="btn-hvc-primary justify-self-start"
             [disabled]="!puedeDecidir() || guardando()"
           >
             {{ guardando() ? t.guardando : t.confirmarDecision }}

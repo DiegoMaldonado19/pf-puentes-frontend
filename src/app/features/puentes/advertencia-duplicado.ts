@@ -12,14 +12,14 @@ import { PuenteCercanoDTO } from './modelos';
     <section
       role="alert"
       aria-labelledby="titulo-duplicado"
-      class="rounded border-2 border-amber-600 bg-amber-50 p-4 text-amber-950"
+      class="hvc-alert hvc-alert--warn bg-amber-50"
     >
       <h2 id="titulo-duplicado" class="text-lg font-semibold">{{ t.titulo }}</h2>
       <p class="mt-1">{{ t.explicacion }}</p>
       <ul class="mt-2 list-disc pl-6">
         @for (puente of cercanos(); track puente.id) {
           <li>
-            <a [routerLink]="['/puentes', puente.id]" target="_blank" class="underline">
+            <a [routerLink]="['/puentes', puente.id]" target="_blank" class="hvc-link">
               {{ puente.codigo }} — {{ puente.nombre }}
             </a>
             ({{ puente.distancia_metros | number: '1.0-1' }} {{ t.metros }})

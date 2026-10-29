@@ -25,25 +25,23 @@ const ESTADOS: readonly EstadoInspeccion[] = [
   imports: [ChipEstadoInspeccion, DatePipe, ReactiveFormsModule, RouterLink],
   template: `
     <section class="mx-auto max-w-5xl p-4" aria-labelledby="titulo-mias">
-      <h1 id="titulo-mias" class="text-2xl font-bold">{{ t.titulo }}</h1>
-      <p class="my-3 text-slate-700">{{ t.descripcion }}</p>
+      <h1 id="titulo-mias" class="text-h1">{{ t.titulo }}</h1>
+      <p class="text-muted my-3">{{ t.descripcion }}</p>
       @if (puedeInspeccionar()) {
-        <a
-          routerLink="/inspecciones/puentes"
-          class="inline-flex min-h-11 items-center rounded bg-blue-700 px-4 font-medium text-white"
-          >{{ t.nueva }}</a
-        >
+        <a routerLink="/inspecciones/puentes" class="btn-hvc-primary inline-flex items-center">{{
+          t.nueva
+        }}</a>
       }
 
       <form
-        class="mt-4 grid gap-3 rounded border border-slate-300 p-4 sm:grid-cols-4"
+        class="hvc-card mt-4 grid gap-3 sm:grid-cols-4"
         [formGroup]="filtros"
         [attr.aria-label]="t.filtros"
         (ngSubmit)="aplicar()"
       >
         <label class="grid gap-1 text-sm font-medium">
           {{ comun.estado }}
-          <select class="min-h-11 rounded border border-slate-400 px-2" formControlName="estado">
+          <select class="hvc-input" formControlName="estado">
             <option value="">{{ t.todosEstados }}</option>
             @for (estado of estados; track estado) {
               <option [value]="estado">{{ etiquetas[estado] }}</option>
@@ -52,22 +50,14 @@ const ESTADOS: readonly EstadoInspeccion[] = [
         </label>
         <label class="grid gap-1 text-sm font-medium">
           {{ t.desde }}
-          <input
-            type="date"
-            class="min-h-11 rounded border border-slate-400 px-2"
-            formControlName="desde"
-          />
+          <input type="date" class="hvc-input" formControlName="desde" />
         </label>
         <label class="grid gap-1 text-sm font-medium">
           {{ t.hasta }}
-          <input
-            type="date"
-            class="min-h-11 rounded border border-slate-400 px-2"
-            formControlName="hasta"
-          />
+          <input type="date" class="hvc-input" formControlName="hasta" />
         </label>
         <div class="flex items-end gap-2">
-          <button type="submit" class="min-h-11 rounded bg-blue-700 px-4 text-white">
+          <button type="submit" class="btn-hvc-primary">
             {{ t.aplicar }}
           </button>
           <button type="button" class="min-h-11 rounded border px-4" (click)="limpiar()">
@@ -79,43 +69,43 @@ const ESTADOS: readonly EstadoInspeccion[] = [
       @if (inspecciones.isLoading() && !inspecciones.hasValue()) {
         <p role="status" class="mt-4">{{ comun.cargando }}</p>
       } @else if (error()) {
-        <p role="alert" class="mt-4 rounded border border-red-700 bg-red-50 p-3 text-red-900">
+        <p role="alert" class="hvc-alert mt-4">
           {{ error() }}
           <button type="button" class="ml-3 underline" (click)="inspecciones.reload()">
             {{ comun.reintentar }}
           </button>
         </p>
       } @else if (inspecciones.value(); as datos) {
-        <p class="mt-4 text-slate-600">{{ t.total }}: {{ datos.total_elements }}</p>
+        <p class="text-muted mt-4">{{ t.total }}: {{ datos.total_elements }}</p>
         <ul class="mt-2 grid gap-3" [attr.aria-busy]="inspecciones.isLoading()">
           @for (fila of datos.content; track fila.id) {
-            <li class="rounded border border-slate-300 p-4">
+            <li class="hvc-card">
               <div class="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <p class="font-mono text-sm text-slate-700">{{ fila.puente.codigo }}</p>
+                  <p class="text-muted font-mono">{{ fila.puente.codigo }}</p>
                   <h2 class="text-lg font-semibold">{{ fila.puente.nombre }}</h2>
-                  <p class="text-sm text-slate-700">
+                  <p class="text-muted">
                     {{ comun.fecha }}: {{ fechaSinHora(fila.fecha_inspeccion) }}
                   </p>
-                  <p class="text-xs text-slate-600">
+                  <p class="text-muted">
                     {{ fila.creado_en | date: 'dd/MM/yyyy HH:mm' : '-0600' }}
                   </p>
                 </div>
                 <div class="grid justify-items-end gap-2">
                   <app-chip-estado-inspeccion [estado]="fila.estado" />
                   @if (fila.superada) {
-                    <span class="text-sm text-slate-700">{{ comun.superada }}</span>
+                    <span class="text-muted">{{ comun.superada }}</span>
                   }
                 </div>
               </div>
               <div class="mt-3 flex flex-wrap gap-4">
                 <a
-                  class="inline-flex min-h-11 items-center text-blue-800 underline"
+                  class="hvc-link inline-flex items-center"
                   [routerLink]="['/inspecciones', fila.id]"
                   >{{ comun.verDetalle }}</a
                 >
                 <a
-                  class="inline-flex min-h-11 items-center text-blue-800 underline"
+                  class="hvc-link inline-flex items-center"
                   [routerLink]="['/inspecciones', fila.id, 'historial']"
                   >{{ comun.verHistorial }}</a
                 >

@@ -22,7 +22,7 @@ const CALIDAD = 0.8;
   template: `
     <button
       type="button"
-      class="rounded bg-blue-700 px-4 py-3 font-medium text-white disabled:opacity-50"
+      class="btn-hvc-primary"
       [disabled]="procesando()"
       (click)="selector.click()"
     >

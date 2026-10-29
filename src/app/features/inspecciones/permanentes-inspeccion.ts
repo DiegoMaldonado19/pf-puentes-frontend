@@ -19,9 +19,9 @@ import { DatosPermanentesDTO } from './modelos';
   providers: [InspeccionStore],
   template: `
     <section class="mx-auto max-w-5xl p-4" aria-labelledby="titulo-permanentes">
-      <a [routerLink]="['/inspecciones', id()]" class="text-blue-800 underline">← {{ t.volver }}</a>
-      <h1 id="titulo-permanentes" class="mt-3 text-2xl font-bold">{{ t.titulo }}</h1>
-      <p class="my-3 text-slate-700">{{ t.descripcion }}</p>
+      <a [routerLink]="['/inspecciones', id()]" class="hvc-link">← {{ t.volver }}</a>
+      <h1 id="titulo-permanentes" class="text-h1 mt-3">{{ t.titulo }}</h1>
+      <p class="text-muted my-3">{{ t.descripcion }}</p>
 
       @if (cargando()) {
         <p role="status">{{ comun.cargando }}</p>
@@ -30,12 +30,12 @@ import { DatosPermanentesDTO } from './modelos';
           {{ capturaTextos.noEncontradaDetalle }}
         </p>
       } @else if (errorCarga()) {
-        <p role="alert" class="rounded border border-red-700 bg-red-50 p-3 text-red-900">
+        <p role="alert" class="hvc-alert">
           {{ errorCarga() }}
         </p>
       } @else if (store.inspeccion(); as inspeccion) {
         @if (precarga(); as precargados) {
-          <p class="mb-2 text-sm text-slate-700">
+          <p class="text-muted mb-2">
             @if (precargados.origen_inspeccion_id) {
               {{ t.origen.replace('{id}', precargados.origen_inspeccion_id) }}
             } @else {
@@ -68,20 +68,20 @@ import { DatosPermanentesDTO } from './modelos';
         }
 
         @if (store.errores().length) {
-          <ul role="alert" class="mt-3 list-disc rounded bg-red-50 p-3 pl-8 text-red-900">
+          <ul role="alert" class="hvc-alert mt-3 list-disc pl-8">
             @for (error of store.errores(); track $index) {
               <li>{{ error.campo }}: {{ error.mensaje }}</li>
             }
           </ul>
         } @else if (store.error()) {
-          <p role="alert" class="mt-3 rounded border border-red-700 bg-red-50 p-3 text-red-900">
+          <p role="alert" class="hvc-alert mt-3">
             {{ store.error() }}
           </p>
         }
         @if (store.editable()) {
           <button
             type="button"
-            class="mt-5 min-h-11 rounded bg-blue-700 px-6 font-medium text-white disabled:opacity-50"
+            class="btn-hvc-primary mt-5"
             [disabled]="store.confirmando()"
             (click)="confirmar(inspeccion.id)"
           >

@@ -39,11 +39,7 @@
             aria-describedby="nota-acta-nueva"
           />
           <p id="nota-acta-nueva">{{ t.aclaracionActa }}</p>
-          <button
-            class="my-3 rounded bg-blue-700 p-2 text-white disabled:opacity-50"
-            type="submit"
-            [disabled]="!disponible()"
-          >
+          <button class="btn-hvc-primary my-3" type="submit" [disabled]="!disponible()">
             {{ t.guardar }}
           </button>
         </fieldset>

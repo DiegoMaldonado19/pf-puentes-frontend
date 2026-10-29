@@ -16,7 +16,7 @@
       #campoMotivo
       id="motivo-moderacion"
       rows="3"
-      class="w-full rounded border border-slate-400 bg-white p-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700 text-sm"
+      class="hvc-input w-full"
       [value]="motivo()"
       [disabled]="enCurso()"
       (input)="cambioMotivo.emit($any($event.target).value)"

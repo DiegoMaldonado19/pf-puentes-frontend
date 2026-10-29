@@ -1,5 +1,5 @@
-<section class="mx-auto max-w-md p-4" aria-labelledby="titulo-perfil">
-  <h1 id="titulo-perfil" class="text-2xl font-bold">{{ t.titulo }}</h1>
+<section class="hvc-profile" aria-labelledby="titulo-perfil">
+  <h1 id="titulo-perfil" class="text-h1">{{ t.titulo }}</h1>
 
   @if (cargando()) {
     <p role="status" class="mt-3">{{ t.cargando }}</p>
@@ -13,22 +13,22 @@
     <dl
       class="mt-3 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 rounded bg-slate-100 p-3 text-slate-900"
     >
-      <dt class="font-medium text-slate-700">{{ t.identificador }}</dt>
+      <dt class="text-muted">{{ t.identificador }}</dt>
       <dd class="font-mono text-slate-900">{{ p.id }}</dd>
-      <dt class="font-medium text-slate-700">{{ campos.nombre }}</dt>
+      <dt class="text-muted">{{ campos.nombre }}</dt>
       <dd class="text-slate-900">{{ p.nombre }}</dd>
-      <dt class="font-medium text-slate-700">{{ campos.correo }}</dt>
+      <dt class="text-muted">{{ campos.correo }}</dt>
       <dd class="text-slate-900">{{ p.correo }}</dd>
-      <dt class="font-medium text-slate-700">{{ campos.rol }}</dt>
+      <dt class="text-muted">{{ campos.rol }}</dt>
       <dd class="text-slate-900">{{ roles[p.rol] }}</dd>
-      <dt class="font-medium text-slate-700">{{ campos.estado }}</dt>
+      <dt class="text-muted">{{ campos.estado }}</dt>
       <dd class="text-slate-900">{{ estados[p.estado] }}</dd>
     </dl>
 
-    <h2 class="mt-6 text-xl font-bold">{{ t.cambiarContrasena }}</h2>
+    <h2 class="text-h2 mt-6">{{ t.cambiarContrasena }}</h2>
     <form class="mt-4 grid gap-4" [formGroup]="form" (ngSubmit)="enviar()" novalidate>
       <div class="flex flex-col">
-        <label for="contrasena_actual" class="font-medium">{{ campos.contrasenaActual }}</label>
+        <label for="contrasena_actual" class="hvc-label">{{ campos.contrasenaActual }}</label>
         <input
           id="contrasena_actual"
           type="password"
@@ -39,11 +39,11 @@
           [attr.aria-describedby]="campoInvalido('contrasena_actual') ? 'error-actual' : null"
         />
         @if (campoInvalido('contrasena_actual')) {
-          <p id="error-actual" class="text-sm text-red-800">{{ mensaje('contrasena_actual') }}</p>
+          <p id="error-actual" class="hvc-error">{{ mensaje('contrasena_actual') }}</p>
         }
       </div>
       <div class="flex flex-col">
-        <label for="contrasena_nueva" class="font-medium">{{ campos.contrasenaNueva }}</label>
+        <label for="contrasena_nueva" class="hvc-label">{{ campos.contrasenaNueva }}</label>
         <input
           id="contrasena_nueva"
           type="password"
@@ -54,11 +54,11 @@
           [attr.aria-describedby]="campoInvalido('contrasena_nueva') ? 'error-nueva' : null"
         />
         @if (campoInvalido('contrasena_nueva')) {
-          <p id="error-nueva" class="text-sm text-red-800">{{ mensaje('contrasena_nueva') }}</p>
+          <p id="error-nueva" class="hvc-error">{{ mensaje('contrasena_nueva') }}</p>
         }
       </div>
       <div class="flex flex-col">
-        <label for="confirmar" class="font-medium">{{ campos.confirmar }}</label>
+        <label for="confirmar" class="hvc-label">{{ campos.confirmar }}</label>
         <input
           id="confirmar"
           type="password"
@@ -69,7 +69,7 @@
           [attr.aria-describedby]="campoInvalido('confirmar') ? 'error-confirmar' : null"
         />
         @if (campoInvalido('confirmar')) {
-          <p id="error-confirmar" class="text-sm text-red-800">{{ mensaje('confirmar') }}</p>
+          <p id="error-confirmar" class="hvc-error">{{ mensaje('confirmar') }}</p>
         }
       </div>
       <button type="submit" [class]="claseBoton" [disabled]="enviando()">

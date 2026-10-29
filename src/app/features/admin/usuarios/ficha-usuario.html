@@ -1,6 +1,6 @@
 <section class="mx-auto max-w-3xl p-4" aria-labelledby="titulo-ficha">
   <a routerLink="/admin/usuarios" [class]="claseEnlace">← {{ t.volver }}</a>
-  <h1 id="titulo-ficha" class="mt-2 text-2xl font-bold">{{ t.ficha }}</h1>
+  <h1 id="titulo-ficha" class="text-h1 mt-2">{{ t.ficha }}</h1>
 
   @if (ficha.isLoading()) {
     <p role="status" class="mt-3">{{ t.cargando }}</p>
@@ -16,21 +16,21 @@
     <dl
       class="mt-3 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 rounded bg-slate-100 p-3 text-slate-900"
     >
-      <dt class="font-medium text-slate-700">{{ t.identificador }}</dt>
+      <dt class="text-muted">{{ t.identificador }}</dt>
       <dd class="font-mono text-slate-900">{{ cuenta.id }}</dd>
-      <dt class="font-medium text-slate-700">{{ t.nombre }}</dt>
+      <dt class="text-muted">{{ t.nombre }}</dt>
       <dd class="text-slate-900">{{ cuenta.nombre }}</dd>
-      <dt class="font-medium text-slate-700">{{ t.correo }}</dt>
+      <dt class="text-muted">{{ t.correo }}</dt>
       <dd class="text-slate-900">{{ cuenta.correo }}</dd>
-      <dt class="font-medium text-slate-700">{{ t.rol }}</dt>
+      <dt class="text-muted">{{ t.rol }}</dt>
       <dd class="text-slate-900">{{ roles[cuenta.rol] }}</dd>
-      <dt class="font-medium text-slate-700">{{ t.estado }}</dt>
+      <dt class="text-muted">{{ t.estado }}</dt>
       <dd class="text-slate-900">{{ estados[cuenta.estado] }}</dd>
-      <dt class="font-medium text-slate-700">{{ t.verificado }}</dt>
+      <dt class="text-muted">{{ t.verificado }}</dt>
       <dd class="text-slate-900">{{ cuenta.correo_verificado ? t.si : t.no }}</dd>
-      <dt class="font-medium text-slate-700">{{ t.colegiado }}</dt>
+      <dt class="text-muted">{{ t.colegiado }}</dt>
       <dd class="text-slate-900">{{ cuenta.numero_colegiado ?? '—' }}</dd>
-      <dt class="font-medium text-slate-700">{{ t.colegiadoVerificado }}</dt>
+      <dt class="text-muted">{{ t.colegiadoVerificado }}</dt>
       <dd class="text-slate-900">
         {{
           cuenta.colegiado_verificado_en
@@ -38,14 +38,14 @@
             : '—'
         }}
       </dd>
-      <dt class="font-medium text-slate-700">{{ t.creado }}</dt>
+      <dt class="text-muted">{{ t.creado }}</dt>
       <dd class="text-slate-900">{{ cuenta.creado_en | date: 'dd/MM/yyyy' : '-0600' }}</dd>
       @if (cuenta.desactivado_en) {
-        <dt class="font-medium text-slate-700">{{ t.desactivado }}</dt>
+        <dt class="text-muted">{{ t.desactivado }}</dt>
         <dd class="text-slate-900">{{ cuenta.desactivado_en | date: 'dd/MM/yyyy' : '-0600' }}</dd>
       }
       @if (cuenta.motivo_baja) {
-        <dt class="font-medium text-slate-700">{{ t.motivo }}</dt>
+        <dt class="text-muted">{{ t.motivo }}</dt>
         <dd class="text-slate-900">{{ cuenta.motivo_baja }}</dd>
       }
     </dl>
@@ -89,7 +89,7 @@
     @if (bajaAbierta() || rechazoAbierto()) {
       <form class="mt-4 grid gap-3" [formGroup]="form" novalidate>
         <div class="flex flex-col">
-          <label for="motivo" class="font-medium">{{ t.motivo }}</label>
+          <label for="motivo" class="hvc-label">{{ t.motivo }}</label>
           <textarea
             id="motivo"
             formControlName="motivo"
@@ -100,7 +100,7 @@
             [attr.aria-describedby]="motivoInvalido() ? 'error-motivo' : null"
           ></textarea>
           @if (motivoInvalido()) {
-            <p id="error-motivo" class="text-sm text-red-800">{{ mensajeMotivo() }}</p>
+            <p id="error-motivo" class="hvc-error">{{ mensajeMotivo() }}</p>
           }
         </div>
         <div class="flex flex-wrap gap-2">

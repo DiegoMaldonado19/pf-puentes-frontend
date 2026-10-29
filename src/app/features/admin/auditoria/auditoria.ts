@@ -3,7 +3,7 @@ import { Component, computed, inject, linkedSignal, signal } from '@angular/core
 import { rxResource } from '@angular/core/rxjs-interop';
 import { AccionAuditoria } from '../../../core/auth/modelos';
 import { TEXTOS } from '../../../shared/textos';
-import { CLASE_ALERTA, CLASE_BOTON, CLASE_CAMPO, mensajeHttp } from '../../auth/formulario';
+import { CLASE_ALERTA, CLASE_CAMPO, mensajeHttp } from '../../auth/formulario';
 import { AdminUsuariosService, TAMANO_PAGINA_ADMIN } from '../admin-usuarios';
 import { PaginacionAdmin } from '../paginacion-admin';
 
@@ -27,7 +27,6 @@ export class Auditoria {
   protected readonly accionesTexto = TEXTOS.admin.auditoria.acciones;
   protected readonly acciones = ACCIONES;
   protected readonly claseCampo = CLASE_CAMPO;
-  protected readonly claseBoton = CLASE_BOTON;
   protected readonly claseAlerta = CLASE_ALERTA;
   protected readonly entidad = signal('');
   protected readonly entidadId = signal('');

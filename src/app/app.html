@@ -3,168 +3,190 @@
   class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:rounded focus:bg-white focus:p-2"
   >{{ t.saltar }}</a
 >
-<header class="border-b border-slate-300 bg-slate-900 text-white">
-  <nav
-    class="mx-auto flex max-w-6xl flex-wrap items-center gap-4 px-4 py-3"
-    [attr.aria-label]="t.principal"
-  >
-    <a
-      routerLink="/"
-      class="font-bold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-      >{{ t.app }}</a
-    >
-    <a
-      routerLink="/puentes"
-      routerLinkActive="underline"
-      [routerLinkActiveOptions]="{ exact: true }"
-      ariaCurrentWhenActive="page"
-      class="hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-      >{{ t.inventario }}</a
-    >
-    <a
-      routerLink="/puentes/mapa"
-      routerLinkActive="underline"
-      ariaCurrentWhenActive="page"
-      class="hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-      >{{ t.mapa }}</a
-    >
-    <a
-      routerLink="/offline/local"
-      routerLinkActive="underline"
-      ariaCurrentWhenActive="page"
-      class="hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-      >{{ t.local }}</a
-    >
+<div class="hvc-shell">
+  <input
+    #menuLateral
+    id="hvc-menu"
+    class="hvc-menu-check"
+    type="checkbox"
+    tabindex="-1"
+    aria-hidden="true"
+  />
+  <header class="hvc-navbar">
+    <nav class="flex min-h-16 flex-wrap items-center gap-3 px-4 py-3" [attr.aria-label]="t.app">
+      <label class="hvc-menu-btn" for="hvc-menu">
+        <span class="sr-only">{{ t.principal }}</span>
+        <span class="hvc-menu-icon" aria-hidden="true"></span>
+      </label>
+      <a routerLink="/" class="hvc-brand">
+        <img src="bridge.png" alt="" class="brand-logo brand-logo--nav" />
+        {{ t.app }}
+      </a>
+      <div class="ml-auto flex min-w-0 flex-wrap items-center justify-end gap-3 text-sm">
+        @if (auth.listo()) {
+          @if (auth.autenticado()) {
+            <p class="m-0">
+              <span class="hvc-nav-user">{{ auth.usuario()?.nombre }}</span>
+              @if (auth.rol(); as rol) {
+                <span class="hvc-nav-role"> · {{ roles[rol] }}</span>
+              }
+            </p>
+            @if (auth.rol() !== 'ADMINISTRADOR') {
+              <a
+                routerLink="/inspecciones"
+                routerLinkActive="hvc-nav-link--active"
+                ariaCurrentWhenActive="page"
+                class="hvc-nav-link"
+                >{{ textosInspecciones.nav }}</a
+              >
+            }
+            @if (auth.rol() === 'CATEDRATICO') {
+              <a
+                routerLink="/revisiones"
+                routerLinkActive="hvc-nav-link--active"
+                ariaCurrentWhenActive="page"
+                class="hvc-nav-link"
+                >{{ textosRevision.titulo }}</a
+              >
+              <a
+                routerLink="/cursos"
+                routerLinkActive="hvc-nav-link--active"
+                ariaCurrentWhenActive="page"
+                class="hvc-nav-link"
+                >{{ textosCursos.misCursos }}</a
+              >
+            }
+            @if (auth.rol() === 'ESTUDIANTE') {
+              <a
+                routerLink="/mis-revisiones"
+                routerLinkActive="hvc-nav-link--active"
+                ariaCurrentWhenActive="page"
+                class="hvc-nav-link"
+                >{{ textosRevision.misPendientes }}</a
+              >
+              <a
+                routerLink="/mis-asignaciones"
+                routerLinkActive="hvc-nav-link--active"
+                ariaCurrentWhenActive="page"
+                class="hvc-nav-link"
+                >{{ textosCursos.misAsignaciones }}</a
+              >
+            }
+            <a
+              routerLink="/perfil"
+              routerLinkActive="hvc-nav-link--active"
+              ariaCurrentWhenActive="page"
+              class="hvc-nav-link"
+              >{{ n.perfil }}</a
+            >
+            @if (auth.rol() === 'ADMINISTRADOR') {
+              <a
+                routerLink="/admin/pesos"
+                routerLinkActive="hvc-nav-link--active"
+                ariaCurrentWhenActive="page"
+                class="hvc-nav-link"
+                >{{ tPesos }}</a
+              >
+              <a
+                routerLink="/admin/usuarios"
+                routerLinkActive="hvc-nav-link--active"
+                ariaCurrentWhenActive="page"
+                class="hvc-nav-link"
+                >{{ n.usuarios }}</a
+              >
+              <a
+                routerLink="/admin/invitaciones"
+                routerLinkActive="hvc-nav-link--active"
+                ariaCurrentWhenActive="page"
+                class="hvc-nav-link"
+                >{{ n.invitaciones }}</a
+              >
+              <a
+                routerLink="/admin/auditoria"
+                routerLinkActive="hvc-nav-link--active"
+                ariaCurrentWhenActive="page"
+                class="hvc-nav-link"
+                >{{ n.auditoria }}</a
+              >
+              <a
+                routerLink="/admin/formularios"
+                routerLinkActive="hvc-nav-link--active"
+                ariaCurrentWhenActive="page"
+                class="hvc-nav-link"
+                >{{ n.formularios }}</a
+              >
+            }
+            <button type="button" class="btn-hvc-ghost" (click)="salir()">
+              {{ n.cerrarSesion }}
+            </button>
+          } @else {
+            <a
+              routerLink="/login"
+              routerLinkActive="hvc-nav-link--active"
+              ariaCurrentWhenActive="page"
+              class="hvc-nav-link"
+              >{{ n.entrar }}</a
+            >
+            <a
+              routerLink="/registro"
+              routerLinkActive="hvc-nav-link--active"
+              ariaCurrentWhenActive="page"
+              class="hvc-nav-link"
+              >{{ n.registrarse }}</a
+            >
+          }
+        }
+        @if (auth.listo() && auth.autenticado()) {
+          <app-campana-notificaciones />
+        }
+      </div>
+    </nav>
+  </header>
+  <label class="hvc-sidebar-overlay" for="hvc-menu" aria-hidden="true"></label>
+  <aside class="hvc-sidebar">
+    <nav class="hvc-sidebar__nav" [attr.aria-label]="t.principal">
+      <a
+        routerLink="/puentes"
+        routerLinkActive="hvc-side-link--active"
+        [routerLinkActiveOptions]="{ exact: true }"
+        ariaCurrentWhenActive="page"
+        class="hvc-side-link"
+        (click)="menuLateral.checked = false"
+        >{{ t.inventario }}</a
+      >
+      <a
+        routerLink="/puentes/mapa"
+        routerLinkActive="hvc-side-link--active"
+        ariaCurrentWhenActive="page"
+        class="hvc-side-link"
+        (click)="menuLateral.checked = false"
+        >{{ t.mapa }}</a
+      >
+      <a
+        routerLink="/offline/local"
+        routerLinkActive="hvc-side-link--active"
+        ariaCurrentWhenActive="page"
+        class="hvc-side-link"
+        (click)="menuLateral.checked = false"
+        >{{ t.local }}</a
+      >
+      <a
+        routerLink="/foro"
+        routerLinkActive="hvc-side-link--active"
+        ariaCurrentWhenActive="page"
+        class="hvc-side-link"
+        (click)="menuLateral.checked = false"
+        >{{ t.foro }}</a
+      >
+    </nav>
+  </aside>
+  <main id="contenido" class="hvc-canvas" tabindex="-1">
+    <router-outlet />
+  </main>
+  <footer class="hvc-footer" data-no-imprimir>
     <app-indicador-offline [operaciones]="estadoLocal.operaciones()" />
     @if (estadoLocal.error()) {
       <p role="alert" class="m-0">{{ estadoLocal.error() }}</p>
     }
-    <a
-      routerLink="/foro"
-      routerLinkActive="underline"
-      ariaCurrentWhenActive="page"
-      class="hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-      >{{ t.foro }}</a
-    >
-    <div class="ml-auto flex min-w-0 flex-wrap items-center justify-end gap-3 text-sm">
-      @if (auth.listo()) {
-        @if (auth.autenticado()) {
-          <p class="m-0">
-            <span class="font-medium">{{ auth.usuario()?.nombre }}</span>
-            @if (auth.rol(); as rol) {
-              <span class="text-slate-300"> · {{ roles[rol] }}</span>
-            }
-          </p>
-          @if (auth.rol() !== 'ADMINISTRADOR') {
-            <a
-              routerLink="/inspecciones"
-              routerLinkActive="underline"
-              ariaCurrentWhenActive="page"
-              class="hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-              >{{ textosInspecciones.nav }}</a
-            >
-          }
-          @if (auth.rol() === 'CATEDRATICO') {
-            <a
-              routerLink="/revisiones"
-              routerLinkActive="underline"
-              ariaCurrentWhenActive="page"
-              class="hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-              >{{ textosRevision.titulo }}</a
-            >
-            <a routerLink="/cursos" routerLinkActive="underline" ariaCurrentWhenActive="page">{{
-              textosCursos.misCursos
-            }}</a>
-          }
-          @if (auth.rol() === 'ESTUDIANTE') {
-            <a
-              routerLink="/mis-revisiones"
-              routerLinkActive="underline"
-              ariaCurrentWhenActive="page"
-              class="hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-              >{{ textosRevision.misPendientes }}</a
-            >
-            <a
-              routerLink="/mis-asignaciones"
-              routerLinkActive="underline"
-              ariaCurrentWhenActive="page"
-              >{{ textosCursos.misAsignaciones }}</a
-            >
-          }
-          <a
-            routerLink="/perfil"
-            routerLinkActive="underline"
-            ariaCurrentWhenActive="page"
-            class="hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-            >{{ n.perfil }}</a
-          >
-          @if (auth.rol() === 'ADMINISTRADOR') {
-            <a
-              routerLink="/admin/pesos"
-              routerLinkActive="underline"
-              ariaCurrentWhenActive="page"
-              class="hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-              >{{ tPesos }}</a
-            >
-            <a
-              routerLink="/admin/usuarios"
-              routerLinkActive="underline"
-              ariaCurrentWhenActive="page"
-              class="hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-              >{{ n.usuarios }}</a
-            >
-            <a
-              routerLink="/admin/invitaciones"
-              routerLinkActive="underline"
-              ariaCurrentWhenActive="page"
-              class="hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-              >{{ n.invitaciones }}</a
-            >
-            <a
-              routerLink="/admin/auditoria"
-              routerLinkActive="underline"
-              ariaCurrentWhenActive="page"
-              class="hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-              >{{ n.auditoria }}</a
-            >
-            <a
-              routerLink="/admin/formularios"
-              routerLinkActive="underline"
-              ariaCurrentWhenActive="page"
-              class="hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-              >{{ n.formularios }}</a
-            >
-          }
-          <button
-            type="button"
-            class="cursor-pointer bg-transparent p-0 text-inherit hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-            (click)="salir()"
-          >
-            {{ n.cerrarSesion }}
-          </button>
-        } @else {
-          <a
-            routerLink="/login"
-            routerLinkActive="underline"
-            ariaCurrentWhenActive="page"
-            class="hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-            >{{ n.entrar }}</a
-          >
-          <a
-            routerLink="/registro"
-            routerLinkActive="underline"
-            ariaCurrentWhenActive="page"
-            class="hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-            >{{ n.registrarse }}</a
-          >
-        }
-      }
-      @if (auth.listo() && auth.autenticado()) {
-        <app-campana-notificaciones />
-      }
-    </div>
-  </nav>
-</header>
-<main id="contenido" tabindex="-1">
-  <router-outlet />
-</main>
+  </footer>
+</div>
