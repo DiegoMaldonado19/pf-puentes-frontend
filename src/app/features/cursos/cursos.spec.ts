@@ -335,7 +335,10 @@ describe('Formulario y flujos de cursos', () => {
       curso_nombre: 'Curso legible',
     };
     TestBed.configureTestingModule({
-      providers: [{ provide: CursosApi, useValue: { propias: () => of(pagina([datos])) } }],
+      providers: [
+        provideRouter([]),
+        { provide: CursosApi, useValue: { propias: () => of(pagina([datos])) } },
+      ],
     });
     const fixture = TestBed.createComponent(MisAsignaciones);
     await fixture.whenStable();
@@ -343,6 +346,9 @@ describe('Formulario y flujos de cursos', () => {
     const texto = (fixture.nativeElement as HTMLElement).textContent;
     expect(texto).toContain('Puente legible');
     expect(texto).toContain('Curso legible');
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector('a.accion-enlace')?.getAttribute('href'),
+    ).toBe('/inspecciones/nueva/puente');
     expect(fixture.componentInstance.pagina()!.content[0].puente_id).toBe('puente');
   });
 

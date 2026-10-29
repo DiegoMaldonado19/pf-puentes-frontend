@@ -29,9 +29,13 @@
     }
     @case ('PUBLICADA') {
       @if (contexto(); as contexto) {
-        <p class="mb-3 text-sm text-slate-700">
-          {{ textos.contexto }}: {{ contexto.inspeccionId }} · {{ textos.puente }}:
-          {{ contexto.puenteId }}
+        <p class="mb-3 flex gap-4 text-sm">
+          <a class="text-blue-800 underline" [routerLink]="['/inspecciones', contexto.inspeccionId]"
+            >Ver inspección</a
+          >
+          <a class="text-blue-800 underline" [routerLink]="['/puentes', contexto.puenteId]"
+            >Ver puente</a
+          >
         </p>
       }
       <section class="mt-4" [attr.aria-label]="textos.titulo">
@@ -51,16 +55,24 @@
                     [readOnly]="publicando()"
                     class="w-full rounded border p-2"
                   ></textarea>
-                  <button
-                    type="button"
-                    [disabled]="publicando() || !borrador().trim()"
-                    (click)="guardarEdicion(comentario)"
-                  >
-                    Guardar cambios
-                  </button>
-                  <button type="button" [disabled]="publicando()" (click)="editando.set(null)">
-                    Cancelar
-                  </button>
+                  <div class="mt-2 flex gap-2">
+                    <button
+                      type="button"
+                      class="rounded bg-blue-700 px-4 py-2 font-medium text-white hover:bg-blue-800 disabled:opacity-50"
+                      [disabled]="publicando() || !borrador().trim()"
+                      (click)="guardarEdicion(comentario)"
+                    >
+                      Guardar cambios
+                    </button>
+                    <button
+                      type="button"
+                      class="rounded border border-slate-400 px-4 py-2 font-medium hover:bg-slate-100 disabled:opacity-50"
+                      [disabled]="publicando()"
+                      (click)="editando.set(null)"
+                    >
+                      Cancelar
+                    </button>
+                  </div>
                 }
                 <p class="text-sm wrap-break-word">
                   {{
@@ -79,18 +91,29 @@
                 }
                 <div class="mt-2 flex gap-3">
                   @if (puedeEditar(comentario)) {
-                    <button type="button" [disabled]="publicando()" (click)="editar(comentario)">
+                    <button
+                      type="button"
+                      class="rounded px-2 py-1 hover:bg-slate-100 disabled:opacity-50"
+                      [disabled]="publicando()"
+                      (click)="editar(comentario)"
+                    >
                       Editar
                     </button>
                   }
                   @if (esPropio(comentario)) {
-                    <button type="button" [disabled]="publicando()" (click)="borrar(comentario)">
+                    <button
+                      type="button"
+                      class="rounded px-2 py-1 text-red-700 hover:bg-red-50 disabled:opacity-50"
+                      [disabled]="publicando()"
+                      (click)="borrar(comentario)"
+                    >
                       Eliminar
                     </button>
                   }
                   @if (puedeModerar() && !comentario.eliminado) {
                     <button
                       type="button"
+                      class="rounded px-2 py-1 hover:bg-slate-100 disabled:opacity-50"
                       [disabled]="publicando()"
                       (click)="abrirModeracion(comentario.id)"
                     >
@@ -146,7 +169,12 @@
           <p class="mt-4">Inicia sesión para comentar.</p>
         }
         @if (puedeModerar() && !contexto()?.cerrado) {
-          <button type="button" [disabled]="publicando()" (click)="abrirModeracion()">
+          <button
+            type="button"
+            class="mt-4 rounded border border-red-700 px-4 py-2 font-medium text-red-800 hover:bg-red-50 disabled:opacity-50"
+            [disabled]="publicando()"
+            (click)="abrirModeracion()"
+          >
             Cerrar hilo
           </button>
         }

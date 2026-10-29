@@ -14,7 +14,7 @@ env:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       # PR hacia develop → dev · push a develop → stage · push a main → prod · otro caso → sin deploy
       entorno: ${{ github.event_name == 'push' && (github.ref_name == 'main' && 'prod' || 'stage') || github.base_ref == 'develop' && 'dev' || '' }}
@@ -34,7 +34,7 @@ jobs:
 
   test:
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7.0.1
       - uses: actions/setup-node@v7.0.0
@@ -56,7 +56,7 @@ jobs:
   push:
     needs: [build, test]
     if: needs.build.outputs.entorno != ''
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       version: ${{ steps.imagen.outputs.version }}
     env:
@@ -97,7 +97,7 @@ jobs:
 
   deploy:
     needs: [build, push]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     environment: ${{ needs.build.outputs.entorno }}
     concurrency: deploy-${{ needs.build.outputs.entorno }}
     env:

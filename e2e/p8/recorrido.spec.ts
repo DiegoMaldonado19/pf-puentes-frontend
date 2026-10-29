@@ -43,7 +43,7 @@ test('Administrador: campos reales del formulario sin pesos configurados', async
   await entrar(page, 'admin');
   await page.goto('/admin/pesos');
   await page
-    .getByRole('button', { name: 'Consultar campos de daño del formulario', exact: true })
+    .getByRole('button', { name: 'Campos de daño y nuevo juego de pesos', exact: true })
     .click();
   await page
     .getByLabel('Versión del formulario', { exact: true })
@@ -60,7 +60,7 @@ test('Administrador: crea dos juegos completos reales y conserva el primero', as
   await entrar(page, 'admin');
   await page.goto('/admin/pesos');
   await page
-    .getByRole('button', { name: 'Consultar campos de daño del formulario', exact: true })
+    .getByRole('button', { name: 'Campos de daño y nuevo juego de pesos', exact: true })
     .click();
   const formulario = '0192b000-0000-7000-8000-000000000001';
   await page.getByLabel('Versión del formulario', { exact: true }).selectOption(formulario);

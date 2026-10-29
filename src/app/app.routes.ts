@@ -116,4 +116,5 @@ export const routes: Routes = [
     path: '',
     loadChildren: () => import('./features/auth/auth.routes').then((m) => m.RUTAS_AUTH),
   },
+  { path: '**', redirectTo: 'puentes' },
 ];
