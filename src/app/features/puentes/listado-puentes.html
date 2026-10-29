@@ -1,51 +1,37 @@
 <section aria-labelledby="titulo-listado" class="mx-auto max-w-6xl p-4">
   <header class="flex flex-wrap items-start justify-between gap-3">
     <div>
-      <h1 id="titulo-listado" class="text-2xl font-bold">{{ t.listado.titulo }}</h1>
-      <p class="text-slate-700">{{ t.listado.descripcion }}</p>
+      <h1 id="titulo-listado" class="text-h1">{{ t.listado.titulo }}</h1>
+      <p class="text-muted">{{ t.listado.descripcion }}</p>
     </div>
     <nav class="flex flex-wrap gap-2" [attr.aria-label]="t.listado.titulo">
-      <a
-        routerLink="/puentes/mapa"
-        class="rounded border border-blue-700 px-3 py-2 font-medium text-blue-800 hover:bg-blue-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700"
-        >{{ t.listado.verMapa }}</a
-      >
+      <a routerLink="/puentes/mapa" class="btn-hvc-secondary">{{ t.listado.verMapa }}</a>
       @if (rol() === 'ADMINISTRADOR') {
-        <a
-          routerLink="/puentes/nuevo"
-          class="rounded bg-blue-700 px-3 py-2 font-medium text-white hover:bg-blue-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-900"
-          >{{ t.listado.registrar }}</a
-        >
+        <a routerLink="/puentes/nuevo" class="btn-hvc-primary">{{ t.listado.registrar }}</a>
       }
       @if (rol() === 'CATEDRATICO') {
-        <a
-          routerLink="/puentes/solicitudes/nueva"
-          class="rounded bg-blue-700 px-3 py-2 font-medium text-white hover:bg-blue-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-900"
-          >{{ t.listado.solicitar }}</a
-        >
+        <a routerLink="/puentes/solicitudes/nueva" class="btn-hvc-primary">{{
+          t.listado.solicitar
+        }}</a>
       }
       @if (rol() === 'ADMINISTRADOR' || rol() === 'CATEDRATICO') {
-        <a
-          routerLink="/puentes/solicitudes"
-          class="rounded border border-blue-700 px-3 py-2 font-medium text-blue-800 hover:bg-blue-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700"
-          >{{ t.listado.solicitudes }}</a
-        >
+        <a routerLink="/puentes/solicitudes" class="btn-hvc-secondary">{{
+          t.listado.solicitudes
+        }}</a>
       }
     </nav>
   </header>
 
   <form
-    class="mt-4 grid gap-3 rounded border border-slate-300 p-3 sm:grid-cols-2 lg:grid-cols-5"
+    class="hvc-card mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-5"
     [attr.aria-label]="t.filtros.titulo"
     (submit)="$event.preventDefault()"
   >
     <div class="flex flex-col">
-      <label for="filtro-departamento" class="text-sm font-medium">{{
-        t.filtros.departamento
-      }}</label>
+      <label for="filtro-departamento" class="hvc-label">{{ t.filtros.departamento }}</label>
       <select
         id="filtro-departamento"
-        class="rounded border border-slate-400 p-2"
+        class="hvc-input"
         [value]="departamento()"
         (change)="departamento.set(leer($event))"
       >
@@ -56,10 +42,10 @@
       </select>
     </div>
     <div class="flex flex-col">
-      <label for="filtro-municipio" class="text-sm font-medium">{{ t.filtros.municipio }}</label>
+      <label for="filtro-municipio" class="hvc-label">{{ t.filtros.municipio }}</label>
       <select
         id="filtro-municipio"
-        class="rounded border border-slate-400 p-2 disabled:bg-slate-100"
+        class="hvc-input"
         [disabled]="!departamento()"
         [value]="municipio()"
         (change)="municipio.set(leer($event))"
@@ -73,10 +59,10 @@
       </select>
     </div>
     <div class="flex flex-col">
-      <label for="filtro-estado" class="text-sm font-medium">{{ t.filtros.estado }}</label>
+      <label for="filtro-estado" class="hvc-label">{{ t.filtros.estado }}</label>
       <select
         id="filtro-estado"
-        class="rounded border border-slate-400 p-2"
+        class="hvc-input"
         [value]="estado()"
         (change)="estado.set($any(leer($event)))"
       >
@@ -87,22 +73,18 @@
       </select>
     </div>
     <div class="flex flex-col">
-      <label for="filtro-texto" class="text-sm font-medium">{{ t.filtros.texto }}</label>
+      <label for="filtro-texto" class="hvc-label">{{ t.filtros.texto }}</label>
       <input
         id="filtro-texto"
         type="search"
         maxlength="120"
-        class="rounded border border-slate-400 p-2"
+        class="hvc-input"
         [value]="texto()"
         (input)="texto.set(leer($event))"
       />
     </div>
     <div class="flex items-end">
-      <button
-        type="button"
-        class="w-full rounded border border-slate-400 px-3 py-2 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700"
-        (click)="limpiar()"
-      >
+      <button type="button" class="btn-hvc-secondary w-full" (click)="limpiar()">
         {{ t.filtros.limpiar }}
       </button>
     </div>
@@ -112,29 +94,29 @@
     @if (resultado.isLoading() && !resultado.hasValue()) {
       <p role="status">{{ t.listado.cargando }}</p>
     } @else if (error()) {
-      <div role="alert" class="rounded border border-red-700 bg-red-50 p-3 text-red-900">
+      <div role="alert" class="hvc-alert">
         <p>{{ error() }}</p>
-        <button type="button" class="mt-2 underline" (click)="resultado.reload()">
+        <button type="button" class="hvc-link mt-2" (click)="resultado.reload()">
           {{ t.errores.reintentar }}
         </button>
       </div>
     } @else if (resultado.value(); as datos) {
       @if (datos.contenido.length === 0) {
-        <p role="status" class="rounded bg-slate-100 p-4 text-slate-800 font-medium">
+        <p role="status" class="hvc-empty">
           {{ hayFiltros() ? t.listado.sinCoincidencias : t.listado.vacio }}
         </p>
       } @else {
-        <p class="mb-2 text-sm text-slate-700" aria-live="polite">
+        <p class="text-muted mb-2" aria-live="polite">
           {{ datos.total_elementos }} {{ t.listado.total }}
         </p>
         <!-- Escritorio: tabla -->
-        <table class="hidden w-full border-collapse text-left md:table">
+        <table class="gc-table hidden w-full border-collapse text-left md:table">
           <caption class="sr-only">
             {{
               t.listado.tabla
             }}
           </caption>
-          <thead class="border-b-2 border-slate-400">
+          <thead>
             <tr>
               <th scope="col" class="p-2">{{ t.campos.codigo }}</th>
               <th scope="col" class="p-2">{{ t.campos.nombre }}</th>
@@ -149,11 +131,7 @@
               <tr class="border-b border-slate-200">
                 <td class="p-2 font-mono text-sm">{{ puente.codigo }}</td>
                 <td class="p-2">
-                  <a
-                    [routerLink]="['/puentes', puente.id]"
-                    class="font-medium text-blue-800 underline"
-                    >{{ puente.nombre }}</a
-                  >
+                  <a [routerLink]="['/puentes', puente.id]" class="hvc-link">{{ puente.nombre }}</a>
                 </td>
                 <td class="p-2">{{ puente.departamento.nombre }}</td>
                 <td class="p-2">{{ puente.municipio.nombre }}</td>
@@ -166,17 +144,13 @@
         <!-- Celular: tarjetas -->
         <ul class="grid gap-3 md:hidden" [attr.aria-label]="t.listado.tabla">
           @for (puente of datos.contenido; track puente.id) {
-            <li class="rounded border border-slate-300 p-3">
+            <li class="hvc-card">
               <div class="flex items-start justify-between gap-2">
-                <a
-                  [routerLink]="['/puentes', puente.id]"
-                  class="font-medium text-blue-800 underline"
-                  >{{ puente.nombre }}</a
-                >
+                <a [routerLink]="['/puentes', puente.id]" class="hvc-link">{{ puente.nombre }}</a>
                 <app-estado-puente [estado]="puente.estado_actual" />
               </div>
               <p class="font-mono text-sm">{{ puente.codigo }}</p>
-              <p class="text-sm text-slate-700">
+              <p class="text-muted">
                 {{ puente.municipio.nombre }}, {{ puente.departamento.nombre }} ·
                 {{ puente.ruta }}
               </p>

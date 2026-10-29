@@ -24,7 +24,7 @@ import { ModalPublicar } from './modal-publicar';
               ← Volver a versiones
             </a>
           </div>
-          <h1 class="text-2xl font-bold text-gray-900 dark:text-white mt-1">
+          <h1 class="text-h1 dark:text-white mt-1">
             {{
               esNuevo
                 ? textos.nuevaVersion
@@ -41,7 +41,7 @@ import { ModalPublicar } from './modal-publicar';
               type="button"
               (click)="guardar()"
               [disabled]="guardando || !!errorSintaxis"
-              class="px-5 py-2.5 bg-blue-600 text-white font-semibold text-sm rounded-xl hover:bg-blue-700 shadow-sm disabled:opacity-50 transition-colors"
+              class="btn-hvc-primary"
             >
               {{ guardando ? 'Guardando…' : textos.guardarBorrador }}
             </button>
@@ -202,7 +202,7 @@ import { ModalPublicar } from './modal-publicar';
         <!-- Vista previa renderizada por el motor dinámico -->
         <div class="space-y-4">
           <div
-            class="p-3.5 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 rounded-xl text-xs text-blue-900 dark:text-blue-200 flex items-center gap-2 shadow-xs"
+            class="hvc-note bg-blue-50 dark:bg-blue-950/40 dark:border-blue-800 dark:text-blue-200 flex items-center gap-2"
           >
             <svg
               class="w-4 h-4 text-blue-600 dark:text-blue-400 flex-shrink-0"

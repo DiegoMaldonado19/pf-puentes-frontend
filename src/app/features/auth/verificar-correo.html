@@ -1,45 +1,48 @@
-<section class="mx-auto max-w-md p-4" aria-labelledby="titulo-verificar">
-  <h1 id="titulo-verificar" class="text-2xl font-bold">{{ t.titulo }}</h1>
+<section class="hvc-auth" aria-labelledby="titulo-verificar">
+  <div class="hvc-auth__card">
+    <img src="bridge.png" alt="" class="brand-logo brand-logo--login hvc-auth__marca" />
+    <h1 id="titulo-verificar" class="text-h1">{{ t.titulo }}</h1>
 
-  @if (enviando()) {
-    <p role="status" class="mt-3">{{ t.enviando }}</p>
-  }
+    @if (enviando()) {
+      <p role="status" class="mt-3">{{ t.enviando }}</p>
+    }
 
-  @if (hecho()) {
-    <div role="status" [class]="claseHecho">
-      <p>{{ t.hecho }}</p>
-      <a routerLink="/login" [class]="claseEnlace">{{ t.irALogin }}</a>
-    </div>
-  }
-
-  @if (error()) {
-    <p role="alert" [class]="claseAlerta">{{ error() }}</p>
-  }
-
-  @if (!hecho()) {
-    <form class="mt-4 grid gap-4" [formGroup]="form" (ngSubmit)="reenviar()" novalidate>
-      <div class="flex flex-col">
-        <label for="correo" class="font-medium">{{ campos.correo }}</label>
-        <input
-          id="correo"
-          type="email"
-          formControlName="correo"
-          autocomplete="email"
-          maxlength="254"
-          [class]="claseCampo"
-          [attr.aria-invalid]="campoInvalido()"
-          [attr.aria-describedby]="campoInvalido() ? 'error-correo' : null"
-        />
-        @if (campoInvalido()) {
-          <p id="error-correo" class="text-sm text-red-800">{{ mensaje() }}</p>
-        }
+    @if (hecho()) {
+      <div role="status" [class]="claseHecho">
+        <p>{{ t.hecho }}</p>
+        <a routerLink="/login" [class]="claseEnlace">{{ t.irALogin }}</a>
       </div>
-      <button type="submit" [class]="claseBoton" [disabled]="reenviando()">
-        {{ t.reenviar }}
-      </button>
-      @if (reenviado()) {
-        <p role="status">{{ t.reenviado }}</p>
-      }
-    </form>
-  }
+    }
+
+    @if (error()) {
+      <p role="alert" [class]="claseAlerta">{{ error() }}</p>
+    }
+
+    @if (!hecho()) {
+      <form class="mt-4 grid gap-4" [formGroup]="form" (ngSubmit)="reenviar()" novalidate>
+        <div class="flex flex-col">
+          <label for="correo" class="hvc-label">{{ campos.correo }}</label>
+          <input
+            id="correo"
+            type="email"
+            formControlName="correo"
+            autocomplete="email"
+            maxlength="254"
+            [class]="claseCampo"
+            [attr.aria-invalid]="campoInvalido()"
+            [attr.aria-describedby]="campoInvalido() ? 'error-correo' : null"
+          />
+          @if (campoInvalido()) {
+            <p id="error-correo" class="hvc-error">{{ mensaje() }}</p>
+          }
+        </div>
+        <button type="submit" [class]="claseBoton" [disabled]="reenviando()">
+          {{ t.reenviar }}
+        </button>
+        @if (reenviado()) {
+          <p role="status">{{ t.reenviado }}</p>
+        }
+      </form>
+    }
+  </div>
 </section>

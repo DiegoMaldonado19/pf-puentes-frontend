@@ -2,7 +2,7 @@
   <button
     #botonCampana
     type="button"
-    class="relative inline-flex min-h-11 items-center gap-2 rounded border border-slate-500 bg-slate-800 px-3 py-2 text-white hover:bg-slate-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+    class="hvc-nav-bell relative inline-flex min-h-11 items-center gap-2 rounded border px-3 py-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
     [attr.aria-expanded]="abierto()"
     aria-controls="panel-notificaciones"
     [attr.aria-label]="textos.campana"
@@ -42,38 +42,34 @@
       role="region"
       [attr.aria-label]="textos.titulo"
       (keydown.escape)="cerrar()"
-      class="absolute right-0 z-50 mt-3 max-h-[min(32rem,75vh)] w-[min(24rem,calc(100vw-2rem))] overflow-y-auto rounded border border-slate-300 bg-white p-4 text-slate-900 shadow-xl focus-visible:outline-2 focus-visible:outline-blue-700"
+      class="hvc-card absolute right-0 z-50 mt-3 max-h-[min(32rem,75vh)] w-[min(24rem,calc(100vw-2rem))] overflow-y-auto shadow-xl"
     >
       <div class="mb-3 flex items-center justify-between gap-3 border-b border-slate-200 pb-3">
         <h2 class="text-lg font-bold">{{ textos.titulo }}</h2>
-        <button
-          type="button"
-          class="rounded border border-slate-400 px-2 py-1 text-sm hover:bg-slate-100"
-          (click)="cerrar()"
-        >
+        <button type="button" class="btn-hvc-secondary btn-hvc-compact" (click)="cerrar()">
           {{ textos.cerrar }}
         </button>
       </div>
 
       @if (!servicio.sesionActiva()) {
         @if (servicio.error(); as errorSesion) {
-          <div role="alert" class="text-sm">
+          <div role="alert" class="hvc-alert">
             <p class="text-red-700">{{ errorSesion }}</p>
           </div>
         } @else {
-          <p class="text-sm text-slate-600">{{ textos.sinSesion }}</p>
+          <p class="text-muted">{{ textos.sinSesion }}</p>
         }
       } @else if (servicio.cargando()) {
-        <p role="status" class="text-sm text-slate-600">{{ textos.cargando }}</p>
+        <p role="status" class="text-muted">{{ textos.cargando }}</p>
       } @else if (servicio.error(); as mensajeError) {
-        <div role="alert" class="text-sm">
+        <div role="alert" class="hvc-alert">
           <p class="text-red-700">{{ mensajeError }}</p>
           <button type="button" class="mt-1 underline" (click)="reintentar()">
             {{ textos.reintentar }}
           </button>
         </div>
       } @else if (servicio.notificaciones().length === 0) {
-        <p class="text-sm text-slate-600">{{ textos.vacio }}</p>
+        <p class="text-muted">{{ textos.vacio }}</p>
       } @else {
         <ul class="divide-y divide-slate-100">
           @for (n of servicio.notificaciones(); track n.id) {
@@ -96,14 +92,14 @@
               </div>
               <div class="mt-1 flex gap-3 ps-4">
                 @if (esInterno(n.enlace)) {
-                  <button type="button" class="text-sm text-blue-800 underline" (click)="ver(n)">
+                  <button type="button" class="hvc-link" (click)="ver(n)">
                     {{ textos.ver }}
                   </button>
                 }
                 @if (!n.leida_en) {
                   <button
                     type="button"
-                    class="text-sm text-slate-700 underline disabled:opacity-50"
+                    class="text-muted"
                     [disabled]="servicio.marcando().has(n.id)"
                     (click)="marcar(n)"
                   >

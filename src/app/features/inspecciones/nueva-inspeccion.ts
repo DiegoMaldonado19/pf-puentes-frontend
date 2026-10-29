@@ -20,55 +20,53 @@ type EstadoUbicacion = 'pendiente' | 'obteniendo' | 'obtenida' | 'no-disponible'
   imports: [ReactiveFormsModule, RouterLink],
   template: `
     <section class="mx-auto max-w-2xl p-4" aria-labelledby="titulo-nueva">
-      <a routerLink="/inspecciones/puentes" class="text-blue-800 underline">← {{ comun.volver }}</a>
-      <h1 id="titulo-nueva" class="mt-3 text-2xl font-bold">
+      <a routerLink="/inspecciones/puentes" class="hvc-link">← {{ comun.volver }}</a>
+      <h1 id="titulo-nueva" class="text-h1 mt-3">
         {{ esCorreccion() ? t.tituloCorreccion : t.titulo }}
       </h1>
 
       @if (puente.isLoading()) {
         <p role="status" class="mt-4">{{ comun.cargando }}</p>
       } @else if (puente.error()) {
-        <p role="alert" class="mt-4 rounded border border-red-700 bg-red-50 p-3 text-red-900">
-          {{ t.puenteNoDisponible }} {{ errorPuente() }}
-        </p>
+        <p role="alert" class="hvc-alert mt-4">{{ t.puenteNoDisponible }} {{ errorPuente() }}</p>
       } @else if (puente.value(); as p) {
         <p class="mt-2">
-          <span class="font-mono text-sm text-slate-700">{{ p.codigo }}</span>
+          <span class="text-muted font-mono">{{ p.codigo }}</span>
           <span class="ml-2 text-lg font-semibold">{{ p.nombre }}</span>
         </p>
-        <p class="my-3 text-slate-700">{{ t.descripcion }}</p>
+        <p class="text-muted my-3">{{ t.descripcion }}</p>
         @if (esCorreccion()) {
-          <p class="mb-3 rounded border border-blue-700 bg-blue-50 p-3 text-blue-900">
+          <p class="hvc-note mb-3 bg-blue-50">
             {{ t.corrige.replace('{id}', corrige() ?? '') }}
           </p>
         }
 
         <form [formGroup]="formulario" class="grid gap-5" (ngSubmit)="iniciar()">
           <div class="grid gap-1">
-            <label class="font-medium" for="fecha">{{ t.fecha }}</label>
+            <label class="hvc-label" for="fecha">{{ t.fecha }}</label>
             <input
               id="fecha"
               type="date"
-              class="min-h-11 rounded border border-slate-400 px-2"
+              class="hvc-input"
               formControlName="fecha"
               [min]="minimo()"
               [max]="hoy"
               aria-describedby="ayuda-fecha"
             />
-            <p id="ayuda-fecha" class="text-sm text-slate-600">{{ t.fechaAyuda }}</p>
+            <p id="ayuda-fecha" class="text-muted">{{ t.fechaAyuda }}</p>
             @if (errorFecha(); as mensaje) {
-              <p role="alert" class="text-sm text-red-800">{{ mensaje }}</p>
+              <p role="alert" class="hvc-error">{{ mensaje }}</p>
             }
           </div>
 
-          <div class="grid gap-2 rounded border border-slate-300 p-3" aria-live="polite">
-            <p class="font-medium">{{ t.ubicacion }}</p>
-            <p class="text-sm" [class.text-red-800]="ubicacion() === 'no-disponible'">
+          <div class="hvc-card grid gap-2" aria-live="polite">
+            <p class="hvc-label">{{ t.ubicacion }}</p>
+            <p [class.text-red-800]="ubicacion() === 'no-disponible'">
               {{ textoUbicacion() }}
             </p>
             <button
               type="button"
-              class="min-h-11 w-fit rounded border border-blue-700 px-4 text-blue-800 disabled:opacity-50"
+              class="btn-hvc-secondary w-fit"
               [disabled]="ubicacion() === 'obteniendo'"
               (click)="obtenerUbicacion()"
             >
@@ -78,33 +76,29 @@ type EstadoUbicacion = 'pendiente' | 'obteniendo' | 'obtenida' | 'no-disponible'
 
           @if (esCorreccion()) {
             <div class="grid gap-1">
-              <label class="font-medium" for="motivo">{{ t.motivo }}</label>
+              <label class="hvc-label" for="motivo">{{ t.motivo }}</label>
               <textarea
                 id="motivo"
                 rows="3"
-                class="rounded border border-slate-400 p-2"
+                class="hvc-input"
                 formControlName="motivo"
                 [attr.maxlength]="maximoMotivo"
                 aria-describedby="ayuda-motivo"
               ></textarea>
-              <p id="ayuda-motivo" class="text-sm text-slate-600">{{ t.motivoAyuda }}</p>
+              <p id="ayuda-motivo" class="text-muted">{{ t.motivoAyuda }}</p>
               @if (formulario.controls.motivo.touched && formulario.controls.motivo.invalid) {
-                <p role="alert" class="text-sm text-red-800">{{ t.motivoObligatorio }}</p>
+                <p role="alert" class="hvc-error">{{ t.motivoObligatorio }}</p>
               }
             </div>
           }
 
           @if (error()) {
-            <p role="alert" class="rounded border border-red-700 bg-red-50 p-3 text-red-900">
+            <p role="alert" class="hvc-alert">
               {{ error() }}
             </p>
           }
 
-          <button
-            type="submit"
-            class="min-h-11 w-fit rounded bg-blue-700 px-6 font-medium text-white disabled:opacity-50"
-            [disabled]="enviando()"
-          >
+          <button type="submit" class="btn-hvc-primary w-fit" [disabled]="enviando()">
             {{ enviando() ? t.iniciando : t.iniciar }}
           </button>
         </form>

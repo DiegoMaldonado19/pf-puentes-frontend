@@ -14,16 +14,16 @@ export interface FotoParaSubir {
   selector: 'app-panel-archivos',
   imports: [CapturaFoto],
   template: `
-    <section class="rounded border border-slate-300 p-4" aria-labelledby="titulo-archivos">
+    <section class="hvc-card" aria-labelledby="titulo-archivos">
       <h2 id="titulo-archivos" class="text-lg font-semibold">{{ t.titulo }}</h2>
-      <p class="mt-1 text-sm text-slate-700">{{ t.sugerencia }}</p>
+      <p class="text-muted mt-1">{{ t.sugerencia }}</p>
 
       @if (editable()) {
         @if (referencias().length) {
           <label class="mt-3 block text-sm font-medium" for="elemento-foto">{{ t.elemento }}</label>
           <select
             id="elemento-foto"
-            class="mt-1 min-h-11 w-full max-w-md rounded border border-slate-400 px-2"
+            class="hvc-input mt-1 w-full max-w-md"
             (change)="elemento.set($any($event.target).value)"
           >
             <option value="">{{ t.sinElemento }}</option>
@@ -36,17 +36,15 @@ export interface FotoParaSubir {
           @if (puedeFoto()) {
             <app-captura-foto (capturada)="subirFoto($event)" />
           } @else {
-            <p role="status" class="text-sm text-slate-700">
+            <p role="status" class="text-muted">
               {{ t.limiteFotos.replace('{maximo}', maximoFotos) }}
             </p>
           }
           @if (puedeDocumento()) {
             <div>
-              <label
-                class="inline-flex min-h-11 cursor-pointer items-center rounded border border-blue-700 px-4 py-2 font-medium text-blue-800"
-                for="entrada-pdf"
-                >{{ t.agregarPdf }}</label
-              >
+              <label class="btn-hvc-secondary inline-flex items-center" for="entrada-pdf">{{
+                t.agregarPdf
+              }}</label>
               <input
                 id="entrada-pdf"
                 type="file"
@@ -56,19 +54,19 @@ export interface FotoParaSubir {
               />
             </div>
           } @else {
-            <p role="status" class="text-sm text-slate-700">
+            <p role="status" class="text-muted">
               {{ t.limiteDocumentos.replace('{maximo}', maximoDocumentos) }}
             </p>
           }
         </div>
         @if (errorPdf()) {
-          <p role="alert" class="mt-2 text-sm text-red-800">{{ errorPdf() }}</p>
+          <p role="alert" class="hvc-error mt-2">{{ errorPdf() }}</p>
         }
       }
 
       <ul class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3" [attr.aria-label]="t.titulo">
         @for (archivo of archivos(); track archivo.id) {
-          <li class="flex items-start gap-3 rounded border border-slate-300 p-3">
+          <li class="hvc-card flex items-start gap-3">
             @if (archivo.miniaturaUrl || (archivo.tipo === 'FOTO' && archivo.url)) {
               <img
                 [src]="archivo.miniaturaUrl || archivo.url"
@@ -87,18 +85,14 @@ export interface FotoParaSubir {
                 {{ archivo.tipo === 'FOTO' ? t.fotos : t.documentos }} · {{ archivo.nombre }}
               </p>
               @if (archivo.url) {
-                <a
-                  [href]="archivo.url"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="text-sm text-blue-800 underline"
+                <a [href]="archivo.url" target="_blank" rel="noopener noreferrer" class="hvc-link"
                   >Abrir archivo</a
                 >
               } @else if (archivo.estado === 'subida') {
-                <p class="text-sm text-slate-600">Archivo no disponible.</p>
+                <p class="text-muted">Archivo no disponible.</p>
               }
               @if (archivo.elemento_ref) {
-                <p class="break-all text-xs text-slate-600">{{ archivo.elemento_ref }}</p>
+                <p class="text-muted break-all">{{ archivo.elemento_ref }}</p>
               }
               <p
                 class="text-sm"
@@ -111,17 +105,13 @@ export interface FotoParaSubir {
               @if (editable()) {
                 <div class="mt-1 flex gap-3">
                   @if (archivo.estado === 'error') {
-                    <button
-                      type="button"
-                      class="min-h-11 text-blue-800 underline"
-                      (click)="reintentar.emit(archivo.id)"
-                    >
+                    <button type="button" class="hvc-link" (click)="reintentar.emit(archivo.id)">
                       {{ t.reintentar }}
                     </button>
                   }
                   <button
                     type="button"
-                    class="min-h-11 text-red-800 underline disabled:opacity-50"
+                    class="btn-hvc-danger"
                     [disabled]="archivo.estado === 'subiendo'"
                     (click)="quitar.emit(archivo.id)"
                   >
@@ -132,7 +122,7 @@ export interface FotoParaSubir {
             </div>
           </li>
         } @empty {
-          <li class="text-sm text-slate-600 sm:col-span-2 lg:col-span-3">{{ t.sinArchivos }}</li>
+          <li class="text-muted sm:col-span-2 lg:col-span-3">{{ t.sinArchivos }}</li>
         }
       </ul>
     </section>

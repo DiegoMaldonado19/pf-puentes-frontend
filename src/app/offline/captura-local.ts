@@ -32,29 +32,23 @@ import { PersistenciaOffline } from './persistencia';
   template: `
     <div class="mx-auto max-w-6xl p-4">
       <a routerLink="/offline/local" [class]="claseEnlace">← Capturas locales</a>
-      <h1 class="mt-2 text-2xl font-bold">Captura sin conexión</h1>
+      <h1 class="text-h1 mt-2">Captura sin conexión</h1>
       @if (error()) {
         <p role="alert" [class]="claseAlerta">{{ error() }}</p>
       }
       @if (inspeccion(); as i) {
-        <p
-          role="status"
-          class="mt-2 inline-block rounded-full border border-slate-400 px-3 py-1 text-sm font-medium"
-        >
+        <p role="status" class="hvc-input mt-2 inline-block">
           {{ estado() }}
         </p>
         @if (avisoUbicacion(); as aviso) {
-          <p
-            role="status"
-            class="mt-3 rounded border border-amber-600 bg-amber-50 p-3 text-amber-900"
-          >
+          <p role="status" class="hvc-alert hvc-alert--warn mt-3 bg-amber-50">
             {{ aviso }}
           </p>
         }
         @if (esquema(); as esquema) {
           @if (!confirmados()) {
             <h2 class="mt-6 text-lg font-semibold">Datos permanentes</h2>
-            <p class="text-sm text-slate-700">Revisa y confirma estos datos antes de continuar.</p>
+            <p class="text-muted">Revisa y confirma estos datos antes de continuar.</p>
             <app-motor-formulario
               [esquema]="soloPermanentes()!"
               [datos]="datosFormulario()"
@@ -79,7 +73,7 @@ import { PersistenciaOffline } from './persistencia';
               (datosChange)="cambiar($event)"
               (validoChange)="valido.set($event)"
             />
-            <section class="mt-6 rounded border border-slate-300 p-4">
+            <section class="hvc-card mt-6">
               @if (!bloqueada()) {
                 <button
                   type="button"
@@ -107,9 +101,7 @@ import { PersistenciaOffline } from './persistencia';
                 </select>
                 <div class="mt-3 flex flex-wrap items-center gap-3">
                   <app-captura-foto (capturada)="foto($event)" />
-                  <label
-                    for="pdf-local"
-                    class="inline-flex min-h-11 cursor-pointer items-center rounded border border-blue-700 px-4 py-2 font-medium text-blue-800"
+                  <label for="pdf-local" class="btn-hvc-secondary inline-flex items-center"
                     >Adjuntar PDF (máximo 20 MB)</label
                   >
                   <input
@@ -127,14 +119,14 @@ import { PersistenciaOffline } from './persistencia';
               </p>
               <div class="mt-2 grid grid-cols-2 gap-3 sm:grid-cols-4">
                 @for (foto of fotos(); track foto.id) {
-                  <figure class="rounded border border-slate-300 p-2">
+                  <figure class="hvc-card">
                     <img
                       [src]="miniatura(foto)"
                       width="150"
                       class="h-28 w-full rounded object-cover"
                       alt="Foto guardada localmente"
                     />
-                    <figcaption class="mt-1 text-xs break-all text-slate-600">
+                    <figcaption class="text-muted mt-1 break-all">
                       {{ foto.elemento_ref || 'General' }}
                     </figcaption>
                     @if (rechazados().includes(foto.id)) {

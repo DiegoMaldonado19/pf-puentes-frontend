@@ -14,33 +14,31 @@ import { InspeccionApi } from './inspeccion-api';
   imports: [ChipEstadoInspeccion, DatePipe, RouterLink],
   template: `
     <section class="mx-auto max-w-3xl p-4" aria-labelledby="titulo-historial">
-      <a [routerLink]="['/inspecciones', id()]" class="text-blue-800 underline"
-        >← {{ comun.volver }}</a
-      >
-      <h1 id="titulo-historial" class="mt-3 text-2xl font-bold">{{ t.titulo }}</h1>
-      <p class="my-3 text-slate-700">{{ t.descripcion }}</p>
+      <a [routerLink]="['/inspecciones', id()]" class="hvc-link">← {{ comun.volver }}</a>
+      <h1 id="titulo-historial" class="text-h1 mt-3">{{ t.titulo }}</h1>
+      <p class="text-muted my-3">{{ t.descripcion }}</p>
 
       @if (historial.isLoading() && !historial.hasValue()) {
         <p role="status">{{ comun.cargando }}</p>
       } @else if (error()) {
-        <p role="alert" class="rounded border border-red-700 bg-red-50 p-3 text-red-900">
+        <p role="alert" class="hvc-alert">
           {{ error() }}
         </p>
       } @else {
         <ol class="grid gap-3 border-l-2 border-slate-300 pl-4">
           @for (transicion of historial.value() ?? []; track transicion.id) {
-            <li class="rounded border border-slate-300 p-3">
+            <li class="hvc-card">
               <div class="flex flex-wrap items-center gap-2">
                 @if (transicion.estado_origen; as origen) {
                   <app-chip-estado-inspeccion [estado]="origen" />
                   <span aria-hidden="true">→</span>
                 } @else {
-                  <span class="text-sm text-slate-700">{{ t.origen }}</span>
+                  <span class="text-muted">{{ t.origen }}</span>
                   <span aria-hidden="true">→</span>
                 }
                 <app-chip-estado-inspeccion [estado]="transicion.estado_destino" />
               </div>
-              <p class="mt-2 text-sm text-slate-700">
+              <p class="text-muted mt-2">
                 {{ transicion.creado_en | date: 'dd/MM/yyyy HH:mm' : '-0600' }} · {{ t.actor }}:
                 {{ actor(transicion.actor_id) }}
               </p>
@@ -49,7 +47,7 @@ import { InspeccionApi } from './inspeccion-api';
               }
             </li>
           } @empty {
-            <li class="text-slate-600">{{ t.vacio }}</li>
+            <li class="text-muted">{{ t.vacio }}</li>
           }
         </ol>
       }

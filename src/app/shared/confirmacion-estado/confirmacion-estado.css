@@ -1,8 +1,8 @@
 .panel-confirmacion {
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--color-gray-light);
   border-radius: 8px;
   padding: 1.25rem;
-  background-color: #ffffff;
+  background-color: var(--color-surface);
   display: flex;
   flex-direction: column;
   gap: 1rem;
@@ -13,13 +13,13 @@
   margin: 0;
   font-size: 1.125rem;
   font-weight: 700;
-  color: #111827;
+  color: var(--color-primary-dark);
 }
 
 .explicacion {
   margin: 0;
   font-size: 0.875rem;
-  color: #4b5563;
+  color: var(--color-primary-light);
   line-height: 1.4;
 }
 
@@ -28,9 +28,9 @@
   align-items: center;
   gap: 0.75rem;
   padding: 0.5rem 0.75rem;
-  background-color: #f9fafb;
+  background-color: var(--color-canvas);
   border-radius: 6px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--color-canvas);
 }
 
 .control-confirmacion {
@@ -42,30 +42,30 @@
 .etiqueta {
   font-size: 0.875rem;
   font-weight: 600;
-  color: #374151;
+  color: var(--color-primary-dark);
 }
 
 .etiqueta.obligatoria {
-  color: #1f2937;
+  color: var(--color-primary-dark);
 }
 
 .requerido {
-  color: #dc2626;
+  color: var(--color-danger);
   font-weight: 700;
 }
 
 .selector-estado {
   padding: 0.5rem 0.75rem;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--color-gray-light);
   border-radius: 6px;
   font-size: 0.9375rem;
-  color: #111827;
-  background-color: #ffffff;
+  color: var(--color-primary-dark);
+  background-color: var(--color-surface);
   max-width: 250px;
 }
 
 .selector-estado:focus {
-  outline: 2px solid #2563eb;
+  outline: 2px solid var(--color-primary);
   outline-offset: 1px;
 }
 
@@ -74,8 +74,8 @@
   flex-direction: column;
   gap: 0.375rem;
   padding: 0.875rem;
-  background-color: #fffbeb;
-  border: 1px solid #fef3c7;
+  background-color: var(--color-surface) beb;
+  border: 1px solid var(--color-accent-peach);
   border-radius: 6px;
 }
 
@@ -83,7 +83,7 @@
   width: 100%;
   box-sizing: border-box;
   padding: 0.5rem 0.75rem;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--color-gray-light);
   border-radius: 6px;
   font-family: inherit;
   font-size: 0.875rem;
@@ -91,19 +91,19 @@
 }
 
 .campo-texto:focus {
-  outline: 2px solid #2563eb;
+  outline: 2px solid var(--color-primary);
   outline-offset: 1px;
 }
 
 .campo-texto.invalido {
-  border-color: #dc2626;
-  background-color: #fef2f2;
+  border-color: var(--color-danger);
+  background-color: color-mix(in srgb, var(--color-danger) 10%, white);
 }
 
 .error-validacion {
   margin: 0;
   font-size: 0.8125rem;
-  color: #b91c1c;
+  color: var(--color-danger);
   font-weight: 500;
 }
 
@@ -117,20 +117,20 @@
 }
 
 .alerta-anulacion {
-  background-color: #fef2f2;
-  color: #991b1b;
-  border: 1px solid #fecaca;
+  background-color: color-mix(in srgb, var(--color-danger) 10%, white);
+  color: var(--color-danger);
+  border: 1px solid color-mix(in srgb, var(--color-danger) 25%, white);
 }
 
 .alerta-advertencia {
-  background-color: #fff7ed;
-  color: #9a3412;
-  border: 1px solid #fed7aa;
+  background-color: var(--color-surface) 7ed;
+  color: var(--color-primary-dark);
+  border: 1px solid var(--color-accent-peach);
 }
 
 .nota-coincide {
   margin: 0;
   font-size: 0.875rem;
-  color: #065f46;
+  color: var(--color-success);
   font-weight: 500;
 }

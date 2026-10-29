@@ -13,12 +13,12 @@ label {
   gap: 0.5rem;
 }
 input {
-  border: 1px solid #64748b;
+  border: 1px solid var(--color-gray);
   border-radius: 0.25rem;
   padding: 0.75rem;
   min-width: 0;
 }
 input:focus-visible {
-  outline: 3px solid #1d4ed8;
+  outline: 3px solid var(--color-primary);
   outline-offset: 2px;
 }

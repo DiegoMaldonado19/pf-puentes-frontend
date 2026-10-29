@@ -14,7 +14,7 @@ import { ModalPublicar } from './modal-publicar';
     <div class="space-y-6 p-4 max-w-6xl mx-auto">
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
+          <h1 class="text-h1 dark:text-white">
             {{ textos.titulo }}
           </h1>
           <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">
@@ -25,7 +25,7 @@ import { ModalPublicar } from './modal-publicar';
 
         <a
           routerLink="nuevo"
-          class="px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-700 transition-colors shadow-sm self-start sm:self-auto flex items-center gap-2"
+          class="btn-hvc-primary self-start sm:self-auto flex items-center gap-2"
         >
           <span>+</span> {{ textos.nuevaVersion }}
         </a>
