@@ -107,6 +107,8 @@ export class TransporteHttp implements TransporteSync {
       resultado = await guardar();
     } catch (error) {
       if (!(error instanceof HttpErrorResponse) || error.status !== 404) throw error;
+      // Un 404 de una inspección ya confirmada no autoriza a revivir su UUID.
+      if (await this.tieneConfirmacionRemota(o)) throw new BorradorRemotoNoDisponible();
       // El borrador nació sin conexión: el alta es idempotente por su UUID v7 (DT-OFF-05).
       await this.peticion(this.http.post<Json>(API, this.alta(o, payload, metadatos)), signal);
       resultado = await guardar();
@@ -147,6 +149,19 @@ export class TransporteHttp implements TransporteSync {
       }
     }
     return version;
+  }
+
+  private async tieneConfirmacionRemota(o: Readonly<Operacion>): Promise<boolean> {
+    const inspeccion = await this.db.inspecciones.get(o.inspeccion_id);
+    if (inspeccion?.propietario_id === o.propietario_id && inspeccion.version_confirmada > 0)
+      return true;
+    return (
+      (await this.db.cola_sync
+        .where('[propietario_id+inspeccion_id]')
+        .equals([o.propietario_id, o.inspeccion_id])
+        .filter((previa) => previa.estado === 'confirmada')
+        .count()) > 0
+    );
   }
 
   private alta(o: Readonly<Operacion>, payload: PayloadDatos, metadatos: MetadatosInspeccion) {
@@ -220,6 +235,8 @@ function formularioDocumento(archivo: ArchivoLocal): FormData {
 
 /** 409 operacion-en-proceso se reintenta con la misma clave; el resto de rechazos es de negocio. */
 function rechazo(error: unknown): ResultadoTransporte {
+  if (error instanceof BorradorRemotoNoDisponible)
+    return { tipo: 'negocio', mensaje: TEXTOS.offline.remotoNoDisponible };
   if (!(error instanceof HttpErrorResponse)) {
     const mensaje = error instanceof Error ? error.message : TEXTOS.offline.errorTransporte;
     return { tipo: 'transitorio', mensaje };
@@ -231,6 +248,8 @@ function rechazo(error: unknown): ResultadoTransporte {
   const mensaje = mensajeAdjuntado.get(error) ?? detalleDeProblema(error) ?? TEXTOS.offline[tipo];
   return { tipo, mensaje };
 }
+
+class BorradorRemotoNoDisponible extends Error {}
 
 function abortado(): DOMException {
   return new DOMException('Abort', 'AbortError');

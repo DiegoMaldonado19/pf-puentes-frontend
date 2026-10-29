@@ -8,6 +8,8 @@ import { v7 } from 'uuid';
 import { BaseLocal } from './base-local';
 import { ArchivoLocal, Json, Operacion } from './modelos';
 import { TransporteHttp } from './transporte-http';
+import { PersistenciaOffline } from './persistencia';
+import { TEXTOS } from '../shared/textos';
 
 Dexie.dependencies.indexedDB = indexedDB;
 Dexie.dependencies.IDBKeyRange = IDBKeyRange;
@@ -163,6 +165,57 @@ describe('transporte HTTP de la cola (P1)', () => {
     expect(repetido.request.headers.get('Idempotency-Key')).toBe(o.clave);
     repetido.flush({ id: inspeccion, version: 1 });
     await expect(promesa).resolves.toMatchObject({ tipo: 'ack', resultado: { version: 1 } });
+  });
+
+  it.each(['captura', 'operacion'] as const)(
+    'no recrea un borrador ausente previamente confirmado por %s',
+    async (evidencia) => {
+      const local = new PersistenciaOffline(db);
+      const i = await local.crear(propietario, v7(), v7(), { sin_perder: true });
+      const [previa] = await local.operaciones(propietario, i.id);
+      if (evidencia === 'captura') await db.inspecciones.update(i.id, { version_confirmada: 1 });
+      else
+        await db.cola_sync.update(previa.id, {
+          estado: 'confirmada',
+          resultado: { id: i.id, version: 0 },
+        });
+      const editada = await local.editar(propietario, i.id, { corregida: true }, i.version_local);
+      const o = (await local.operaciones(propietario, i.id)).at(-1)!;
+      const antes = await local.operaciones(propietario, i.id);
+      const promesa = transporte.ejecutar(o, undefined, senal);
+      (await esperar('PUT', `/api/v1/inspecciones/${i.id}`)).flush(
+        {},
+        { status: 404, statusText: 'Not Found' },
+      );
+      await expect(promesa).resolves.toEqual({
+        tipo: 'negocio',
+        mensaje: TEXTOS.offline.remotoNoDisponible,
+      });
+      http.expectNone({ method: 'POST', url: '/api/v1/inspecciones' });
+      expect(await local.inspeccion(propietario, i.id)).toEqual(editada);
+      expect(await local.operaciones(propietario, i.id)).toEqual(antes);
+    },
+  );
+
+  it('un conflicto de alta sin evidencia de eliminación conserva toda la captura y su clave', async () => {
+    const local = new PersistenciaOffline(db);
+    const i = await local.crear(propietario, v7(), v7(), { pendiente: true });
+    const [o] = await local.operaciones(propietario, i.id);
+    const promesa = transporte.ejecutar(o, undefined, senal);
+    (await esperar('PUT', `/api/v1/inspecciones/${i.id}`)).flush(
+      {},
+      { status: 404, statusText: 'Not Found' },
+    );
+    (await esperar('POST', '/api/v1/inspecciones')).flush(
+      {
+        type: 'https://sgp/errores/inspeccion-en-conflicto',
+        detail: 'El identificador ya está en uso.',
+      },
+      { status: 409, statusText: 'Conflict' },
+    );
+    await expect(promesa).resolves.toMatchObject({ tipo: 'negocio' });
+    expect(await local.inspeccion(propietario, i.id)).toEqual(i);
+    expect(await local.operaciones(propietario, i.id)).toEqual([o]);
   });
 
   it('sube la foto en multipart con su UUID local, la miniatura y los metadatos del contrato 9', async () => {
