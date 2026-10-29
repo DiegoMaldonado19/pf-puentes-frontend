@@ -153,16 +153,16 @@ describe('App', () => {
     expect(html.textContent).toContain('Estudiante');
     expect(hrefs(html)).toEqual([
       '/',
+      '/perfil',
       '/inspecciones',
       '/mis-revisiones',
       '/mis-asignaciones',
-      '/perfil',
       '/puentes',
       '/puentes/mapa',
       '/offline/local',
       '/foro',
     ]);
-    expect(html.querySelector('button')?.textContent).toContain('Cerrar sesión');
+    expect(html.querySelector('.hvc-side-logout')?.textContent).toContain('Cerrar sesión');
   });
 
   it('ofrece cursos y revisión académica al catedrático', async () => {
@@ -202,7 +202,7 @@ describe('App', () => {
     await fixture.whenStable();
     const html = fixture.nativeElement as HTMLElement;
 
-    html.querySelector('button')?.click();
+    (html.querySelector('.hvc-side-logout') as HTMLButtonElement).click();
     expect(auth.cerrarSesion).toHaveBeenCalled();
   });
 });

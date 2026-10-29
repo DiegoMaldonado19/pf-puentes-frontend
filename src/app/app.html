@@ -20,58 +20,21 @@
       </label>
       <a routerLink="/" class="hvc-brand">
         <img src="bridge.png" alt="" class="brand-logo brand-logo--nav" />
-        {{ t.app }}
+        <span class="hvc-brand__texto">
+          {{ t.app }}
+          @if (auth.listo() && auth.autenticado()) {
+            <span class="hvc-nav-identidad">
+              - <span class="hvc-nav-user">{{ auth.usuario()?.nombre }}</span>
+              @if (auth.rol(); as rol) {
+                <span class="hvc-nav-role"> · {{ roles[rol] }}</span>
+              }
+            </span>
+          }
+        </span>
       </a>
       <div class="ml-auto flex min-w-0 flex-wrap items-center justify-end gap-3 text-sm">
         @if (auth.listo()) {
           @if (auth.autenticado()) {
-            <p class="m-0">
-              <span class="hvc-nav-user">{{ auth.usuario()?.nombre }}</span>
-              @if (auth.rol(); as rol) {
-                <span class="hvc-nav-role"> · {{ roles[rol] }}</span>
-              }
-            </p>
-            @if (auth.rol() !== 'ADMINISTRADOR') {
-              <a
-                routerLink="/inspecciones"
-                routerLinkActive="hvc-nav-link--active"
-                ariaCurrentWhenActive="page"
-                class="hvc-nav-link"
-                >{{ textosInspecciones.nav }}</a
-              >
-            }
-            @if (auth.rol() === 'CATEDRATICO') {
-              <a
-                routerLink="/revisiones"
-                routerLinkActive="hvc-nav-link--active"
-                ariaCurrentWhenActive="page"
-                class="hvc-nav-link"
-                >{{ textosRevision.titulo }}</a
-              >
-              <a
-                routerLink="/cursos"
-                routerLinkActive="hvc-nav-link--active"
-                ariaCurrentWhenActive="page"
-                class="hvc-nav-link"
-                >{{ textosCursos.misCursos }}</a
-              >
-            }
-            @if (auth.rol() === 'ESTUDIANTE') {
-              <a
-                routerLink="/mis-revisiones"
-                routerLinkActive="hvc-nav-link--active"
-                ariaCurrentWhenActive="page"
-                class="hvc-nav-link"
-                >{{ textosRevision.misPendientes }}</a
-              >
-              <a
-                routerLink="/mis-asignaciones"
-                routerLinkActive="hvc-nav-link--active"
-                ariaCurrentWhenActive="page"
-                class="hvc-nav-link"
-                >{{ textosCursos.misAsignaciones }}</a
-              >
-            }
             <a
               routerLink="/perfil"
               routerLinkActive="hvc-nav-link--active"
@@ -79,46 +42,6 @@
               class="hvc-nav-link"
               >{{ n.perfil }}</a
             >
-            @if (auth.rol() === 'ADMINISTRADOR') {
-              <a
-                routerLink="/admin/pesos"
-                routerLinkActive="hvc-nav-link--active"
-                ariaCurrentWhenActive="page"
-                class="hvc-nav-link"
-                >{{ tPesos }}</a
-              >
-              <a
-                routerLink="/admin/usuarios"
-                routerLinkActive="hvc-nav-link--active"
-                ariaCurrentWhenActive="page"
-                class="hvc-nav-link"
-                >{{ n.usuarios }}</a
-              >
-              <a
-                routerLink="/admin/invitaciones"
-                routerLinkActive="hvc-nav-link--active"
-                ariaCurrentWhenActive="page"
-                class="hvc-nav-link"
-                >{{ n.invitaciones }}</a
-              >
-              <a
-                routerLink="/admin/auditoria"
-                routerLinkActive="hvc-nav-link--active"
-                ariaCurrentWhenActive="page"
-                class="hvc-nav-link"
-                >{{ n.auditoria }}</a
-              >
-              <a
-                routerLink="/admin/formularios"
-                routerLinkActive="hvc-nav-link--active"
-                ariaCurrentWhenActive="page"
-                class="hvc-nav-link"
-                >{{ n.formularios }}</a
-              >
-            }
-            <button type="button" class="btn-hvc-ghost" (click)="salir()">
-              {{ n.cerrarSesion }}
-            </button>
           } @else {
             <a
               routerLink="/login"
@@ -145,6 +68,98 @@
   <label class="hvc-sidebar-overlay" for="hvc-menu" aria-hidden="true"></label>
   <aside class="hvc-sidebar">
     <nav class="hvc-sidebar__nav" [attr.aria-label]="t.principal">
+      @if (auth.listo() && auth.autenticado()) {
+        <div class="hvc-side-usuario">
+          @if (auth.rol() !== 'ADMINISTRADOR') {
+            <a
+              routerLink="/inspecciones"
+              routerLinkActive="hvc-side-link--active"
+              ariaCurrentWhenActive="page"
+              class="hvc-side-link"
+              (click)="menuLateral.checked = false"
+              >{{ textosInspecciones.nav }}</a
+            >
+          }
+          @if (auth.rol() === 'CATEDRATICO') {
+            <a
+              routerLink="/revisiones"
+              routerLinkActive="hvc-side-link--active"
+              ariaCurrentWhenActive="page"
+              class="hvc-side-link"
+              (click)="menuLateral.checked = false"
+              >{{ textosRevision.titulo }}</a
+            >
+            <a
+              routerLink="/cursos"
+              routerLinkActive="hvc-side-link--active"
+              ariaCurrentWhenActive="page"
+              class="hvc-side-link"
+              (click)="menuLateral.checked = false"
+              >{{ textosCursos.misCursos }}</a
+            >
+          }
+          @if (auth.rol() === 'ESTUDIANTE') {
+            <a
+              routerLink="/mis-revisiones"
+              routerLinkActive="hvc-side-link--active"
+              ariaCurrentWhenActive="page"
+              class="hvc-side-link"
+              (click)="menuLateral.checked = false"
+              >{{ textosRevision.misPendientes }}</a
+            >
+            <a
+              routerLink="/mis-asignaciones"
+              routerLinkActive="hvc-side-link--active"
+              ariaCurrentWhenActive="page"
+              class="hvc-side-link"
+              (click)="menuLateral.checked = false"
+              >{{ textosCursos.misAsignaciones }}</a
+            >
+          }
+          @if (auth.rol() === 'ADMINISTRADOR') {
+            <a
+              routerLink="/admin/pesos"
+              routerLinkActive="hvc-side-link--active"
+              ariaCurrentWhenActive="page"
+              class="hvc-side-link"
+              (click)="menuLateral.checked = false"
+              >{{ tPesos }}</a
+            >
+            <a
+              routerLink="/admin/usuarios"
+              routerLinkActive="hvc-side-link--active"
+              ariaCurrentWhenActive="page"
+              class="hvc-side-link"
+              (click)="menuLateral.checked = false"
+              >{{ n.usuarios }}</a
+            >
+            <a
+              routerLink="/admin/invitaciones"
+              routerLinkActive="hvc-side-link--active"
+              ariaCurrentWhenActive="page"
+              class="hvc-side-link"
+              (click)="menuLateral.checked = false"
+              >{{ n.invitaciones }}</a
+            >
+            <a
+              routerLink="/admin/auditoria"
+              routerLinkActive="hvc-side-link--active"
+              ariaCurrentWhenActive="page"
+              class="hvc-side-link"
+              (click)="menuLateral.checked = false"
+              >{{ n.auditoria }}</a
+            >
+            <a
+              routerLink="/admin/formularios"
+              routerLinkActive="hvc-side-link--active"
+              ariaCurrentWhenActive="page"
+              class="hvc-side-link"
+              (click)="menuLateral.checked = false"
+              >{{ n.formularios }}</a
+            >
+          }
+        </div>
+      }
       <a
         routerLink="/puentes"
         routerLinkActive="hvc-side-link--active"
@@ -179,6 +194,11 @@
         >{{ t.foro }}</a
       >
     </nav>
+    @if (auth.listo() && auth.autenticado()) {
+      <button type="button" class="hvc-side-logout" (click)="salir(); menuLateral.checked = false">
+        {{ n.cerrarSesion }}
+      </button>
+    }
   </aside>
   <main id="contenido" class="hvc-canvas" tabindex="-1">
     <router-outlet />
