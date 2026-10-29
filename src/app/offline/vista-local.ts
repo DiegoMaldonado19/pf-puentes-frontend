@@ -14,6 +14,7 @@ import {
 import { PuenteDTO } from '../features/puentes/modelos';
 import { TEXTOS } from '../shared/textos';
 import { AccesoLocal } from './acceso-local';
+import { consultarAlmacenamiento } from './almacenamiento';
 import { BaseLocal } from './base-local';
 import { DiagnosticoOffline } from './diagnostico';
 import { estadoCaptura, InspeccionLocal, Json, PreparacionCompleta } from './modelos';
@@ -194,6 +195,8 @@ export class VistaLocal implements OnDestroy {
     if (this.preparando()) return;
     const usuario = this.auth.usuario();
     if (!this.puedePreparar() || !usuario?.id) return;
+    // DT-OFF-09: se pide al clic, sin esperar el aviso del navegador.
+    void consultarAlmacenamiento(true);
     const propietario = usuario.id;
     const revision = ++this.revisionPreparacion;
     const vigente = () =>

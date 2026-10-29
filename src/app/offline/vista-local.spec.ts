@@ -418,6 +418,30 @@ describe('navegación de acceso local', () => {
     fixture.destroy();
   });
 
+  it('solicita almacenamiento persistente al preparar (DT-OFF-09)', () => {
+    db = new BaseLocal(`vista-${v7()}`);
+    const persist = vi.fn(async () => true);
+    const almacenamiento = Object.getOwnPropertyDescriptor(navigator, 'storage');
+    Object.defineProperty(navigator, 'storage', { configurable: true, value: { persist } });
+    try {
+      const acceso = {
+        alInvalidar: () => vi.fn(),
+        propietarioActual: async () => null,
+        inspecciones: async () => [],
+        consultarPropias: async () => undefined,
+      };
+      configurar(db, acceso, undefined, crearSesion('ESTUDIANTE'));
+      const fixture = TestBed.createComponent(VistaLocal);
+      fixture.detectChanges();
+      (fixture.nativeElement.querySelector('button') as HTMLButtonElement).click();
+      expect(persist).toHaveBeenCalledOnce();
+      fixture.destroy();
+    } finally {
+      if (almacenamiento) Object.defineProperty(navigator, 'storage', almacenamiento);
+      else Reflect.deleteProperty(navigator, 'storage');
+    }
+  });
+
   it('presenta el fallo de preparación sin exponer el error técnico', async () => {
     db = new BaseLocal(`vista-${v7()}`);
     const sesion = crearSesion('ESTUDIANTE');
