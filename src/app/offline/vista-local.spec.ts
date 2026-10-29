@@ -14,6 +14,8 @@ import { PersistenciaOffline } from './persistencia';
 import { PreparacionLocal, ProgresoPreparacion, ResultadoPreparacion } from './preparacion';
 import { distanciaMetros, VistaLocal } from './vista-local';
 import { hoyGuatemala } from '../features/inspecciones/dispositivo';
+import { SesionOffline } from './sesion-offline';
+import { TEXTOS } from '../shared/textos';
 import { PreparacionCompleta } from './modelos';
 
 interface SesionDePrueba {
@@ -285,7 +287,9 @@ describe('navegación de acceso local', () => {
     await vi.waitFor(() => expect(fixture.componentInstance.capturas()).toHaveLength(1));
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('Abrir editor local');
-    expect(fixture.nativeElement.querySelector('button')).toBeNull();
+    expect(fixture.nativeElement.querySelector('button')?.textContent).toContain(
+      'Eliminar copia local',
+    );
     propietario = null;
     invalidar();
     fixture.detectChanges();
@@ -332,7 +336,10 @@ describe('navegación de acceso local', () => {
     expect(fixture.nativeElement.textContent).toContain(
       'Las capturas, fotos y PDF se conservan aquí',
     );
-    expect(fixture.nativeElement.querySelectorAll('button')).toHaveLength(0);
+    expect(fixture.nativeElement.querySelectorAll('button')).toHaveLength(1);
+    expect(fixture.nativeElement.querySelector('button')?.textContent).toContain(
+      'Eliminar copia local',
+    );
     expect(fixture.nativeElement.textContent).not.toContain(ajeno);
 
     propietario = null;
@@ -343,6 +350,118 @@ describe('navegación de acceso local', () => {
     expect(await persistencia.operaciones(propietarioInicial)).toEqual(colaAntes);
     fixture.destroy();
     expect(liberar).toHaveBeenCalledOnce();
+  });
+
+  async function vistaReactiva() {
+    db = new BaseLocal(`vista-reactiva-${v7()}`);
+    const propietario = v7();
+    const sesion = crearSesion('ESTUDIANTE', propietario);
+    const acceso = new AccesoLocal(db, sesion.auth, {
+      propietarioActual: () => sesion.usuario()?.id ?? null,
+      coordinarAcceso: vi.fn(),
+      cancelarEjecucion: vi.fn(),
+    } as unknown as SesionOffline);
+    await db.acceso_local.put({ id: 'ultima', propietario_id: propietario, revocados: [] });
+    const local = new PersistenciaOffline(db);
+    const captura = await local.crear(propietario, v7(), v7());
+    configurar(db, acceso, undefined, sesion);
+    const fixture = TestBed.createComponent(VistaLocal);
+    await vi.waitFor(() => expect(fixture.componentInstance.capturas()).toHaveLength(1));
+    fixture.detectChanges();
+    return { propietario, sesion, acceso, local, captura, fixture };
+  }
+
+  it('actualiza las capturas sin vaciar el propietario ni reiniciar el diagnóstico durante ACK', async () => {
+    const { propietario, acceso, local, captura, fixture } = await vistaReactiva();
+    try {
+      const vista = fixture.componentInstance;
+      const details = fixture.nativeElement.querySelector(
+        'app-diagnostico-offline details',
+      ) as HTMLDetailsElement;
+      details.open = true;
+      const identidad = vi.spyOn(vista.propietario, 'set');
+      const lista = vi.spyOn(vista.capturas, 'set');
+      const editada = await local.editar(
+        propietario,
+        captura.id,
+        { editada: true },
+        captura.version_local,
+      );
+      await vi.waitFor(() => expect(vista.capturas()[0].version_local).toBe(editada.version_local));
+      const operaciones = await local.operaciones(propietario, captura.id);
+      for (const o of operaciones) {
+        await db.cola_sync.update(o.id, { estado: 'confirmada', resultado: { version: 1 } });
+        await db.inspecciones.update(captura.id, { version_confirmada: o.version_local });
+      }
+      await vi.waitFor(() =>
+        expect(vista.capturas()[0].version_confirmada).toBe(editada.version_local),
+      );
+      fixture.detectChanges();
+      expect(identidad.mock.calls.every(([id]) => id === propietario)).toBe(true);
+      expect(lista.mock.calls.every(([capturas]) => capturas.length === 1)).toBe(true);
+      expect(fixture.nativeElement.querySelector('app-diagnostico-offline details')).toBe(details);
+      expect(details.open).toBe(true);
+    } finally {
+      fixture.destroy();
+      acceso.detener();
+    }
+  });
+
+  it('pide confirmación con pendientes y elimina solo la copia seleccionada', async () => {
+    const { propietario, acceso, local, captura, fixture } = await vistaReactiva();
+    try {
+      const vista = fixture.componentInstance;
+      const hermana = await local.crear(propietario, v7(), v7());
+      await vi.waitFor(() => expect(vista.capturas()).toHaveLength(2));
+      fixture.detectChanges();
+      const boton = [...fixture.nativeElement.querySelectorAll('button')].find(
+        (b) => (b as HTMLButtonElement).textContent?.trim() === TEXTOS.accesoLocal.eliminarCopia,
+      ) as HTMLButtonElement;
+      boton.click();
+      await vi.waitFor(() => expect(vista.descarte()?.pendientes).toBe(1));
+      fixture.detectChanges();
+      expect(fixture.nativeElement.querySelector('[role="alertdialog"]')?.textContent).toContain(
+        'Operaciones sin confirmar que se perderán: 1',
+      );
+      expect(await db.inspecciones.get(captura.id)).toBeDefined();
+      const confirmar = [...fixture.nativeElement.querySelectorAll('button')].find(
+        (b) =>
+          (b as HTMLButtonElement).textContent?.trim() ===
+          TEXTOS.accesoLocal.confirmarEliminarCopia,
+      ) as HTMLButtonElement;
+      confirmar.click();
+      await vi.waitFor(() => expect(vista.capturas().map((i) => i.id)).toEqual([hermana.id]));
+      expect(await local.operaciones(propietario, captura.id)).toEqual([]);
+      expect(vista.descarte()).toBeNull();
+    } finally {
+      fixture.destroy();
+      acceso.detener();
+    }
+  });
+
+  it('no acepta una confirmación vieja tras editar en otra pestaña o revocar el acceso', async () => {
+    const { propietario, sesion, acceso, local, captura, fixture } = await vistaReactiva();
+    try {
+      const vista = fixture.componentInstance;
+      await vista.solicitarDescarte(captura);
+      const editada = await local.editar(
+        propietario,
+        captura.id,
+        { nueva: true },
+        captura.version_local,
+      );
+      await vista.confirmarDescarte();
+      expect(vista.error()).toBe(TEXTOS.offline.descarteVersion);
+      expect(await db.inspecciones.get(captura.id)).toEqual(editada);
+      sesion.eventos.next({ tipo: 'cierre', propietario_id: propietario });
+      expect(vista.propietario()).toBeNull();
+      expect(vista.descarte()).toBeNull();
+      await vista.confirmarDescarte();
+      expect(await db.inspecciones.get(captura.id)).toEqual(editada);
+    } finally {
+      fixture.destroy();
+      acceso.detener();
+    }
   });
 
   it('ofrece preparación a inspectores, no administrador ni sesión vacía', () => {

@@ -53,6 +53,26 @@ v7 mide 48 caracteres. Se conserva el resultado del POST como ACK para usar su
 versión nueva. Al perder una respuesta se repiten cuerpo y claves; no se
 regenera ninguna clave. Las subidas se deduplican por el UUID local del archivo.
 
+## Corrección de copias obsoletas y presentación
+
+El descarte local es explícito y transaccional, con habilitación del propietario,
+versión y conjunto de operaciones esperados. No coincide con DELETE remoto ni
+con una purga: puede descartar pendientes únicamente tras confirmación del usuario.
+Se rechaza con lease vigente, operación en proceso o dependencia de otra captura;
+un fallo o invalidación de sesión revierte todos los borrados. No requiere una
+migración ni modifica las referencias compartidas.
+
+El alta de respaldo tras un PUT 404 se limita a capturas sin evidencia local de
+confirmación remota. No se deduce eliminación de un 404/409, no se restaura un UUID
+dado de baja ni se borra trabajo automáticamente. La detección inequívoca de bajas
+externas sigue fuera de este contrato.
+
+El acceso observa únicamente su habilitación; la lista observa sus propios datos.
+Actualizar una captura no es invalidar identidad. Así se evita desmontar el
+diagnóstico por cada ACK, manteniendo la retirada inmediata ante revocación real.
+El progreso visual usa ACK de un lote local de operaciones, sin persistir otro
+estado de sincronización ni introducir progreso de bytes en el transporte.
+
 ## Verificación y límites
 
 Las pruebas unitarias cubren autorización, guardado/rollback, permanentes,

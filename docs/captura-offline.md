@@ -41,6 +41,39 @@ reclamable, valida el propietario devuelto y reintenta fallos transitorios sin
 cerrar sesión ni pausar permanentemente. Una identidad remota distinta nunca
 sincroniza la cola del propietario anterior.
 
+## Copias obsoletas y diagnóstico
+
+En **Capturas locales**, **Eliminar copia local** permite descartar una copia
+obsoleta o liberar una copia confirmada. Antes de aceptar se informa cuántas
+operaciones sin confirmar se perderán. Es una acción irreversible y explícita:
+no se elimina nada del servidor ni se purgan automáticamente los pendientes.
+La captura, sus fotos, PDF y cola se eliminan juntos; preparación y formularios
+compartidos permanecen intactos. Si otra pestaña edita o encola trabajo después
+de abrir la confirmación, hay que revisar y confirmar de nuevo. Un lease vigente
+o una operación en proceso impiden el descarte.
+
+Un `404` de avance no autoriza a recrear una inspección que ya tiene confirmación
+remota local. Se conserva como intervención para que el usuario decida qué hacer:
+el recurso puede estar eliminado o no ser accesible. Las capturas nuevas sin
+confirmación conservan el alta de respaldo. Un `404` o `409` nunca borra la copia
+automáticamente ni cambia su UUID.
+
+El diagnóstico muestra una barra por **operaciones confirmadas**, no por bytes.
+El lote empieza con los pendientes observados, conserva sus ids durante los
+reintentos y suma el trabajo nuevo mientras está pendiente. Al terminar, un lote
+nuevo no hereda las confirmaciones históricas. **Ver detalle de sincronización**
+despliega el flujo completo agrupado por inspección; los errores siguen visibles
+cuando está plegado. Las actualizaciones no vacían la lista ni reinician el
+detalle; cierre/cambio de propietario siguen retirando la información.
+
+Verificación de esta corrección en `feature/offline-descarte-y-progreso`:
+73/73 pruebas focalizadas, 1052/1052 unitarias y 15/15 E2E base Chromium;
+Prettier, lint y build aprobados. El build avisa de 608,88 kB frente al presupuesto
+de advertencia de 500 kB. El nuevo E2E verifica progreso/detalle estables,
+descarte mediante la UI y reapertura offline con IndexedDB/SW reales, preservando
+otra captura y los esquemas. Usa el harness aislado: no acredita una nueva
+ejecución contra backend ni aceptación integral de P6.
+
 ## Recorrido real aislado
 
 Desde el repositorio backend:

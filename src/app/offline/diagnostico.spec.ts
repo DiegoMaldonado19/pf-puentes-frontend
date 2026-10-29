@@ -65,6 +65,74 @@ describe('DiagnosticoOffline', () => {
     expect(await persistencia.operaciones(propietario)).toEqual(colaAntes);
   });
 
+  it('muestra progreso por ACK sin historial, conserva el desplegable y deja errores visibles plegado', async () => {
+    const local = new PersistenciaOffline(db);
+    const historica = await local.crear(propietario, v7(), v7());
+    await db.cola_sync.toCollection().modify({ estado: 'confirmada' });
+    const i = await local.crear(propietario, v7(), v7());
+    await local.editar(propietario, i.id, { nueva: true }, i.version_local);
+    const [primera, segunda] = await local.operaciones(propietario, i.id);
+    TestBed.configureTestingModule({
+      providers: [
+        {
+          provide: AccesoLocal,
+          useValue: {
+            consultarPropias: async <T>(_id: string, leer: () => Promise<T>) => leer(),
+          },
+        },
+      ],
+    });
+    const fixture = TestBed.createComponent(DiagnosticoOffline);
+    fixture.componentRef.setInput('db', db);
+    fixture.componentRef.setInput('propietario', propietario);
+    fixture.detectChanges();
+    const vista = fixture.componentInstance;
+    await vi.waitFor(() =>
+      expect(vista.progreso()).toEqual({ total: 2, confirmadas: 0, porcentaje: 0 }),
+    );
+    fixture.detectChanges();
+    const detalle = fixture.nativeElement.querySelector('details') as HTMLDetailsElement;
+    const barra = fixture.nativeElement.querySelector('progress') as HTMLProgressElement;
+    expect(detalle.open).toBe(false);
+    detalle.open = true;
+    await db.cola_sync.update(primera.id, { estado: 'en_proceso' });
+    await vi.waitFor(() => expect(vista.estadoSync()).toBe(TEXTOS.offline.sincronizando));
+    await db.cola_sync.update(primera.id, { estado: 'confirmada', resultado: { version: 1 } });
+    await db.cola_sync.update(segunda.id, {
+      estado: 'requiere_intervencion',
+      error: 'Revisa los datos',
+    });
+    await vi.waitFor(() =>
+      expect(vista.progreso()).toEqual({ total: 2, confirmadas: 1, porcentaje: 50 }),
+    );
+    await vi.waitFor(() => expect(vista.errores()).toEqual(['Revisa los datos']));
+    fixture.detectChanges();
+    expect(barra.value).toBe(1);
+    expect(barra.max).toBe(2);
+    expect(fixture.nativeElement.querySelector('progress')).toBe(barra);
+    expect(fixture.nativeElement.querySelector('details')).toBe(detalle);
+    expect(detalle.open).toBe(true);
+    detalle.open = false;
+    expect(fixture.nativeElement.querySelector('[role="alert"]')?.textContent).toContain(
+      'Revisa los datos',
+    );
+    expect(vista.estadoSync()).toBe(TEXTOS.offline.intervencion);
+    await db.cola_sync.update(segunda.id, { estado: 'pendiente', intentos: 0, error: null });
+    await vi.waitFor(() => expect(vista.errores()).toEqual([]));
+    expect(vista.progreso().porcentaje).toBe(50);
+    await db.cola_sync.update(segunda.id, { estado: 'confirmada' });
+    await vi.waitFor(() => expect(vista.progreso().porcentaje).toBe(100));
+    await local.crear(propietario, v7(), v7());
+    await vi.waitFor(() =>
+      expect(vista.progreso()).toEqual({ total: 1, confirmadas: 0, porcentaje: 0 }),
+    );
+    expect(vista.grupos().some((g) => g.id === historica.id)).toBe(true);
+    fixture.componentRef.setInput('propietario', null);
+    fixture.detectChanges();
+    expect(vista.progreso().total).toBe(0);
+    expect(vista.operaciones()).toEqual([]);
+  });
+
   it('preserva el reintento del harness y anuncia su error de escritura como alerta', async () => {
     const reintentar = vi.fn().mockRejectedValue(new Error('fallo de prueba'));
     const motor = { pausa: signal<string | null>(null), reintentar } as unknown as MotorSync;

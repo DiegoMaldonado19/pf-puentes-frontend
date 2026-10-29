@@ -253,6 +253,67 @@ export class PersistenciaOffline {
       );
     });
   }
+  /** Descarte explícito de toda la copia, nunca una limpieza automática de pendientes. */
+  async descartar(
+    propietario_id: string,
+    inspeccion_id: string,
+    version_esperada: number,
+    vigente: () => boolean = () => true,
+    operaciones_esperadas?: readonly string[],
+  ): Promise<void> {
+    await this.db.transaction(
+      'rw',
+      [
+        this.db.acceso_local,
+        this.db.inspecciones,
+        this.db.fotos,
+        this.db.documentos,
+        this.db.cola_sync,
+        this.db.bloqueos,
+      ],
+      async () => {
+        const habilitacion = await this.db.acceso_local.get('ultima');
+        if (
+          !vigente() ||
+          habilitacion?.propietario_id !== propietario_id ||
+          habilitacion.revocados.includes(propietario_id)
+        )
+          throw new Error(TEXTOS.offline.descarteSinAcceso);
+        const inspeccion = await this.inspeccion(propietario_id, inspeccion_id);
+        if (inspeccion.version_local !== version_esperada)
+          throw new Error(TEXTOS.offline.descarteVersion);
+        const operaciones = await this.operaciones(propietario_id, inspeccion_id);
+        const bloqueo = await this.db.bloqueos.get(propietario_id);
+        if (
+          (bloqueo && bloqueo.vence_en > Date.now()) ||
+          operaciones.some((o) => o.estado === 'en_proceso')
+        )
+          throw new Error(TEXTOS.offline.descarteEnCurso);
+        const ids = new Set(operaciones.map((o) => o.id));
+        if (
+          operaciones_esperadas &&
+          (ids.size !== operaciones_esperadas.length ||
+            operaciones_esperadas.some((id) => !ids.has(id)))
+        )
+          throw new Error(TEXTOS.offline.descarteVersion);
+        if (
+          await this.db.cola_sync
+            .filter((o) => !ids.has(o.id) && o.dependencias.some((id) => ids.has(id)))
+            .count()
+        )
+          throw new Error(TEXTOS.offline.descarteDependencias);
+        for (const tabla of [this.db.fotos, this.db.documentos]) {
+          await tabla
+            .where('[propietario_id+inspeccion_id]')
+            .equals([propietario_id, inspeccion_id])
+            .delete();
+        }
+        await this.db.cola_sync.bulkDelete([...ids]);
+        await this.db.inspecciones.delete(inspeccion_id);
+        if (!vigente()) throw new Error(TEXTOS.offline.descarteSinAcceso);
+      },
+    );
+  }
   async retirarArchivo(propietario_id: string, inspeccion_id: string, archivo_id: string) {
     return this.db.transaction(
       'rw',

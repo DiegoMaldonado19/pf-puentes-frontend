@@ -18,6 +18,22 @@ import { IndicadorOffline } from './indicador';
       <h2 id="diagnostico-offline-titulo" class="text-lg font-semibold">{{ t.diagnostico }}</h2>
       <div class="text-muted mt-2 grid gap-1">
         <app-indicador-offline [operaciones]="operaciones()" />
+        <p role="status" aria-live="polite">{{ estadoSync() }}</p>
+        @if (progreso(); as avance) {
+          @if (avance.total) {
+            <progress
+              class="mt-2 block h-3 w-full"
+              [attr.aria-label]="t.progreso"
+              [value]="avance.confirmadas"
+              [max]="avance.total"
+            ></progress>
+            <p>
+              {{ avance.confirmadas }} {{ t.de }} {{ avance.total }}
+              {{ t.operacionesConfirmadas }} · {{ avance.porcentaje }} %
+            </p>
+            <p class="text-xs">{{ t.progresoPorOperaciones }}</p>
+          }
+        }
         <p role="status" aria-live="polite">
           {{ t.estadoAlmacenamiento }}: {{ almacenamiento().mensaje }}
         </p>
@@ -39,38 +55,48 @@ import { IndicadorOffline } from './indicador';
             <p role="alert" [class]="claseAlerta">{{ pausa }}</p>
           }
           <button type="button" class="mt-3" [class]="claseBoton" (click)="reintentar()">
-            Sincronizar ahora
+            {{ t.sincronizarAhora }}
           </button>
         }
       }
       @if (error()) {
         <p role="alert" [class]="claseAlerta">{{ error() }}</p>
       }
-      <ul class="mt-3 grid gap-2">
-        @for (o of operaciones(); track o.id) {
-          <li class="rounded bg-slate-50 p-2 font-mono text-xs break-all text-slate-800">
-            {{ o.tipo }} · {{ o.entidad_id }} · {{ t.estado }}: {{ o.estado }} · {{ t.intentos }}:
-            {{ o.intentos }} · {{ t.siguiente }}: {{ o.proximo_intento }} · {{ t.dependencias }}:
-            {{ bloqueadas(o) }}
-            @if (o.error) {
-              <p role="alert" class="hvc-error mt-1 font-sans">{{ o.error }}</p>
+      @for (mensaje of errores(); track mensaje) {
+        <p role="alert" [class]="claseAlerta">{{ mensaje }}</p>
+      }
+      <details class="mt-3">
+        <summary class="cursor-pointer font-medium">{{ t.detalleSync }}</summary>
+        @for (grupo of grupos(); track grupo.id) {
+          <h3 class="mt-3 text-sm font-semibold break-all">{{ t.inspeccion }} · {{ grupo.id }}</h3>
+          <ol class="mt-2 grid gap-2">
+            @for (o of grupo.operaciones; track o.id) {
+              <li class="rounded bg-slate-50 p-2 font-mono text-xs break-all text-slate-800">
+                {{ t.tiposOperacion[o.tipo] }} · {{ o.entidad_id }} · {{ t.estado }}:
+                {{ o.estado }} · {{ t.intentos }}: {{ o.intentos }} · {{ t.siguiente }}:
+                {{ o.proximo_intento }} · {{ t.dependencias }}:
+                {{ bloqueadas(o) }}
+                @if (o.error) {
+                  <p class="hvc-error mt-1 font-sans">{{ o.error }}</p>
+                }
+                @if (motor(); as motor) {
+                  @if (propietario() && o.estado !== 'confirmada') {
+                    <button
+                      type="button"
+                      class="mt-2 font-sans"
+                      [class]="claseSecundario"
+                      [disabled]="o.estado === 'en_proceso'"
+                      (click)="reintentar(o.id)"
+                    >
+                      {{ t.reintentar }}
+                    </button>
+                  }
+                }
+              </li>
             }
-            @if (motor(); as motor) {
-              @if (propietario() && o.estado !== 'confirmada') {
-                <button
-                  type="button"
-                  class="mt-2 font-sans"
-                  [class]="claseSecundario"
-                  [disabled]="o.estado === 'en_proceso'"
-                  (click)="reintentar(o.id)"
-                >
-                  {{ t.reintentar }}
-                </button>
-              }
-            }
-          </li>
+          </ol>
         }
-      </ul>
+      </details>
     </section>
   `,
 })
@@ -85,6 +111,34 @@ export class DiagnosticoOffline {
   protected readonly claseSecundario = CLASE_BOTON_SECUNDARIO;
   protected readonly claseAlerta = CLASE_ALERTA;
   readonly operaciones = signal<Operacion[]>([]);
+  private readonly lote = signal<ReadonlySet<string>>(new Set());
+  readonly progreso = computed(() => {
+    const operaciones = this.operaciones().filter((o) => this.lote().has(o.id));
+    const total = operaciones.length;
+    const confirmadas = operaciones.filter((o) => o.estado === 'confirmada').length;
+    return { total, confirmadas, porcentaje: total ? Math.floor((100 * confirmadas) / total) : 0 };
+  });
+  readonly estadoSync = computed(() => {
+    const pendientes = this.operaciones().filter((o) => o.estado !== 'confirmada');
+    if (pendientes.some((o) => o.estado === 'en_proceso')) return this.t.sincronizando;
+    if (pendientes.some((o) => o.estado === 'requiere_intervencion')) return this.t.intervencion;
+    return pendientes.length ? this.t.pendienteSync : this.t.sinPendientes;
+  });
+  readonly errores = computed(() => [
+    ...new Set(
+      this.operaciones()
+        .filter((o) => o.estado !== 'confirmada' && o.error)
+        .map((o) => o.error!),
+    ),
+  ]);
+  readonly grupos = computed(() => {
+    const grupos = new Map<string, Operacion[]>();
+    for (const o of this.operaciones()) {
+      if (!grupos.has(o.inspeccion_id)) grupos.set(o.inspeccion_id, []);
+      grupos.get(o.inspeccion_id)!.push(o);
+    }
+    return [...grupos].map(([id, operaciones]) => ({ id, operaciones }));
+  });
   readonly error = signal('');
   readonly almacenamiento = signal<EstadoAlmacenamiento>({
     mensaje: this.t.sinApi,
@@ -104,6 +158,7 @@ export class DiagnosticoOffline {
       const aislado = this.aislado();
       const revision = ++this.revision;
       this.operaciones.set([]);
+      this.lote.set(new Set());
       this.error.set('');
       if (!propietario) {
         void this.actualizarAlmacenamiento(revision);
@@ -117,12 +172,13 @@ export class DiagnosticoOffline {
       }).subscribe({
         next: (operaciones) => {
           if (revision !== this.revision) return;
-          this.operaciones.set(operaciones);
+          this.actualizarOperaciones(operaciones);
           void this.actualizarAlmacenamiento(revision);
         },
         error: () => {
           if (revision !== this.revision) return;
           this.operaciones.set([]);
+          this.lote.set(new Set());
           this.error.set(this.t.lecturaError);
         },
       });
@@ -131,6 +187,21 @@ export class DiagnosticoOffline {
         sub.unsubscribe();
       });
     });
+  }
+
+  private actualizarOperaciones(operaciones: Operacion[]): void {
+    const pendientes = operaciones.filter((o) => o.estado !== 'confirmada');
+    let lote = this.lote();
+    const terminado = this.operaciones()
+      .filter((o) => lote.has(o.id))
+      .every((o) => o.estado === 'confirmada');
+    // Un lote nuevo no hereda el 100 % del historial; los reintentos mantienen sus ids.
+    if (terminado && pendientes.some((o) => !lote.has(o.id))) lote = new Set();
+    const disponibles = new Set(operaciones.map((o) => o.id));
+    this.lote.set(
+      new Set([...lote, ...pendientes.map((o) => o.id)].filter((id) => disponibles.has(id))),
+    );
+    this.operaciones.set(operaciones);
   }
 
   private async actualizarAlmacenamiento(revision: number): Promise<void> {
