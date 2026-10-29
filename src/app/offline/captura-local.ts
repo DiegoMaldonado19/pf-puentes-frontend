@@ -10,11 +10,19 @@ import {
   podarVacios,
   referenciasDeElemento,
 } from '../features/inspecciones/esquema';
+import {
+  CLASE_ALERTA,
+  CLASE_BOTON,
+  CLASE_BOTON_PELIGRO,
+  CLASE_BOTON_SECUNDARIO,
+  CLASE_CAMPO,
+  CLASE_ENLACE,
+} from '../features/auth/formulario';
 import { CapturaFoto, FotoCapturada } from '../shared/captura-foto/captura-foto';
 import { AccesoLocal } from './acceso-local';
 import { BaseLocal } from './base-local';
 import { DiagnosticoOffline } from './diagnostico';
-import { ArchivoLocal, InspeccionLocal, Json } from './modelos';
+import { ArchivoLocal, estadoCaptura, InspeccionLocal, Json } from './modelos';
 import { MotorSync } from './motor-sync';
 import { PersistenciaOffline } from './persistencia';
 
@@ -22,97 +30,172 @@ import { PersistenciaOffline } from './persistencia';
   selector: 'app-captura-local',
   imports: [RouterLink, MotorFormularioComponent, CapturaFoto, DiagnosticoOffline],
   template: `
-    <h1>Captura sin conexión</h1>
-    <a routerLink="/offline/local">Capturas locales</a>
-    @if (error()) {
-      <p role="alert">{{ error() }}</p>
-    }
-    @if (inspeccion(); as i) {
-      <p role="status">{{ estado() }}</p>
-      @if (avisoUbicacion(); as aviso) {
-        <p role="status">{{ aviso }}</p>
+    <div class="mx-auto max-w-6xl p-4">
+      <a routerLink="/offline/local" [class]="claseEnlace">← Capturas locales</a>
+      <h1 class="mt-2 text-2xl font-bold">Captura sin conexión</h1>
+      @if (error()) {
+        <p role="alert" [class]="claseAlerta">{{ error() }}</p>
       }
-      @if (esquema(); as esquema) {
-        @if (!confirmados()) {
-          <h2>Datos permanentes</h2>
-          <p>Revisa y confirma estos datos antes de continuar.</p>
-          <app-motor-formulario
-            [esquema]="soloPermanentes()!"
-            [datos]="datosFormulario()"
-            [modo]="transicion() ? 'lectura' : 'edicion'"
-            (datosChange)="cambiarPermanentes($event)"
-          />
-          <button type="button" [disabled]="ocupado()" (click)="confirmar()">
-            Confirmar datos permanentes
-          </button>
-        } @else {
-          <h2>Formulario SIECA</h2>
-          <app-motor-formulario
-            [esquema]="esquema"
-            [datos]="datosFormulario()"
-            [modo]="bloqueada() || transicion() ? 'lectura' : 'edicion'"
-            (datosChange)="cambiar($event)"
-            (validoChange)="valido.set($event)"
-          />
-          @if (!bloqueada()) {
-            <button type="button" [disabled]="ocupado()" (click)="guardar()">
-              Guardar localmente
-            </button>
-            <h2>Fotografías</h2>
-            <label for="elemento-local">Elemento de la foto (opcional)</label>
-            <select
-              id="elemento-local"
-              [value]="elemento"
-              (change)="elemento = $any($event.target).value"
-            >
-              <option value="">Foto general</option>
-              @for (ref of referencias(); track ref) {
-                <option [value]="ref">{{ ref }}</option>
-              }
-            </select>
-            <app-captura-foto (capturada)="foto($event)" />
-            <label for="pdf-local">Adjuntar PDF (máximo 20 MB)</label>
-            <input
-              id="pdf-local"
-              type="file"
-              accept="application/pdf"
-              [disabled]="ocupado()"
-              (change)="documento($any($event.target))"
-            />
-          }
-          <p>Fotos guardadas: {{ fotos().length }} (mínimo 4 para enviar)</p>
-          @for (foto of fotos(); track foto.id) {
-            <figure>
-              <img [src]="miniatura(foto)" width="150" alt="Foto guardada localmente" />
-              <figcaption>{{ foto.elemento_ref || 'General' }}</figcaption>
-              @if (rechazados().includes(foto.id)) {
-                <button type="button" [disabled]="ocupado()" (click)="retirarArchivo(foto.id)">
-                  Retirar foto rechazada para corregir
-                </button>
-              }
-            </figure>
-          }
-          <p>Documentos PDF guardados: {{ documentos().length }}</p>
-          @for (documento of documentos(); track documento.id) {
-            @if (rechazados().includes(documento.id)) {
-              <button type="button" [disabled]="ocupado()" (click)="retirarArchivo(documento.id)">
-                Retirar PDF rechazado para corregir
-              </button>
-            }
-          }
-          <button type="button" [disabled]="!puedeEnviar()" (click)="enviar()">
-            Encolar envío
-          </button>
+      @if (inspeccion(); as i) {
+        <p
+          role="status"
+          class="mt-2 inline-block rounded-full border border-slate-400 px-3 py-1 text-sm font-medium"
+        >
+          {{ estado() }}
+        </p>
+        @if (avisoUbicacion(); as aviso) {
+          <p
+            role="status"
+            class="mt-3 rounded border border-amber-600 bg-amber-50 p-3 text-amber-900"
+          >
+            {{ aviso }}
+          </p>
         }
+        @if (esquema(); as esquema) {
+          @if (!confirmados()) {
+            <h2 class="mt-6 text-lg font-semibold">Datos permanentes</h2>
+            <p class="text-sm text-slate-700">Revisa y confirma estos datos antes de continuar.</p>
+            <app-motor-formulario
+              [esquema]="soloPermanentes()!"
+              [datos]="datosFormulario()"
+              [modo]="transicion() ? 'lectura' : 'edicion'"
+              (datosChange)="cambiarPermanentes($event)"
+            />
+            <button
+              type="button"
+              class="mt-4"
+              [class]="claseBoton"
+              [disabled]="ocupado()"
+              (click)="confirmar()"
+            >
+              Confirmar datos permanentes
+            </button>
+          } @else {
+            <h2 class="mt-6 text-lg font-semibold">Formulario SIECA</h2>
+            <app-motor-formulario
+              [esquema]="esquema"
+              [datos]="datosFormulario()"
+              [modo]="bloqueada() || transicion() ? 'lectura' : 'edicion'"
+              (datosChange)="cambiar($event)"
+              (validoChange)="valido.set($event)"
+            />
+            <section class="mt-6 rounded border border-slate-300 p-4">
+              @if (!bloqueada()) {
+                <button
+                  type="button"
+                  [class]="claseSecundario"
+                  [disabled]="ocupado()"
+                  (click)="guardar()"
+                >
+                  Guardar localmente
+                </button>
+                <h2 class="mt-4 text-lg font-semibold">Fotografías</h2>
+                <label for="elemento-local" class="mt-2 block text-sm font-medium"
+                  >Elemento de la foto (opcional)</label
+                >
+                <select
+                  id="elemento-local"
+                  class="mt-1 w-full max-w-md"
+                  [class]="claseCampo"
+                  [value]="elemento"
+                  (change)="elemento = $any($event.target).value"
+                >
+                  <option value="">Foto general</option>
+                  @for (ref of referencias(); track ref) {
+                    <option [value]="ref">{{ ref }}</option>
+                  }
+                </select>
+                <div class="mt-3 flex flex-wrap items-center gap-3">
+                  <app-captura-foto (capturada)="foto($event)" />
+                  <label
+                    for="pdf-local"
+                    class="inline-flex min-h-11 cursor-pointer items-center rounded border border-blue-700 px-4 py-2 font-medium text-blue-800"
+                    >Adjuntar PDF (máximo 20 MB)</label
+                  >
+                  <input
+                    id="pdf-local"
+                    type="file"
+                    accept="application/pdf"
+                    class="sr-only"
+                    [disabled]="ocupado()"
+                    (change)="documento($any($event.target))"
+                  />
+                </div>
+              }
+              <p class="mt-3 text-sm font-medium">
+                Fotos guardadas: {{ fotos().length }} (mínimo 4 para enviar)
+              </p>
+              <div class="mt-2 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                @for (foto of fotos(); track foto.id) {
+                  <figure class="rounded border border-slate-300 p-2">
+                    <img
+                      [src]="miniatura(foto)"
+                      width="150"
+                      class="h-28 w-full rounded object-cover"
+                      alt="Foto guardada localmente"
+                    />
+                    <figcaption class="mt-1 text-xs break-all text-slate-600">
+                      {{ foto.elemento_ref || 'General' }}
+                    </figcaption>
+                    @if (rechazados().includes(foto.id)) {
+                      <button
+                        type="button"
+                        class="mt-2"
+                        [class]="clasePeligro"
+                        [disabled]="ocupado()"
+                        (click)="retirarArchivo(foto.id)"
+                      >
+                        Retirar foto rechazada para corregir
+                      </button>
+                    }
+                  </figure>
+                }
+              </div>
+              <p class="mt-3 text-sm font-medium">
+                Documentos PDF guardados: {{ documentos().length }}
+              </p>
+              @for (documento of documentos(); track documento.id) {
+                @if (rechazados().includes(documento.id)) {
+                  <button
+                    type="button"
+                    class="mt-2"
+                    [class]="clasePeligro"
+                    [disabled]="ocupado()"
+                    (click)="retirarArchivo(documento.id)"
+                  >
+                    Retirar PDF rechazado para corregir
+                  </button>
+                }
+              }
+              <button
+                type="button"
+                class="mt-4 block"
+                [class]="claseBoton"
+                [disabled]="!puedeEnviar()"
+                (click)="enviar()"
+              >
+                Encolar envío
+              </button>
+            </section>
+          }
+        }
+        <a href="#diagnostico-local" class="mt-4 block w-fit" [class]="claseEnlace"
+          >Ver pendientes y diagnóstico</a
+        >
+        <div id="diagnostico-local">
+          <app-diagnostico-offline [db]="db" [propietario]="i.propietario_id" [motor]="motor" />
+        </div>
       }
-      <a href="#diagnostico-local">Ver pendientes y diagnóstico</a>
-      <div id="diagnostico-local">
-        <app-diagnostico-offline [db]="db" [propietario]="i.propietario_id" [motor]="motor" />
-      </div>
-    }
+    </div>
   `,
 })
 export class CapturaLocal implements OnDestroy {
+  protected readonly claseBoton = CLASE_BOTON;
+  protected readonly claseSecundario = CLASE_BOTON_SECUNDARIO;
+  protected readonly clasePeligro = CLASE_BOTON_PELIGRO;
+  protected readonly claseCampo = CLASE_CAMPO;
+  protected readonly claseEnlace = CLASE_ENLACE;
+  protected readonly claseAlerta = CLASE_ALERTA;
   readonly db = inject(BaseLocal);
   readonly motor = inject(MotorSync, { optional: true }) ?? undefined;
   private readonly acceso = inject(AccesoLocal);
@@ -152,11 +235,7 @@ export class CapturaLocal implements OnDestroy {
   readonly estado = computed(() =>
     this.intervencion()
       ? 'Requiere intervención: consulta el diagnóstico.'
-      : this.inspeccion()?.estado_remoto
-        ? 'Sincronizada'
-        : this.inspeccion()?.intencion_envio_en
-          ? 'Enviada: pendiente de subir'
-          : 'Borrador local',
+      : estadoCaptura(this.inspeccion()),
   );
   elemento = '';
   private ultimoGuardado = '';

@@ -1,4 +1,3 @@
-import { JsonPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, DestroyRef, effect, inject, signal, untracked } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
@@ -28,7 +27,6 @@ import {
   imports: [
     RouterLink,
     ReactiveFormsModule,
-    JsonPipe,
     MotorFormularioComponent,
     MarcadorAnclado,
     CalificacionRevision,
@@ -40,6 +38,12 @@ import {
 })
 export class DetalleRevision {
   readonly t = TEXTOS.revision;
+
+  protected valorLegible(valor: unknown): string {
+    if (valor === null || valor === undefined || valor === '') return 'Sin dato';
+    if (typeof valor === 'boolean') return valor ? 'Sí' : 'No';
+    return typeof valor === 'object' ? JSON.stringify(valor, null, 2) : String(valor);
+  }
   readonly detalle = signal<DatosRevision | null>(null);
   readonly archivos = signal<ArchivoDTO[]>([]);
   readonly icPreliminar = signal<EstimacionPreliminarIcDTO | null>(null);

@@ -8,7 +8,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthService } from '../../core/auth/auth';
 import { TEXTOS } from '../../shared/textos';
@@ -38,7 +38,7 @@ type EstadoVista =
 @Component({
   selector: 'app-discusion-inspeccion',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, CompositorMenciones, DialogoModeracion],
+  imports: [ReactiveFormsModule, RouterLink, CompositorMenciones, DialogoModeracion],
   templateUrl: './discusion-inspeccion.html',
 })
 export class DiscusionInspeccion {

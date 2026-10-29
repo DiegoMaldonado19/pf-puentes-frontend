@@ -27,6 +27,31 @@ registerLocaleData(localeEsGt);
   imports: [DatePipe, DecimalPipe, ReactiveFormsModule, EstadoPuente],
   providers: [{ provide: LOCALE_ID, useValue: 'es-GT' }],
   templateUrl: './recalculo-ic.html',
+  styleUrls: ['./consulta-pesos.css'],
+  styles: `
+    .recalculos-ic {
+      margin-block: 1.5rem;
+      padding: 1rem;
+      border: 1px solid #cbd5e1;
+      border-radius: 0.5rem;
+    }
+    h3 {
+      font-weight: 600;
+      margin-block: 1.25rem 0.5rem;
+    }
+    label {
+      display: block;
+      font-weight: 500;
+      margin-bottom: 0.25rem;
+    }
+    select {
+      min-height: 2.75rem;
+      margin: 0 0.75rem 0.75rem 0;
+      padding: 0.5rem;
+      border: 1px solid #94a3b8;
+      border-radius: 0.375rem;
+    }
+  `,
 })
 export class RecalculoIc {
   readonly inspeccionId = input.required<string>();

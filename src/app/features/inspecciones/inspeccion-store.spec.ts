@@ -12,7 +12,7 @@ import { ArchivoDTO, InspeccionDTO } from './modelos';
 function fotoRemota(id: string): ArchivoDTO {
   return {
     id,
-    tipo: 'FOTO',
+    tipo: 'WEBP',
     elemento_ref: 'estribo',
     latitud: null,
     longitud: null,
@@ -118,7 +118,7 @@ describe('InspeccionStore', () => {
       api.archivos.mockReturnValue(
         of([
           ...Array.from({ length: 60 }, (_, i) => fotoRemota(`foto-${i}`)),
-          { ...fotoRemota('pdf'), tipo: 'DOCUMENTO', url_miniatura: null, url: null },
+          { ...fotoRemota('pdf'), tipo: 'PDF', url_miniatura: null, url: null },
         ]),
       );
       await iniciar();
@@ -140,6 +140,18 @@ describe('InspeccionStore', () => {
       );
       expect(store.fotosSubidas()).toBe(59);
       expect(store.puedeAgregarFoto()).toBe(true);
+    });
+
+    it('una foto recién subida cuenta para el envío aunque el servidor devuelva su formato', async () => {
+      const crearUrl = Object.getOwnPropertyDescriptor(URL, 'createObjectURL');
+      Object.defineProperty(URL, 'createObjectURL', { configurable: true, value: () => 'm' });
+      await iniciar();
+      api.subirFoto.mockImplementation((_: string, id: string) => of(fotoRemota(id)));
+      const foto = { archivo: new Blob(), miniatura: new Blob(), latitud: null, longitud: null };
+      await store.subirFoto({ ...foto, capturada_en: '2026-10-28T12:00:00Z' }, null);
+      expect(store.fotosSubidas()).toBe(1);
+      if (crearUrl) Object.defineProperty(URL, 'createObjectURL', crearUrl);
+      else Reflect.deleteProperty(URL, 'createObjectURL');
     });
 
     it('recargar reemplaza el inventario remoto sin duplicar archivos', async () => {

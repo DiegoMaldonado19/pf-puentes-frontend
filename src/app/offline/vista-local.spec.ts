@@ -284,12 +284,12 @@ describe('navegación de acceso local', () => {
     const fixture = TestBed.createComponent(VistaLocal);
     await vi.waitFor(() => expect(fixture.componentInstance.capturas()).toHaveLength(1));
     fixture.detectChanges();
-    expect(fixture.nativeElement.textContent).toContain('propio');
+    expect(fixture.nativeElement.textContent).toContain('Abrir editor local');
     expect(fixture.nativeElement.querySelector('button')).toBeNull();
     propietario = null;
     invalidar();
     fixture.detectChanges();
-    expect(fixture.nativeElement.textContent).not.toContain('propio');
+    expect(fixture.nativeElement.textContent).not.toContain('Abrir editor local');
     expect(fixture.nativeElement.textContent).toContain('login online');
     await vi.waitFor(() =>
       expect(fixture.nativeElement.textContent).toContain('Estado del almacenamiento:'),

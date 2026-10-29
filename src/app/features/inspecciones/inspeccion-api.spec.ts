@@ -50,7 +50,7 @@ describe('InspeccionApi', () => {
   });
 
   it('lista archivos remotos con url_miniatura y URL nullable', () => {
-    const archivos = [{ id: 'pdf', tipo: 'DOCUMENTO', url: null, url_miniatura: null }];
+    const archivos = [{ id: 'pdf', tipo: 'PDF', url: null, url_miniatura: null }];
     api.archivos('i1').subscribe((respuesta) => expect(respuesta).toEqual(archivos));
     const req = http.expectOne('/api/v1/inspecciones/i1/archivos');
     expect(req.request.method).toBe('GET');

@@ -31,6 +31,24 @@ import { TEXTOS } from '../../shared/textos';
     }
     button {
       min-height: 44px;
+      padding: 0.5rem 1rem;
+      color: #1e40af;
+      background: #fff;
+      border: 1px solid #1e40af;
+      border-radius: 0.375rem;
+      cursor: pointer;
+    }
+    button:hover:not(:disabled) {
+      background: #eff6ff;
+    }
+    button:disabled {
+      color: #6b7280;
+      border-color: #d1d5db;
+      cursor: default;
+    }
+    button:focus-visible {
+      outline: 3px solid #2563eb;
+      outline-offset: 3px;
     }
   `,
 })
