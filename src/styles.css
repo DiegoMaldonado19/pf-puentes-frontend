@@ -229,6 +229,7 @@ body {
 @media print {
   nav,
   aside,
+  footer,
   app-header,
   app-navbar,
   app-campana-notificaciones,
