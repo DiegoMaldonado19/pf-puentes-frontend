@@ -2,6 +2,7 @@ import { DestroyRef, inject } from '@angular/core';
 import { liveQuery, Table } from 'dexie';
 import { Subscription } from 'rxjs';
 import { AuthService, EventoSesion } from '../core/auth/auth';
+import { TEXTOS } from '../shared/textos';
 import { BaseLocal } from './base-local';
 import { HabilitacionLocal } from './modelos';
 import { PersistenciaOffline } from './persistencia';
@@ -41,10 +42,7 @@ export class AccesoLocal {
       const registro = await db.acceso_local.get('ultima');
       return !this.fallo && !registro?.revocados.includes(propietario);
     });
-    this.cambios = liveQuery(async () => {
-      await db.inspecciones.count();
-      return db.acceso_local.get('ultima');
-    }).subscribe({
+    this.cambios = liveQuery(() => db.acceso_local.get('ultima')).subscribe({
       next: (registro) => {
         const propietario = remoto.propietarioActual() ?? registro?.propietario_id;
         if (propietario && registro?.revocados.includes(propietario)) this.invalidar();
@@ -178,16 +176,34 @@ export class AccesoLocal {
     const revision = this.revision;
     const propietario = await this.propietarioActual();
     if (!propietario) return [];
-    const registros = await this.db.inspecciones
+    const capturas = await this.db.inspecciones
       .where('propietario_id')
       .equals(propietario)
-      .primaryKeys();
-    const capturas = await Promise.all(
-      registros.map((id) => this.local.inspeccion(propietario, id)),
-    );
+      .toArray();
     // Comprobar la revisión después de la última lectura asíncrona también.
     const propietarioFinal = await this.propietarioActual();
     return revision === this.revision && propietarioFinal === propietario ? capturas : [];
+  }
+
+  async descartarInspeccion(
+    id: string,
+    version_esperada: number,
+    operaciones_esperadas?: readonly string[],
+  ): Promise<void> {
+    await this.pendiente;
+    const revision = this.revision;
+    const propietario = await this.propietarioActual();
+    if (!propietario) throw new Error(TEXTOS.offline.descarteSinAcceso);
+    await this.local.descartar(
+      propietario,
+      id,
+      version_esperada,
+      () => {
+        const remoto = this.remoto.propietarioActual();
+        return !this.fallo && revision === this.revision && (!remoto || remoto === propietario);
+      },
+      operaciones_esperadas,
+    );
   }
 
   private invalidar(): void {

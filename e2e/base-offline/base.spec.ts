@@ -399,6 +399,7 @@ test('B04 — cinco fallos persistidos, recarga y reintento con clave original',
   await abrir(page);
   await page.evaluate(() => window.__offlineDemo!.motor.drenar());
   expect(await page.evaluate(() => window.__offlineDemo!.transporte.registro.length)).toBe(0);
+  await page.getByText('Ver detalle de sincronización', { exact: true }).click();
   await page.getByRole('button', { name: 'Reintentar', exact: true }).click();
   await expect
     .poll(() =>

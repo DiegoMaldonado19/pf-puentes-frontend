@@ -354,6 +354,44 @@ describe('habilitación local durable y coordinación de pestañas', () => {
     expect(await acceso.habilitarPreparada(ana)).toBe(false);
     expect(await acceso.propietarioActual()).toBeNull();
   });
+  it('los cambios de captura no emiten invalidaciones de acceso', async () => {
+    await preparar();
+    const notificar = vi.fn();
+    const liberar = acceso.alInvalidar(notificar);
+    await vi.waitFor(() => expect(notificar).toHaveBeenCalled());
+    notificar.mockClear();
+    const i = await local.crear(ana, v7(), v7());
+    await local.editar(ana, i.id, { progreso: true }, i.version_local);
+    await new Promise((resolve) => setTimeout(resolve, 30));
+    expect(notificar).not.toHaveBeenCalled();
+    auth.cerrarSesionLocal();
+    expect(notificar).toHaveBeenCalled();
+    liberar();
+  });
+  it('descarta solo con acceso vigente y bloquea una confirmación tras cerrar sesión', async () => {
+    await preparar();
+    const i = await local.crear(ana, v7(), v7());
+    await acceso.descartarInspeccion(i.id, i.version_local);
+    expect(await db.inspecciones.get(i.id)).toBeUndefined();
+    const otra = await local.crear(ana, v7(), v7());
+    auth.cerrarSesionLocal();
+    await expect(acceso.descartarInspeccion(otra.id, otra.version_local)).rejects.toThrow();
+    expect(await db.inspecciones.get(otra.id)).toEqual(otra);
+  });
+  it('revierte el descarte si se cierra sesión antes del commit local', async () => {
+    await preparar();
+    const i = await local.crear(ana, v7(), v7());
+    const antes = await local.operaciones(ana, i.id);
+    const cerrar = () => auth.cerrarSesionLocal();
+    db.inspecciones.hook('deleting', cerrar);
+    try {
+      await expect(acceso.descartarInspeccion(i.id, i.version_local)).rejects.toThrow();
+      expect(await db.inspecciones.get(i.id)).toEqual(i);
+      expect(await local.operaciones(ana, i.id)).toEqual(antes);
+    } finally {
+      db.inspecciones.hook('deleting').unsubscribe(cerrar);
+    }
+  });
   it('migra v2 preservando captura, cola y metadatos sin inventar habilitación', async () => {
     const captura = await local.crear(ana, v7(), v7());
     const cola = await local.operaciones(ana);

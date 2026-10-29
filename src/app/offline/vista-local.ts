@@ -2,8 +2,16 @@ import { DatePipe } from '@angular/common';
 import { Component, computed, effect, inject, OnDestroy, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
+import { liveQuery } from 'dexie';
 import { AuthService } from '../core/auth/auth';
-import { CLASE_ALERTA, CLASE_BOTON, CLASE_ENLACE, CLASE_HECHO } from '../features/auth/formulario';
+import {
+  CLASE_ALERTA,
+  CLASE_BOTON,
+  CLASE_BOTON_PELIGRO,
+  CLASE_BOTON_SECUNDARIO,
+  CLASE_ENLACE,
+  CLASE_HECHO,
+} from '../features/auth/formulario';
 import { EsquemaFormulario } from '../features/formulario/modelos';
 import { hoyGuatemala, ubicacionActual } from '../features/inspecciones/dispositivo';
 import {
@@ -123,6 +131,45 @@ import { PreparacionLocal, ProgresoPreparacion, ResultadoPreparacion } from './p
             [routerLink]="['/offline/captura', i.id]"
             >Abrir editor local</a
           >
+          <button
+            type="button"
+            class="mt-2 ml-3"
+            [class]="claseSecundario"
+            [disabled]="descartando()"
+            (click)="solicitarDescarte(i)"
+          >
+            {{ t.eliminarCopia }}
+          </button>
+          @if (descarte(); as seleccion) {
+            @if (seleccion.id === i.id) {
+              <div
+                role="alertdialog"
+                [attr.aria-labelledby]="'descarte-' + i.id"
+                class="hvc-alert mt-3"
+              >
+                <p [id]="'descarte-' + i.id">{{ t.confirmarDescarte }}</p>
+                <p>{{ t.pendientesDescarte }}: {{ seleccion.pendientes }}</p>
+                <div class="mt-3 flex flex-wrap gap-3">
+                  <button
+                    type="button"
+                    [class]="clasePeligro"
+                    [disabled]="descartando()"
+                    (click)="confirmarDescarte()"
+                  >
+                    {{ t.confirmarEliminarCopia }}
+                  </button>
+                  <button
+                    type="button"
+                    [class]="claseSecundario"
+                    [disabled]="descartando()"
+                    (click)="descarte.set(null)"
+                  >
+                    {{ t.cancelarDescarte }}
+                  </button>
+                </div>
+              </div>
+            }
+          }
         </section>
       }
       <app-diagnostico-offline [db]="db" [propietario]="propietario()" [motor]="motor" />
@@ -135,6 +182,8 @@ export class VistaLocal implements OnDestroy {
   protected readonly claseAlerta = CLASE_ALERTA;
   protected readonly claseHecho = CLASE_HECHO;
   protected readonly claseEnlace = CLASE_ENLACE;
+  protected readonly claseSecundario = CLASE_BOTON_SECUNDARIO;
+  protected readonly clasePeligro = CLASE_BOTON_PELIGRO;
   protected readonly estado = estadoCaptura;
   readonly db = inject(BaseLocal);
   readonly motor = inject(MotorSync, { optional: true }) ?? undefined;
@@ -158,6 +207,13 @@ export class VistaLocal implements OnDestroy {
   readonly capturas = signal<InspeccionLocal[]>([]);
   readonly propietario = signal<string | null>(null);
   readonly error = signal('');
+  readonly descarte = signal<{
+    id: string;
+    version_local: number;
+    pendientes: number;
+    operaciones: string[];
+  } | null>(null);
+  readonly descartando = signal(false);
   readonly puedePreparar = computed(
     () =>
       this.auth.autenticado() &&
@@ -176,6 +232,7 @@ export class VistaLocal implements OnDestroy {
   private revision = 0;
   private revisionPreparacion = 0;
   private destruida = false;
+  private cambios?: { unsubscribe(): void };
   private identidadRemota: string | null | undefined;
   private readonly liberar = this.acceso.alInvalidar(() => void this.actualizar());
 
@@ -234,26 +291,91 @@ export class VistaLocal implements OnDestroy {
 
   private async actualizar(): Promise<void> {
     const revision = ++this.revision;
+    this.cambios?.unsubscribe();
     this.propietario.set(null);
     this.capturas.set([]);
     this.preparada.set(null);
+    this.descarte.set(null);
     this.error.set('');
     // Dejar que el emisor síncrono registre primero su escritura durable pendiente.
     await Promise.resolve();
     try {
       const propietario = await this.acceso.propietarioActual();
       if (!propietario || revision !== this.revision) return;
-      const capturas = await this.acceso.inspecciones();
-      const preparada = await this.acceso.consultarPropias(propietario, () =>
-        this.db.preparaciones.get(propietario),
-      );
-      const propietarioVigente = await this.acceso.propietarioActual();
-      if (revision !== this.revision || propietarioVigente !== propietario) return;
-      this.propietario.set(propietario);
-      this.capturas.set(capturas);
-      this.preparada.set(preparada ?? null);
+      this.cambios = liveQuery(async () => {
+        const capturas = await this.acceso.inspecciones();
+        const preparada = await this.acceso.consultarPropias(propietario, () =>
+          this.db.preparaciones.get(propietario),
+        );
+        return {
+          capturas,
+          preparada,
+          vigente: (await this.acceso.propietarioActual()) === propietario,
+        };
+      }).subscribe({
+        next: ({ capturas, preparada, vigente }) => {
+          if (revision !== this.revision) return;
+          this.propietario.set(vigente ? propietario : null);
+          this.capturas.set(vigente ? capturas : []);
+          this.preparada.set(vigente ? (preparada ?? null) : null);
+          if (!vigente) this.descarte.set(null);
+        },
+        error: () => {
+          if (revision !== this.revision) return;
+          this.propietario.set(null);
+          this.capturas.set([]);
+          this.preparada.set(null);
+          this.descarte.set(null);
+          this.error.set(this.t.errorConsulta);
+        },
+      });
     } catch {
       if (revision === this.revision) this.error.set(this.t.errorConsulta);
+    }
+  }
+
+  async solicitarDescarte(i: InspeccionLocal): Promise<void> {
+    if (this.descartando()) return;
+    const revision = this.revision;
+    this.error.set('');
+    try {
+      const operaciones = await this.acceso.consultarPropias(i.propietario_id, () =>
+        this.local.operaciones(i.propietario_id, i.id),
+      );
+      if (revision !== this.revision) return;
+      if (!operaciones) throw new Error(TEXTOS.offline.descarteSinAcceso);
+      this.descarte.set({
+        id: i.id,
+        version_local: i.version_local,
+        pendientes: operaciones.filter((o) => o.estado !== 'confirmada').length,
+        operaciones: operaciones.map((o) => o.id),
+      });
+    } catch (error) {
+      if (revision === this.revision)
+        this.error.set(error instanceof Error ? error.message : this.t.errorDescarte);
+    }
+  }
+
+  async confirmarDescarte(): Promise<void> {
+    const seleccion = this.descarte();
+    if (!seleccion || this.descartando()) return;
+    const revision = this.revision;
+    this.descartando.set(true);
+    try {
+      await this.acceso.descartarInspeccion(
+        seleccion.id,
+        seleccion.version_local,
+        seleccion.operaciones,
+      );
+      if (revision === this.revision) {
+        this.descarte.set(null);
+        this.error.set('');
+      }
+    } catch (error) {
+      if (revision === this.revision)
+        this.error.set(error instanceof Error ? error.message : this.t.errorDescarte);
+    } finally {
+      this.descartando.set(false);
     }
   }
 
@@ -350,6 +472,7 @@ export class VistaLocal implements OnDestroy {
 
   ngOnDestroy(): void {
     this.destruida = true;
+    this.cambios?.unsubscribe();
     this.liberar();
     this.revision++;
     this.limpiarPreparacion();
