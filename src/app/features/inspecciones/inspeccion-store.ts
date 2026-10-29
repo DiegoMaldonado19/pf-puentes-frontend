@@ -364,7 +364,7 @@ export class InspeccionStore {
   private archivoRemoto(archivo: ArchivoDTO): ArchivoLocal {
     return {
       id: archivo.id,
-      tipo: archivo.tipo,
+      tipo: archivo.tipo === 'PDF' ? 'DOCUMENTO' : 'FOTO',
       nombre: archivo.id.slice(0, 8),
       miniaturaUrl: archivo.url_miniatura,
       url: archivo.url,

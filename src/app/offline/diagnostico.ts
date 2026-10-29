@@ -1,5 +1,7 @@
+import { DatePipe } from '@angular/common';
 import { Component, computed, effect, inject, input, signal } from '@angular/core';
 import { liveQuery } from 'dexie';
+import { CLASE_ALERTA, CLASE_BOTON, CLASE_BOTON_SECUNDARIO } from '../features/auth/formulario';
 import { TEXTOS } from '../shared/textos';
 import { AccesoLocal } from './acceso-local';
 import { BaseLocal } from './base-local';
@@ -9,47 +11,59 @@ import { MotorSync } from './motor-sync';
 import { IndicadorOffline } from './indicador';
 
 @Component({
-  imports: [IndicadorOffline],
+  imports: [DatePipe, IndicadorOffline],
   selector: 'app-diagnostico-offline',
   template: `
-    <section aria-labelledby="diagnostico-offline-titulo">
-      <h2 id="diagnostico-offline-titulo">{{ t.diagnostico }}</h2>
-      <app-indicador-offline [operaciones]="operaciones()" />
-      <p role="status" aria-live="polite">
-        {{ t.estadoAlmacenamiento }}: {{ almacenamiento().mensaje }}
-      </p>
-      <p>
-        {{ t.ocupacion }}: {{ almacenamiento().uso ?? t.desconocido }} · {{ t.cuota }}:
-        {{ almacenamiento().cuota ?? t.desconocido }}
-      </p>
-      <p>{{ t.ultimoIntento }}: {{ ultimoIntento() ?? t.ninguna }}</p>
-      @if (!motor()) {
-        <p>{{ t.soloLectura }}</p>
-      }
+    <section
+      class="mt-6 rounded border border-slate-300 p-4"
+      aria-labelledby="diagnostico-offline-titulo"
+    >
+      <h2 id="diagnostico-offline-titulo" class="text-lg font-semibold">{{ t.diagnostico }}</h2>
+      <div class="mt-2 grid gap-1 text-sm text-slate-700">
+        <app-indicador-offline [operaciones]="operaciones()" />
+        <p role="status" aria-live="polite">
+          {{ t.estadoAlmacenamiento }}: {{ almacenamiento().mensaje }}
+        </p>
+        <p>
+          {{ t.ocupacion }}: {{ almacenamiento().uso ?? t.desconocido }} · {{ t.cuota }}:
+          {{ almacenamiento().cuota ?? t.desconocido }}
+        </p>
+        <p>
+          {{ t.ultimoIntento }}:
+          {{ ultimoIntento() ? (ultimoIntento() | date: 'dd/MM/yyyy HH:mm:ss') : t.ninguna }}
+        </p>
+        @if (!motor()) {
+          <p>{{ t.soloLectura }}</p>
+        }
+      </div>
       @if (motor(); as motor) {
         @if (propietario()) {
           @if (motor.pausa(); as pausa) {
-            <p role="alert">{{ pausa }}</p>
+            <p role="alert" [class]="claseAlerta">{{ pausa }}</p>
           }
-          <button type="button" (click)="reintentar()">Sincronizar ahora</button>
+          <button type="button" class="mt-3" [class]="claseBoton" (click)="reintentar()">
+            Sincronizar ahora
+          </button>
         }
       }
       @if (error()) {
-        <p role="alert">{{ error() }}</p>
+        <p role="alert" [class]="claseAlerta">{{ error() }}</p>
       }
-      <ul>
+      <ul class="mt-3 grid gap-2">
         @for (o of operaciones(); track o.id) {
-          <li>
+          <li class="rounded bg-slate-50 p-2 font-mono text-xs break-all text-slate-800">
             {{ o.tipo }} · {{ o.entidad_id }} · {{ t.estado }}: {{ o.estado }} · {{ t.intentos }}:
             {{ o.intentos }} · {{ t.siguiente }}: {{ o.proximo_intento }} · {{ t.dependencias }}:
             {{ bloqueadas(o) }}
             @if (o.error) {
-              <p role="alert">{{ o.error }}</p>
+              <p role="alert" class="mt-1 font-sans text-sm text-red-800">{{ o.error }}</p>
             }
             @if (motor(); as motor) {
               @if (propietario() && o.estado !== 'confirmada') {
                 <button
                   type="button"
+                  class="mt-2 font-sans"
+                  [class]="claseSecundario"
                   [disabled]="o.estado === 'en_proceso'"
                   (click)="reintentar(o.id)"
                 >
@@ -70,6 +84,9 @@ export class DiagnosticoOffline {
   readonly motor = input<MotorSync>();
   readonly aislado = input(false);
   readonly t = TEXTOS.offline;
+  protected readonly claseBoton = CLASE_BOTON;
+  protected readonly claseSecundario = CLASE_BOTON_SECUNDARIO;
+  protected readonly claseAlerta = CLASE_ALERTA;
   readonly operaciones = signal<Operacion[]>([]);
   readonly error = signal('');
   readonly almacenamiento = signal<EstadoAlmacenamiento>({

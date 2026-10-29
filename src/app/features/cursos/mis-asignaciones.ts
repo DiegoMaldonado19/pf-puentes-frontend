@@ -1,5 +1,6 @@
 import { DatePipe } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { TEXTOS } from '../../shared/textos';
 import { CursosApi, mensajeErrorCursos } from './cursos-api';
@@ -9,7 +10,7 @@ import { vigilarSesionCursos } from './sesion-cursos';
 
 @Component({
   selector: 'app-mis-asignaciones',
-  imports: [DatePipe, PaginacionCursos],
+  imports: [DatePipe, RouterLink, PaginacionCursos],
   template: `
     <section [attr.aria-busy]="ocupado()">
       <h1>{{ textos.misAsignaciones }}</h1>
@@ -41,6 +42,12 @@ import { vigilarSesionCursos } from './sesion-cursos';
                   <dd>{{ asignacion.creado_en | date: 'dd/MM/yyyy' : '-0600' }}</dd>
                 </div>
               </dl>
+              <a
+                class="accion-enlace"
+                [routerLink]="['/inspecciones/nueva', asignacion.puente_id]"
+                [attr.aria-label]="textos.iniciarInspeccion + ': ' + asignacion.puente_nombre"
+                >{{ textos.iniciarInspeccion }} →</a
+              >
             </li>
           } @empty {
             <li>{{ textos.sinAsignaciones }}</li>

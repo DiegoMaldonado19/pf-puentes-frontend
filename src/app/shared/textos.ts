@@ -56,6 +56,11 @@ export const TEXTOS = {
     confirmarDecision: 'Confirmar veredicto',
     guardando: 'Guardando…',
     decisionConfirmada: 'Veredicto confirmado',
+    veredictos: {
+      APROBADA: 'Aprobada y publicada',
+      CAMBIOS_SOLICITADOS: 'Cambios solicitados',
+      RECHAZADA: 'Rechazada',
+    },
     errorDecision:
       'No se pudo confirmar la operación. Verifica la observación, la referencia y la configuración de cálculo; actualiza para comprobar el estado antes de repetirla.',
     titulo: 'Revisión académica',
@@ -112,6 +117,7 @@ export const TEXTOS = {
     navegacion: 'Navegación principal',
     misCursos: 'Mis cursos',
     misAsignaciones: 'Mis puentes asignados',
+    iniciarInspeccion: 'Iniciar inspección',
     nuevo: 'Crear curso',
     editar: 'Editar curso',
     nombre: 'Nombre del curso',
@@ -153,9 +159,10 @@ export const TEXTOS = {
     pendiente: 'Pendiente de activación',
     cursoCerrado:
       'El curso no está vigente. Puedes consultar su historial, pero no inscribir ni asignar.',
-    activacionAviso: 'Las cuentas pendientes necesitan el servicio de activación de Usuarios (P2).',
+    activacionAviso:
+      'Al inscribir a un estudiante con cuenta pendiente y correo verificado, su cuenta queda activa.',
     activacionPendiente:
-      'La activación de estudiantes aún no está integrada. No se creó la inscripción.',
+      'No se pudo activar la cuenta del estudiante. No se creó la inscripción; inténtalo más tarde.',
     acceso: 'Acceso a cursos',
     irAAcceso: 'Ir al acceso de Usuarios',
     sesionRequerida: 'Inicia sesión con una cuenta habilitada para esta sección.',
@@ -476,7 +483,7 @@ export const TEXTOS = {
       consulta: 'Juegos guardados de esta versión',
     },
     campos: {
-      abrir: 'Consultar campos de daño del formulario',
+      abrir: 'Campos de daño y nuevo juego de pesos',
       cerrar: 'Ocultar campos de daño',
       titulo: 'Campos de daño disponibles para pesos',
       descripcion:
