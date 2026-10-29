@@ -1,6 +1,6 @@
 :host {
   display: block;
-  color: #0f172a;
+  color: var(--color-primary-dark);
   font-family: inherit;
 }
 section {
@@ -35,10 +35,10 @@ fieldset {
   min-width: 0;
   display: grid;
   gap: 1rem;
-  border: 1px solid #cbd5e1;
+  border: 1px solid var(--color-gray-light);
   border-radius: 0.75rem;
   padding: 1.25rem;
-  background: #fff;
+  background: var(--color-surface);
 }
 legend {
   padding: 0 0.5rem;
@@ -49,14 +49,14 @@ select {
   display: block;
   width: 100%;
   margin-top: 0.375rem;
-  border: 1px solid #64748b;
+  border: 1px solid var(--color-gray);
   border-radius: 0.375rem;
-  background: #fff;
-  color: #0f172a;
+  background: var(--color-surface);
+  color: var(--color-primary-dark);
 }
 input[type='checkbox'] {
   min-height: auto;
-  accent-color: #0f172a;
+  accent-color: var(--color-primary-dark);
 }
 select {
   max-width: 100%;
@@ -69,51 +69,51 @@ button {
   padding: 0.5rem;
 }
 button {
-  color: #fff;
-  background: #1d4ed8;
-  border: 1px solid #1d4ed8;
+  color: var(--color-surface);
+  background: var(--color-primary);
+  border: 1px solid var(--color-primary);
   border-radius: 0.375rem;
   padding: 0.625rem 1rem;
   cursor: pointer;
 }
 button:hover:not(:disabled) {
-  background: #1e40af;
+  background: var(--color-primary-dark);
 }
 button:disabled {
-  color: #374151;
-  background: #e5e7eb;
-  border-color: #6b7280;
+  color: var(--color-primary-dark);
+  background: var(--color-canvas);
+  border-color: var(--color-gray);
   cursor: default;
 }
 a {
-  color: #1e40af;
+  color: var(--color-primary);
   text-decoration: underline;
   text-underline-offset: 3px;
 }
 :focus-visible {
-  outline: 3px solid #2563eb;
+  outline: 3px solid var(--color-primary);
   outline-offset: 3px;
 }
 li {
   margin: 0.75rem 0;
   overflow-wrap: anywhere;
   padding: 1rem;
-  border: 1px solid #cbd5e1;
+  border: 1px solid var(--color-gray-light);
   border-radius: 0.5rem;
-  background: #f8fafc;
+  background: var(--color-canvas);
 }
 li button {
   margin: 0.5rem;
 }
 [role='alert'] {
-  color: #991b1b;
-  background: #fef2f2;
-  border-left: 4px solid #b91c1c;
+  color: var(--color-danger);
+  background: color-mix(in srgb, var(--color-danger) 10%, white);
+  border-left: 4px solid var(--color-danger);
   padding: 0.75rem 1rem;
 }
 [role='status'] {
-  color: #334155;
-  background: #f1f5f9;
+  color: var(--color-primary-dark);
+  background: var(--color-canvas);
   padding: 0.75rem 1rem;
   border-radius: 0.375rem;
 }
@@ -132,7 +132,7 @@ li button {
   margin-top: 0;
 }
 .descripcion {
-  color: #475569;
+  color: var(--color-primary-light);
   line-height: 1.6;
   max-width: 72ch;
 }
@@ -146,9 +146,9 @@ li button {
 .bloque-curso {
   min-width: 0;
   padding: 1.5rem;
-  border: 1px solid #cbd5e1;
+  border: 1px solid var(--color-gray-light);
   border-radius: 0.75rem;
-  background: #fff;
+  background: var(--color-surface);
 }
 .panel-creacion h2,
 .panel-listado h2 {
@@ -169,7 +169,7 @@ li button {
 .tarjetas-cursos > li {
   margin: 0;
   padding: 1.25rem;
-  background: #fff;
+  background: var(--color-surface);
 }
 .tarjetas-cursos h3 {
   font-size: 1.125rem;
@@ -180,22 +180,22 @@ li button {
   margin-top: 0;
 }
 .resumen-cursos {
-  color: #475569;
-  border-top: 1px solid #e2e8f0;
+  color: var(--color-primary-light);
+  border-top: 1px solid var(--color-gray-light);
   padding-top: 1rem;
 }
 .insignia {
   display: inline-block;
   padding: 0.25rem 0.75rem;
   border-radius: 999px;
-  background: #f1f5f9;
-  color: #334155;
+  background: var(--color-canvas);
+  color: var(--color-primary-dark);
   font-size: 0.875rem;
   font-weight: 600;
 }
 .insignia-vigente {
-  background: #dcfce7;
-  color: #166534;
+  background: color-mix(in srgb, var(--color-success) 12%, white);
+  color: var(--color-success);
 }
 dl {
   display: flex;
@@ -204,7 +204,7 @@ dl {
   margin: 1rem 0;
 }
 dt {
-  color: #475569;
+  color: var(--color-primary-light);
   font-size: 0.875rem;
 }
 dd {
@@ -219,24 +219,24 @@ dd {
   font-weight: 600;
 }
 button.secundario {
-  background: #fff;
-  color: #1e40af;
+  background: var(--color-surface);
+  color: var(--color-primary);
 }
 button.secundario:hover:not(:disabled) {
-  background: #eff6ff;
+  background: color-mix(in srgb, var(--color-primary) 8%, white);
 }
 .estado-vacio {
   border-style: dashed;
   text-align: center;
-  color: #475569;
+  color: var(--color-primary-light);
 }
 .panel-asignaciones {
   margin-top: 2rem;
   padding-top: 1rem;
-  border-top: 1px solid #cbd5e1;
+  border-top: 1px solid var(--color-gray-light);
 }
 .codigo-puente {
-  color: #475569;
+  color: var(--color-primary-light);
   font-family: monospace;
 }
 @media (min-width: 960px) {

@@ -23,21 +23,21 @@
 }
 
 .estado[data-estado='BUENO'] {
-  color: #166534;
-  background: #dcfce7;
+  color: var(--color-success);
+  background: color-mix(in srgb, var(--color-success) 12%, white);
 }
 
 .estado[data-estado='REGULAR'] {
-  color: #713f12;
-  background: #fef9c3;
+  color: var(--color-primary-dark);
+  background: var(--color-accent-peach);
 }
 
 .estado[data-estado='MALO'] {
-  color: #991b1b;
-  background: #fee2e2;
+  color: var(--color-danger);
+  background: color-mix(in srgb, var(--color-danger) 12%, white);
 }
 
 .estado[data-estado='SIN_EVALUAR'] {
-  color: #374151;
-  background: #f3f4f6;
+  color: var(--color-primary-dark);
+  background: var(--color-canvas);
 }

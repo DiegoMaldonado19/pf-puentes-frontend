@@ -1,0 +1,15 @@
+/* Fase 3. El lienzo ya no repinta utilidades ajenas: cada pantalla usa el kit. */
+
+.hvc-canvas:has(.hvc-auth) {
+  padding: 0;
+}
+
+.hvc-profile {
+  width: min(100% - 2rem, 36rem);
+  margin: var(--space-6) auto;
+  border: var(--border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+  padding: var(--space-6);
+}

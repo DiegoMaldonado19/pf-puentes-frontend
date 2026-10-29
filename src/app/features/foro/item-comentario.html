@@ -6,7 +6,7 @@
     <textarea
       [id]="'edicion-' + comentario().id"
       rows="3"
-      class="w-full rounded border border-slate-400 bg-white p-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700 text-sm"
+      class="hvc-input w-full"
       [value]="borradorEdicion()"
       (input)="cambioBorrador.emit($any($event.target).value)"
     ></textarea>
@@ -19,14 +19,14 @@
     <div class="mt-1 flex gap-3 text-sm">
       <button
         type="submit"
-        class="rounded bg-blue-700 px-3 py-1 font-medium text-white hover:bg-blue-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-900 disabled:opacity-50"
+        class="btn-hvc-primary"
         [disabled]="enCurso('editar:' + comentario().id)"
       >
         {{ textos.guardar }}
       </button>
       <button
         type="button"
-        class="underline"
+        class="hvc-link"
         [disabled]="enCurso('editar:' + comentario().id)"
         (click)="cancelarEdicion.emit()"
       >
@@ -50,7 +50,7 @@
   @if (esRaiz()) {
     <button
       type="button"
-      class="text-blue-800 underline"
+      class="hvc-link"
       [attr.aria-expanded]="respuestasAbiertas()"
       (click)="alternarRespuestas.emit()"
     >
@@ -60,7 +60,7 @@
   @if (puedeResponder()) {
     <button
       type="button"
-      class="rounded border border-blue-700 px-3 py-1 font-medium text-blue-800 hover:bg-blue-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700 disabled:opacity-50"
+      class="btn-hvc-secondary"
       [disabled]="enCurso('responder:' + comentario().id)"
       (click)="responder.emit()"
       aria-haspopup="dialog"
@@ -71,7 +71,7 @@
   @if (puedeEditar()) {
     <button
       type="button"
-      class="text-slate-700 underline disabled:opacity-50"
+      class="text-muted"
       [disabled]="enCurso('editar:' + comentario().id)"
       (click)="iniciarEdicion.emit()"
     >
@@ -91,7 +91,7 @@
   @if (servicio.puedeModerar()) {
     <button
       type="button"
-      class="text-slate-700 underline disabled:opacity-50"
+      class="text-muted"
       [disabled]="enCurso('ocultar:' + comentario().id)"
       (click)="ocultar.emit()"
     >

@@ -14,12 +14,9 @@ import { IndicadorOffline } from './indicador';
   imports: [DatePipe, IndicadorOffline],
   selector: 'app-diagnostico-offline',
   template: `
-    <section
-      class="mt-6 rounded border border-slate-300 p-4"
-      aria-labelledby="diagnostico-offline-titulo"
-    >
+    <section class="hvc-card mt-6" aria-labelledby="diagnostico-offline-titulo">
       <h2 id="diagnostico-offline-titulo" class="text-lg font-semibold">{{ t.diagnostico }}</h2>
-      <div class="mt-2 grid gap-1 text-sm text-slate-700">
+      <div class="text-muted mt-2 grid gap-1">
         <app-indicador-offline [operaciones]="operaciones()" />
         <p role="status" aria-live="polite">
           {{ t.estadoAlmacenamiento }}: {{ almacenamiento().mensaje }}
@@ -56,7 +53,7 @@ import { IndicadorOffline } from './indicador';
             {{ o.intentos }} · {{ t.siguiente }}: {{ o.proximo_intento }} · {{ t.dependencias }}:
             {{ bloqueadas(o) }}
             @if (o.error) {
-              <p role="alert" class="mt-1 font-sans text-sm text-red-800">{{ o.error }}</p>
+              <p role="alert" class="hvc-error mt-1 font-sans">{{ o.error }}</p>
             }
             @if (motor(); as motor) {
               @if (propietario() && o.estado !== 'confirmada') {

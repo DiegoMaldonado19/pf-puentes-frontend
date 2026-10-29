@@ -12,13 +12,13 @@ import { CicloRevision, PaginaSeguimiento, RevisionApi } from './revision-api';
   template: `
     <section class="my-6" [attr.aria-label]="t.historial" [attr.aria-busy]="ocupado()">
       <h2 class="my-4 text-xl font-semibold">{{ t.historial }}</h2>
-      <p class="text-slate-600">{{ t.historialDescripcion }}</p>
+      <p class="text-muted">{{ t.historialDescripcion }}</p>
       @if (error()) {
-        <p role="alert" class="my-3 rounded bg-red-50 p-3 text-red-800">{{ error() }}</p>
+        <p role="alert" class="hvc-alert my-3">{{ error() }}</p>
       }
       <button
         type="button"
-        class="my-3 min-h-11 rounded border border-slate-400 px-3"
+        class="hvc-input my-3"
         [disabled]="ocupado()"
         (click)="cargar(pagina()?.number ?? 0)"
       >
@@ -27,9 +27,9 @@ import { CicloRevision, PaginaSeguimiento, RevisionApi } from './revision-api';
       @if (pagina(); as datos) {
         <ol class="grid gap-4">
           @for (ciclo of datos.content; track ciclo.id) {
-            <li class="rounded border border-slate-300 p-4">
-              <h3 class="font-semibold">{{ ciclo.veredicto || t.enRevision }}</h3>
-              <p class="break-all text-sm text-slate-600">
+            <li class="hvc-card">
+              <h3 class="text-h3">{{ ciclo.veredicto || t.enRevision }}</h3>
+              <p class="text-muted break-all">
                 {{ t.ciclo }}: {{ ciclo.id }} ·
                 {{ ciclo.creado_en | date: 'dd/MM/yyyy HH:mm' : '-0600' }}
               </p>
@@ -48,7 +48,7 @@ import { CicloRevision, PaginaSeguimiento, RevisionApi } from './revision-api';
                       puedeResolver() && ciclo.estado === 'BORRADOR' && ciclo.emitida_en
                     ) {
                       <button
-                        class="mt-2 min-h-11 rounded bg-blue-700 px-3 text-white disabled:opacity-50"
+                        class="btn-hvc-primary mt-2"
                         type="button"
                         [disabled]="ocupado()"
                         (click)="resolver(observacion.id)"
@@ -56,7 +56,7 @@ import { CicloRevision, PaginaSeguimiento, RevisionApi } from './revision-api';
                         {{ t.resolver }}
                       </button>
                     } @else {
-                      <p class="text-sm text-slate-600">{{ t.pendiente }}</p>
+                      <p class="text-muted">{{ t.pendiente }}</p>
                     }
                   </li>
                 }

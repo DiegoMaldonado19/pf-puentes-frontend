@@ -1,8 +1,8 @@
 .panel-ic-preliminar {
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--color-gray-light);
   border-radius: 8px;
   padding: 1rem;
-  background-color: #f9fafb;
+  background-color: var(--color-canvas);
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
@@ -10,7 +10,7 @@
 }
 
 .panel-ic-preliminar.preliminar {
-  border-left: 4px solid #f59e0b;
+  border-left: 4px solid var(--color-warning);
 }
 
 .cabecera {
@@ -28,18 +28,18 @@
   letter-spacing: 0.05em;
   padding: 0.25rem 0.6rem;
   border-radius: 9999px;
-  background-color: #e5e7eb;
-  color: #1f2937;
+  background-color: var(--color-canvas);
+  color: var(--color-primary-dark);
 }
 
 .insignia-preliminar {
-  background-color: #fef3c7;
-  color: #92400e;
+  background-color: var(--color-accent-peach);
+  color: var(--color-primary-dark);
 }
 
 .nota-oficialidad {
   font-size: 0.8125rem;
-  color: #6b7280;
+  color: var(--color-gray);
   font-style: italic;
 }
 
@@ -59,19 +59,19 @@
 .etiqueta {
   font-size: 0.875rem;
   font-weight: 600;
-  color: #374151;
+  color: var(--color-primary-dark);
   margin-right: 0.25rem;
 }
 
 .numero {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #111827;
+  color: var(--color-primary-dark);
 }
 
 .escala {
   font-size: 0.875rem;
-  color: #6b7280;
+  color: var(--color-gray);
 }
 
 .alerta {
@@ -84,17 +84,17 @@
 }
 
 .alerta-incompleto {
-  background-color: #fef2f2;
-  color: #991b1b;
-  border: 1px solid #fecaca;
+  background-color: color-mix(in srgb, var(--color-danger) 10%, white);
+  color: var(--color-danger);
+  border: 1px solid color-mix(in srgb, var(--color-danger) 25%, white);
 }
 
 .alerta-anulacion {
   flex-direction: column;
   align-items: flex-start;
-  background-color: #fef2f2;
-  color: #b91c1c;
-  border: 1px solid #fca5a5;
+  background-color: color-mix(in srgb, var(--color-danger) 10%, white);
+  color: var(--color-danger);
+  border: 1px solid color-mix(in srgb, var(--color-danger) 35%, white);
 }
 
 .lista-anulaciones {

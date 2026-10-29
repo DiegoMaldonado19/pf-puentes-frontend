@@ -1,5 +1,5 @@
 <section class="mx-auto max-w-6xl p-4" aria-labelledby="titulo-mantenimiento">
-  <h1 id="titulo-mantenimiento" class="text-2xl font-bold">{{ t.titulo }}</h1>
+  <h1 id="titulo-mantenimiento" class="text-h1">{{ t.titulo }}</h1>
   @if (!permitido()) {
     <p role="alert">{{ t.sinAcceso }}</p>
   } @else if (puente.isLoading()) {
@@ -14,7 +14,7 @@
       <header class="my-4">
         <h2 class="text-xl font-semibold">{{ p.nombre }}</h2>
         <p class="font-mono">{{ p.codigo }}</p>
-        <a [routerLink]="['/puentes', p.id]" class="text-blue-800 underline">{{ t.volver }}</a>
+        <a [routerLink]="['/puentes', p.id]" class="hvc-link">{{ t.volver }}</a>
       </header>
       <nav class="my-4 flex gap-3" [attr.aria-label]="t.navegacion">
         <button

@@ -10,14 +10,11 @@ import { RevisionApi } from './revision-api';
   selector: 'app-calificacion-revision',
   imports: [ReactiveFormsModule],
   template: `
-    <section
-      class="my-4 rounded border border-slate-300 p-4"
-      [attr.aria-label]="t.calificacionPrivada"
-    >
-      <h3 class="font-semibold">{{ t.calificacionPrivada }}</h3>
-      <p class="text-sm text-slate-600">{{ t.privacidadNota }}</p>
+    <section class="hvc-card my-4" [attr.aria-label]="t.calificacionPrivada">
+      <h3 class="text-h3">{{ t.calificacionPrivada }}</h3>
+      <p class="text-muted">{{ t.privacidadNota }}</p>
       @if (error()) {
-        <p role="status" class="my-2 text-slate-600">{{ error() }}</p>
+        <p role="status" class="text-muted my-2">{{ error() }}</p>
       }
       @if (visible()) {
         <p class="my-2">{{ nota() === null ? t.sinCalificacion : nota() + ' / 100' }}</p>
@@ -34,17 +31,13 @@ import { RevisionApi } from './revision-api';
                 max="100"
                 step="0.01"
                 [formControl]="control"
-                class="mt-1 block min-h-11 rounded border border-slate-400 p-2"
+                class="hvc-input mt-1 block"
             /></label>
-            <button
-              type="submit"
-              class="min-h-11 rounded bg-blue-700 px-4 py-2 text-white disabled:opacity-50"
-              [disabled]="ocupado() || control.invalid"
-            >
+            <button type="submit" class="btn-hvc-primary" [disabled]="ocupado() || control.invalid">
               {{ t.guardarNota }}
             </button>
           </form>
-          <p class="mt-2 text-sm text-slate-600">{{ t.notaOpcional }}</p>
+          <p class="text-muted mt-2">{{ t.notaOpcional }}</p>
         }
       }
     </section>

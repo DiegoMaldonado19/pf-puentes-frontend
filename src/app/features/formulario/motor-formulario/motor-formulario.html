@@ -2,7 +2,7 @@
   <!-- Aviso de Modo Lectura (RN-FRM-05) -->
   @if (modo === 'lectura') {
     <div
-      class="p-4 rounded-xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 text-blue-900 dark:text-blue-200 flex items-center gap-3"
+      class="hvc-note bg-blue-50 dark:bg-blue-950/40 dark:border-blue-800 dark:text-blue-200 flex items-center gap-3"
     >
       <svg
         class="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0"
@@ -17,7 +17,7 @@
           d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
         />
       </svg>
-      <span class="text-sm font-medium">
+      <span class="hvc-label">
         {{ textos.modoLecturaAviso.replace('{codigo}', esquema.title || 'SIECA') }}
       </span>
     </div>
@@ -63,7 +63,7 @@
               class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-gray-200 dark:border-gray-700"
             >
               <div>
-                <h2 class="text-xl font-bold text-gray-900 dark:text-white">
+                <h2 class="text-h2 dark:text-white">
                   {{ seccionActual.titulo }}
                 </h2>
                 @if (seccionActual.descripcion) {
@@ -117,7 +117,7 @@
                     <button
                       type="button"
                       (click)="agregarFilaArray(seccionActual.clave)"
-                      class="px-3.5 py-2 text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center gap-1.5 shadow-xs cursor-pointer self-start sm:self-auto"
+                      class="btn-hvc-primary flex items-center gap-1.5 self-start sm:self-auto"
                     >
                       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path
@@ -148,7 +148,7 @@
                       >
                         <div class="flex items-center gap-2.5">
                           <span
-                            class="w-7 h-7 rounded-full bg-blue-600 text-white font-black text-xs flex items-center justify-center shadow-xs"
+                            class="btn-hvc-primary w-7 h-7 font-black flex items-center justify-center"
                           >
                             {{ idx + 1 }}
                           </span>
@@ -274,7 +274,7 @@
                         class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pb-2.5 border-b border-gray-200 dark:border-gray-700"
                       >
                         <div class="flex items-center gap-2">
-                          <span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
+                          <span class="btn-hvc-primary w-2.5 h-2.5"></span>
                           <h3 class="text-base font-bold text-gray-900 dark:text-white">
                             {{ grupo.nombre }}
                           </h3>
@@ -494,7 +494,7 @@
                 type="button"
                 (click)="cambiarSeccion(seccionActiva + 1)"
                 [disabled]="seccionActiva === secciones.length - 1"
-                class="px-4 py-2 text-sm font-semibold rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed shadow-xs transition-colors cursor-pointer"
+                class="btn-hvc-primary"
               >
                 {{ textos.seccionSiguiente }} →
               </button>

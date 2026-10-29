@@ -26,12 +26,12 @@ export interface Coordenadas {
       #contenedor
       role="region"
       [attr.aria-label]="t.ubicacion"
-      class="h-64 w-full overflow-hidden rounded border border-slate-300 bg-slate-100"
+      class="hvc-card h-64 w-full overflow-hidden"
     ></div>
     @if (error()) {
-      <p role="status" class="mt-1 text-sm text-slate-700">{{ t.errorMapa }}</p>
+      <p role="status" class="text-muted mt-1">{{ t.errorMapa }}</p>
     } @else if (seleccionable()) {
-      <p class="mt-1 text-sm text-slate-700">{{ t.elegir }}</p>
+      <p class="text-muted mt-1">{{ t.elegir }}</p>
     }
   `,
 })

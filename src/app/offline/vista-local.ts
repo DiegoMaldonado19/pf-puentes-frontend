@@ -26,8 +26,8 @@ import { PreparacionLocal, ProgresoPreparacion, ResultadoPreparacion } from './p
   selector: 'app-vista-local',
   template: `
     <div class="mx-auto max-w-6xl p-4">
-      <h1 class="text-2xl font-bold">{{ t.titulo }}</h1>
-      <p class="mt-1 text-slate-700">
+      <h1 class="text-h1">{{ t.titulo }}</h1>
+      <p class="text-muted mt-1">
         Prepara tu salida con conexión. Las capturas, fotos y PDF se conservan aquí hasta
         sincronizar.
       </p>
@@ -39,9 +39,9 @@ import { PreparacionLocal, ProgresoPreparacion, ResultadoPreparacion } from './p
           <h2 id="puentes-preparados" class="text-lg font-semibold">Puentes preparados</h2>
           <div class="mt-3 grid gap-3 sm:grid-cols-2">
             @for (a of contextos(); track a.id) {
-              <article class="rounded border border-slate-300 p-4">
-                <h3 class="font-semibold">{{ a.puente_codigo }} · {{ a.puente_nombre }}</h3>
-                <p class="text-sm text-slate-700">{{ a.curso_nombre }}</p>
+              <article class="hvc-card">
+                <h3 class="text-h3">{{ a.puente_codigo }} · {{ a.puente_nombre }}</h3>
+                <p class="text-muted">{{ a.curso_nombre }}</p>
                 <button
                   type="button"
                   class="mt-3"
@@ -57,10 +57,7 @@ import { PreparacionLocal, ProgresoPreparacion, ResultadoPreparacion } from './p
         </section>
       }
       @if (puedePreparar()) {
-        <section
-          class="mt-6 rounded border border-slate-300 p-4"
-          aria-labelledby="preparacion-offline-titulo"
-        >
+        <section class="hvc-card mt-6" aria-labelledby="preparacion-offline-titulo">
           <h2 id="preparacion-offline-titulo" class="text-lg font-semibold">
             {{ t.tituloPreparacion }}
           </h2>
@@ -74,10 +71,10 @@ import { PreparacionLocal, ProgresoPreparacion, ResultadoPreparacion } from './p
             {{ t.prepararUsoSinConexion }}
           </button>
           @if (preparando()) {
-            <p role="status" class="mt-2 text-sm text-slate-700">{{ t.preparando }}</p>
+            <p role="status" class="text-muted mt-2">{{ t.preparando }}</p>
           }
           @if (progreso(); as avance) {
-            <p role="status" aria-live="polite" class="mt-2 text-sm text-slate-700">
+            <p role="status" aria-live="polite" class="text-muted mt-2">
               {{ t.proveedoresPreparacion[avance.proveedor] }}:
               {{ t.estadosPreparacion[avance.estado] }}
             </p>
@@ -90,7 +87,7 @@ import { PreparacionLocal, ProgresoPreparacion, ResultadoPreparacion } from './p
                   : t.resultadoPreparacionIncompleta
               }}
             </p>
-            <ul class="mt-2 list-inside list-disc text-sm text-slate-700">
+            <ul class="text-muted mt-2 list-inside list-disc">
               @for (proveedor of proveedores; track proveedor) {
                 <li>
                   {{ t.proveedoresPreparacion[proveedor] }}:
@@ -113,9 +110,9 @@ import { PreparacionLocal, ProgresoPreparacion, ResultadoPreparacion } from './p
         <p role="status" class="mt-6 rounded bg-slate-100 p-4">{{ t.sinCapturas }}</p>
       }
       @for (i of capturas(); track i.id) {
-        <section class="mt-4 rounded border border-slate-300 p-4">
-          <h2 class="font-semibold">{{ titulo(i) }}</h2>
-          <p class="text-sm text-slate-700">
+        <section class="hvc-card mt-4">
+          <h2 class="text-h2">{{ titulo(i) }}</h2>
+          <p class="text-muted">
             {{ estado(i) }} · versión {{ i.version_local }} ·
             {{ i.modificada_en | date: 'dd/MM/yyyy HH:mm' }}
           </p>

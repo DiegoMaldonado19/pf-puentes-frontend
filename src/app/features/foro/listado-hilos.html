@@ -1,12 +1,10 @@
 <section class="mx-auto max-w-5xl p-4 text-slate-900" aria-labelledby="titulo-foro-puente">
   <nav class="mb-4 flex flex-wrap gap-4 text-sm" [attr.aria-label]="textos.titulo">
-    <a routerLink="/foro" class="text-blue-800 underline">← {{ textos.volverForos }}</a>
-    <a [routerLink]="['/puentes', puenteId()]" class="text-blue-800 underline">{{
-      textos.verPuente
-    }}</a>
+    <a routerLink="/foro" class="hvc-link">← {{ textos.volverForos }}</a>
+    <a [routerLink]="['/puentes', puenteId()]" class="hvc-link">{{ textos.verPuente }}</a>
   </nav>
-  <h1 id="titulo-foro-puente" class="text-2xl font-bold">{{ textos.tituloListado }}</h1>
-  <p class="mt-2 mb-6 text-slate-700">
+  <h1 id="titulo-foro-puente" class="text-h1">{{ textos.tituloListado }}</h1>
+  <p class="text-muted mt-2 mb-6">
     {{ servicio.sesionActiva() ? textos.accesoParticipante : textos.accesoPublico }}
   </p>
 
@@ -15,12 +13,10 @@
   } @else {
     <div class="mt-4 flex flex-wrap items-center justify-between gap-4">
       <div class="flex flex-wrap items-center gap-2">
-        <label class="text-sm font-medium" for="filtro-categoria">{{
-          textos.filtroCategoria
-        }}</label>
+        <label class="hvc-label" for="filtro-categoria">{{ textos.filtroCategoria }}</label>
         <select
           id="filtro-categoria"
-          class="rounded border border-slate-400 bg-white px-2 py-1 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700"
+          class="hvc-input"
           [value]="filtro() ?? ''"
           (change)="alFiltrar($any($event.target).value)"
         >
@@ -35,7 +31,7 @@
         <button
           type="button"
           aria-haspopup="dialog"
-          class="rounded bg-blue-700 px-4 py-2 font-medium text-white hover:bg-blue-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-900"
+          class="btn-hvc-primary"
           (click)="abrirCreacion()"
         >
           {{ textos.crearHilo }}
@@ -47,7 +43,7 @@
           aria-labelledby="titulo-crear-hilo"
           (cancel)="cancelarCreacion($event)"
         >
-          <h2 id="titulo-crear-hilo" class="mb-4 text-xl font-bold">{{ textos.crearHilo }}</h2>
+          <h2 id="titulo-crear-hilo" class="text-h2 mb-4">{{ textos.crearHilo }}</h2>
           <form (submit)="publicar($event)" novalidate>
             <fieldset [disabled]="servicio.creandoHilo()">
               <div class="mb-3">
@@ -57,7 +53,7 @@
                 <input
                   id="hilo-titulo"
                   type="text"
-                  class="w-full rounded border border-slate-400 bg-white p-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700"
+                  class="hvc-input w-full"
                   [attr.maxlength]="limiteTitulo"
                   [value]="borradorTitulo()"
                   (input)="borradorTitulo.set($any($event.target).value)"
@@ -69,7 +65,7 @@
                 }}</label>
                 <select
                   id="hilo-categoria"
-                  class="w-full rounded border border-slate-400 bg-white p-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700"
+                  class="hvc-input w-full"
                   [value]="borradorCategoria()"
                   (change)="borradorCategoria.set($any($event.target).value)"
                 >
@@ -86,18 +82,10 @@
                 <p role="alert" class="mb-2 text-sm text-red-700">{{ errorServidor }}</p>
               }
               <div class="mt-5 flex flex-wrap justify-end gap-3">
-                <button
-                  type="button"
-                  class="rounded border border-slate-400 px-4 py-2 font-medium hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700 disabled:opacity-50"
-                  (click)="cerrarCreacion()"
-                >
+                <button type="button" class="btn-hvc-secondary" (click)="cerrarCreacion()">
                   {{ textos.cancelar }}
                 </button>
-                <button
-                  type="submit"
-                  class="rounded bg-blue-700 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-900 disabled:opacity-50"
-                  [disabled]="servicio.creandoHilo()"
-                >
+                <button type="submit" class="btn-hvc-primary" [disabled]="servicio.creandoHilo()">
                   {{ servicio.creandoHilo() ? textos.publicandoHilo : textos.publicarHilo }}
                 </button>
               </div>
@@ -108,11 +96,9 @@
     </div>
 
     @if (!servicio.sesionActiva()) {
-      <p class="mt-4 rounded border border-slate-300 bg-slate-100 p-3 text-sm text-slate-700">
+      <p class="text-muted mt-4">
         {{ textos.sinSesion }} ·
-        <a routerLink="/login" class="font-medium text-blue-800 underline">{{
-          textos.iniciarSesion
-        }}</a>
+        <a routerLink="/login" class="hvc-link">{{ textos.iniciarSesion }}</a>
       </p>
       @if (servicio.errorEscritura(); as errorSesion) {
         <p role="alert" class="mt-1 text-sm text-red-700">{{ errorSesion }}</p>
@@ -120,34 +106,31 @@
     }
 
     @if (lectura.cargandoHilos()) {
-      <p role="status" class="mt-4 text-sm text-slate-600">{{ textos.cargandoHilos }}</p>
+      <p role="status" class="text-muted mt-4">{{ textos.cargandoHilos }}</p>
     } @else if (lectura.errorHilos(); as errorHilos) {
       <div role="alert" class="mt-4 text-sm">
         <p class="text-red-700">{{ errorHilos }}</p>
-        <button type="button" class="mt-2 underline" (click)="reintentar()">
+        <button type="button" class="hvc-link mt-2" (click)="reintentar()">
           {{ textos.reintentar }}
         </button>
       </div>
     } @else if (lectura.hilos().length === 0) {
-      <p class="mt-4 text-sm text-slate-600">{{ textos.vacioHilos }}</p>
+      <p class="text-muted mt-4">{{ textos.vacioHilos }}</p>
     } @else {
       <ul class="mt-6 space-y-3" [attr.aria-label]="textos.tituloListado">
         @for (h of lectura.hilos(); track h.id) {
-          <li class="rounded border border-slate-300 bg-white p-4">
+          <li class="hvc-card">
             <div class="flex flex-wrap items-center gap-2">
-              <span class="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-800">
+              <span class="hvc-badge hvc-badge--accent bg-blue-50">
                 {{ textos.etiquetas[h.categoria] }}
               </span>
               @if (h.cerrado) {
-                <span class="rounded bg-slate-200 px-2 py-0.5 text-xs text-slate-700">
+                <span class="text-muted bg-slate-200">
                   {{ textos.hiloCerrado }}
                 </span>
               }
             </div>
-            <a
-              class="mt-1 block font-medium text-blue-800 underline"
-              [routerLink]="['/puentes', puenteId(), 'foro', h.id]"
-            >
+            <a class="hvc-link mt-1 block" [routerLink]="['/puentes', puenteId(), 'foro', h.id]">
               {{ h.titulo }}
             </a>
             <p class="mt-1 text-xs text-slate-500">

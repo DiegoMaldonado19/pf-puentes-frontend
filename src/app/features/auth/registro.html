@@ -1,96 +1,99 @@
-<section class="mx-auto max-w-md p-4" aria-labelledby="titulo-registro">
-  <h1 id="titulo-registro" class="text-2xl font-bold">{{ t.titulo }}</h1>
+<section class="hvc-auth" aria-labelledby="titulo-registro">
+  <div class="hvc-auth__card">
+    <img src="bridge.png" alt="" class="brand-logo brand-logo--login hvc-auth__marca" />
+    <h1 id="titulo-registro" class="text-h1">{{ t.titulo }}</h1>
 
-  @if (error()) {
-    <p role="alert" [class]="claseAlerta">{{ error() }}</p>
-  }
+    @if (error()) {
+      <p role="alert" [class]="claseAlerta">{{ error() }}</p>
+    }
 
-  @if (hecho()) {
-    <div role="status" [class]="claseHecho">
-      <p>{{ t.hecho }}</p>
-      <button
-        type="button"
-        class="mt-2 underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700"
-        [disabled]="reenviando()"
-        (click)="reenviar()"
-      >
-        {{ t.reenviar }}
-      </button>
-      @if (reenviado()) {
-        <p class="mt-2">{{ verificar.reenviado }}</p>
-      }
-    </div>
-  } @else {
-    <form class="mt-4 grid gap-4" [formGroup]="form" (ngSubmit)="enviar()" novalidate>
-      <div class="flex flex-col">
-        <label for="nombre" class="font-medium">{{ campos.nombre }}</label>
-        <input
-          id="nombre"
-          type="text"
-          formControlName="nombre"
-          autocomplete="name"
-          maxlength="150"
-          [class]="claseCampo"
-          [attr.aria-invalid]="campoInvalido('nombre')"
-          [attr.aria-describedby]="campoInvalido('nombre') ? 'error-nombre' : null"
-        />
-        @if (campoInvalido('nombre')) {
-          <p id="error-nombre" class="text-sm text-red-800">{{ mensaje('nombre') }}</p>
+    @if (hecho()) {
+      <div role="status" [class]="claseHecho">
+        <p>{{ t.hecho }}</p>
+        <button
+          type="button"
+          class="mt-2 underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700"
+          [disabled]="reenviando()"
+          (click)="reenviar()"
+        >
+          {{ t.reenviar }}
+        </button>
+        @if (reenviado()) {
+          <p class="mt-2">{{ verificar.reenviado }}</p>
         }
       </div>
-      <div class="flex flex-col">
-        <label for="correo" class="font-medium">{{ campos.correo }}</label>
-        <input
-          id="correo"
-          type="email"
-          formControlName="correo"
-          autocomplete="email"
-          maxlength="254"
-          [class]="claseCampo"
-          [attr.aria-invalid]="campoInvalido('correo')"
-          [attr.aria-describedby]="campoInvalido('correo') ? 'error-correo' : null"
-        />
-        @if (campoInvalido('correo')) {
-          <p id="error-correo" class="text-sm text-red-800">{{ mensaje('correo') }}</p>
-        }
-      </div>
-      <div class="flex flex-col">
-        <label for="contrasena" class="font-medium">{{ campos.contrasena }}</label>
-        <input
-          id="contrasena"
-          type="password"
-          formControlName="contrasena"
-          autocomplete="new-password"
-          [class]="claseCampo"
-          [attr.aria-invalid]="campoInvalido('contrasena')"
-          [attr.aria-describedby]="campoInvalido('contrasena') ? 'error-contrasena' : null"
-        />
-        @if (campoInvalido('contrasena')) {
-          <p id="error-contrasena" class="text-sm text-red-800">{{ mensaje('contrasena') }}</p>
-        }
-      </div>
-      <div class="flex flex-col">
-        <label for="confirmar" class="font-medium">{{ campos.confirmar }}</label>
-        <input
-          id="confirmar"
-          type="password"
-          formControlName="confirmar"
-          autocomplete="new-password"
-          [class]="claseCampo"
-          [attr.aria-invalid]="campoInvalido('confirmar')"
-          [attr.aria-describedby]="campoInvalido('confirmar') ? 'error-confirmar' : null"
-        />
-        @if (campoInvalido('confirmar')) {
-          <p id="error-confirmar" class="text-sm text-red-800">{{ mensaje('confirmar') }}</p>
-        }
-      </div>
-      <button type="submit" [class]="claseBoton" [disabled]="enviando()">
-        {{ enviando() ? t.enviando : t.accion }}
-      </button>
-    </form>
-  }
+    } @else {
+      <form class="mt-4 grid gap-4" [formGroup]="form" (ngSubmit)="enviar()" novalidate>
+        <div class="flex flex-col">
+          <label for="nombre" class="hvc-label">{{ campos.nombre }}</label>
+          <input
+            id="nombre"
+            type="text"
+            formControlName="nombre"
+            autocomplete="name"
+            maxlength="150"
+            [class]="claseCampo"
+            [attr.aria-invalid]="campoInvalido('nombre')"
+            [attr.aria-describedby]="campoInvalido('nombre') ? 'error-nombre' : null"
+          />
+          @if (campoInvalido('nombre')) {
+            <p id="error-nombre" class="hvc-error">{{ mensaje('nombre') }}</p>
+          }
+        </div>
+        <div class="flex flex-col">
+          <label for="correo" class="hvc-label">{{ campos.correo }}</label>
+          <input
+            id="correo"
+            type="email"
+            formControlName="correo"
+            autocomplete="email"
+            maxlength="254"
+            [class]="claseCampo"
+            [attr.aria-invalid]="campoInvalido('correo')"
+            [attr.aria-describedby]="campoInvalido('correo') ? 'error-correo' : null"
+          />
+          @if (campoInvalido('correo')) {
+            <p id="error-correo" class="hvc-error">{{ mensaje('correo') }}</p>
+          }
+        </div>
+        <div class="flex flex-col">
+          <label for="contrasena" class="hvc-label">{{ campos.contrasena }}</label>
+          <input
+            id="contrasena"
+            type="password"
+            formControlName="contrasena"
+            autocomplete="new-password"
+            [class]="claseCampo"
+            [attr.aria-invalid]="campoInvalido('contrasena')"
+            [attr.aria-describedby]="campoInvalido('contrasena') ? 'error-contrasena' : null"
+          />
+          @if (campoInvalido('contrasena')) {
+            <p id="error-contrasena" class="hvc-error">{{ mensaje('contrasena') }}</p>
+          }
+        </div>
+        <div class="flex flex-col">
+          <label for="confirmar" class="hvc-label">{{ campos.confirmar }}</label>
+          <input
+            id="confirmar"
+            type="password"
+            formControlName="confirmar"
+            autocomplete="new-password"
+            [class]="claseCampo"
+            [attr.aria-invalid]="campoInvalido('confirmar')"
+            [attr.aria-describedby]="campoInvalido('confirmar') ? 'error-confirmar' : null"
+          />
+          @if (campoInvalido('confirmar')) {
+            <p id="error-confirmar" class="hvc-error">{{ mensaje('confirmar') }}</p>
+          }
+        </div>
+        <button type="submit" [class]="claseBoton" [disabled]="enviando()">
+          {{ enviando() ? t.enviando : t.accion }}
+        </button>
+      </form>
+    }
 
-  <p class="mt-4">
-    <a routerLink="/login" [class]="claseEnlace">{{ t.yaTengoCuenta }}</a>
-  </p>
+    <p class="mt-4">
+      <a routerLink="/login" [class]="claseEnlace">{{ t.yaTengoCuenta }}</a>
+    </p>
+  </div>
 </section>
