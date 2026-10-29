@@ -23,6 +23,10 @@ export interface InspeccionLocal extends RegistroLocal {
   intencion_envio_en: string | null;
   estado_remoto: Json;
 }
+export function estadoCaptura(i: InspeccionLocal | null): string {
+  if (i?.estado_remoto) return 'Sincronizada';
+  return i?.intencion_envio_en ? 'Enviada: pendiente de subir' : 'Borrador local';
+}
 /** El consumidor declara el contexto; P4/P5 validarán el elemento real del daño. */
 export interface ContextoFoto {
   origen: 'general' | 'grupo_dano';

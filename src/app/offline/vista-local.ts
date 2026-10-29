@@ -1,7 +1,9 @@
+import { DatePipe } from '@angular/common';
 import { Component, computed, effect, inject, OnDestroy, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../core/auth/auth';
+import { CLASE_ALERTA, CLASE_BOTON, CLASE_ENLACE, CLASE_HECHO } from '../features/auth/formulario';
 import { EsquemaFormulario } from '../features/formulario/modelos';
 import { hoyGuatemala, ubicacionActual } from '../features/inspecciones/dispositivo';
 import {
@@ -14,91 +16,128 @@ import { TEXTOS } from '../shared/textos';
 import { AccesoLocal } from './acceso-local';
 import { BaseLocal } from './base-local';
 import { DiagnosticoOffline } from './diagnostico';
-import { InspeccionLocal, Json, PreparacionCompleta } from './modelos';
+import { estadoCaptura, InspeccionLocal, Json, PreparacionCompleta } from './modelos';
 import { MotorSync } from './motor-sync';
 import { PersistenciaOffline } from './persistencia';
 import { PreparacionLocal, ProgresoPreparacion, ResultadoPreparacion } from './preparacion';
 
 @Component({
-  imports: [RouterLink, DiagnosticoOffline],
+  imports: [RouterLink, DatePipe, DiagnosticoOffline],
   selector: 'app-vista-local',
   template: `
-    <h1>{{ t.titulo }}</h1>
-    <p>
-      Prepara tu salida con conexión. Las capturas, fotos y PDF se conservan aquí hasta sincronizar.
-    </p>
-    @if (error()) {
-      <p role="alert">{{ error() }}</p>
-    }
-    @if (preparada(); as salida) {
-      <section aria-labelledby="puentes-preparados">
-        <h2 id="puentes-preparados">Puentes preparados</h2>
-        @for (a of contextos(); track a.id) {
-          <article>
-            <h3>{{ a.puente_codigo }} · {{ a.puente_nombre }}</h3>
-            <p>{{ a.curso_nombre }}</p>
-            <button type="button" [disabled]="iniciando()" (click)="iniciar(a.id)">
-              Iniciar inspección sin conexión
-            </button>
-          </article>
-        }
-      </section>
-    }
-    @if (puedePreparar()) {
-      <section aria-labelledby="preparacion-offline-titulo">
-        <h2 id="preparacion-offline-titulo">{{ t.tituloPreparacion }}</h2>
-        <button type="button" [disabled]="preparando()" (click)="preparar()">
-          {{ t.prepararUsoSinConexion }}
-        </button>
-        @if (preparando()) {
-          <p role="status">{{ t.preparando }}</p>
-        }
-        @if (progreso(); as avance) {
-          <p role="status" aria-live="polite">
-            {{ t.proveedoresPreparacion[avance.proveedor] }}:
-            {{ t.estadosPreparacion[avance.estado] }}
-          </p>
-        }
-        @if (resultado(); as resultado) {
-          <p role="status">
-            {{
-              resultado.completa ? t.resultadoPreparacionCompleta : t.resultadoPreparacionIncompleta
-            }}
-          </p>
-          <ul>
-            @for (proveedor of proveedores; track proveedor) {
-              <li>
-                {{ t.proveedoresPreparacion[proveedor] }}:
-                {{ t.estadosPreparacion[resultado.proveedores[proveedor]] }}
-              </li>
+    <div class="mx-auto max-w-6xl p-4">
+      <h1 class="text-2xl font-bold">{{ t.titulo }}</h1>
+      <p class="mt-1 text-slate-700">
+        Prepara tu salida con conexión. Las capturas, fotos y PDF se conservan aquí hasta
+        sincronizar.
+      </p>
+      @if (error()) {
+        <p role="alert" [class]="claseAlerta">{{ error() }}</p>
+      }
+      @if (preparada(); as salida) {
+        <section class="mt-6" aria-labelledby="puentes-preparados">
+          <h2 id="puentes-preparados" class="text-lg font-semibold">Puentes preparados</h2>
+          <div class="mt-3 grid gap-3 sm:grid-cols-2">
+            @for (a of contextos(); track a.id) {
+              <article class="rounded border border-slate-300 p-4">
+                <h3 class="font-semibold">{{ a.puente_codigo }} · {{ a.puente_nombre }}</h3>
+                <p class="text-sm text-slate-700">{{ a.curso_nombre }}</p>
+                <button
+                  type="button"
+                  class="mt-3"
+                  [class]="claseBoton"
+                  [disabled]="iniciando()"
+                  (click)="iniciar(a.id)"
+                >
+                  Iniciar inspección sin conexión
+                </button>
+              </article>
             }
-          </ul>
-          @if (!resultado.completa) {
-            <p role="alert">{{ t.errorPreparacion }}</p>
+          </div>
+        </section>
+      }
+      @if (puedePreparar()) {
+        <section
+          class="mt-6 rounded border border-slate-300 p-4"
+          aria-labelledby="preparacion-offline-titulo"
+        >
+          <h2 id="preparacion-offline-titulo" class="text-lg font-semibold">
+            {{ t.tituloPreparacion }}
+          </h2>
+          <button
+            type="button"
+            class="mt-3"
+            [class]="claseBoton"
+            [disabled]="preparando()"
+            (click)="preparar()"
+          >
+            {{ t.prepararUsoSinConexion }}
+          </button>
+          @if (preparando()) {
+            <p role="status" class="mt-2 text-sm text-slate-700">{{ t.preparando }}</p>
           }
-        }
-        @if (errorPreparacion()) {
-          <p role="alert">{{ t.errorPreparacion }}</p>
-        }
-      </section>
-    }
-    @if (!propietario()) {
-      <p role="status">{{ t.sinAcceso }}</p>
-    } @else if (!capturas().length) {
-      <p role="status">{{ t.sinCapturas }}</p>
-    }
-    @for (i of capturas(); track i.id) {
-      <section>
-        <h2>{{ t.inspeccion }} {{ i.id }}</h2>
-        <a [routerLink]="['/offline/captura', i.id]">Abrir editor local</a>
-        <pre>{{ json(i.respuestas) }}</pre>
-      </section>
-    }
-    <app-diagnostico-offline [db]="db" [propietario]="propietario()" [motor]="motor" />
+          @if (progreso(); as avance) {
+            <p role="status" aria-live="polite" class="mt-2 text-sm text-slate-700">
+              {{ t.proveedoresPreparacion[avance.proveedor] }}:
+              {{ t.estadosPreparacion[avance.estado] }}
+            </p>
+          }
+          @if (resultado(); as resultado) {
+            <p role="status" [class]="resultado.completa ? claseHecho : claseAlerta">
+              {{
+                resultado.completa
+                  ? t.resultadoPreparacionCompleta
+                  : t.resultadoPreparacionIncompleta
+              }}
+            </p>
+            <ul class="mt-2 list-inside list-disc text-sm text-slate-700">
+              @for (proveedor of proveedores; track proveedor) {
+                <li>
+                  {{ t.proveedoresPreparacion[proveedor] }}:
+                  {{ t.estadosPreparacion[resultado.proveedores[proveedor]] }}
+                </li>
+              }
+            </ul>
+            @if (!resultado.completa) {
+              <p role="alert" [class]="claseAlerta">{{ t.errorPreparacion }}</p>
+            }
+          }
+          @if (errorPreparacion()) {
+            <p role="alert" [class]="claseAlerta">{{ t.errorPreparacion }}</p>
+          }
+        </section>
+      }
+      @if (!propietario()) {
+        <p role="status" class="mt-6 rounded bg-slate-100 p-4">{{ t.sinAcceso }}</p>
+      } @else if (!capturas().length) {
+        <p role="status" class="mt-6 rounded bg-slate-100 p-4">{{ t.sinCapturas }}</p>
+      }
+      @for (i of capturas(); track i.id) {
+        <section class="mt-4 rounded border border-slate-300 p-4">
+          <h2 class="font-semibold">{{ titulo(i) }}</h2>
+          <p class="text-sm text-slate-700">
+            {{ estado(i) }} · versión {{ i.version_local }} ·
+            {{ i.modificada_en | date: 'dd/MM/yyyy HH:mm' }}
+          </p>
+          <a
+            class="mt-2 inline-block"
+            [class]="claseEnlace"
+            [routerLink]="['/offline/captura', i.id]"
+            >Abrir editor local</a
+          >
+        </section>
+      }
+      <app-diagnostico-offline [db]="db" [propietario]="propietario()" [motor]="motor" />
+    </div>
   `,
 })
 export class VistaLocal implements OnDestroy {
   readonly t = TEXTOS.accesoLocal;
+  protected readonly claseBoton = CLASE_BOTON;
+  protected readonly claseAlerta = CLASE_ALERTA;
+  protected readonly claseHecho = CLASE_HECHO;
+  protected readonly claseEnlace = CLASE_ENLACE;
+  protected readonly estado = estadoCaptura;
   readonly db = inject(BaseLocal);
   readonly motor = inject(MotorSync, { optional: true }) ?? undefined;
   readonly preparada = signal<PreparacionCompleta | null>(null);
@@ -303,7 +342,11 @@ export class VistaLocal implements OnDestroy {
     }
   }
 
-  readonly json = JSON.stringify;
+  protected titulo(i: InspeccionLocal): string {
+    const id = (i.respuestas as { identificacion?: { codigo?: string; nombre?: string } } | null)
+      ?.identificacion;
+    return id?.codigo ? `${id.codigo} · ${id.nombre ?? ''}` : this.t.inspeccion;
+  }
 
   ngOnDestroy(): void {
     this.destruida = true;

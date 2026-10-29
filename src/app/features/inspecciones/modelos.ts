@@ -148,7 +148,8 @@ export type TipoArchivo = 'FOTO' | 'DOCUMENTO';
 
 export interface ArchivoDTO {
   readonly id: string;
-  readonly tipo: TipoArchivo;
+  /** Formato que detecta el servidor, no la categoría. */
+  readonly tipo: 'JPEG' | 'WEBP' | 'PDF';
   readonly elemento_ref: string | null;
   readonly latitud: number | null;
   readonly longitud: number | null;

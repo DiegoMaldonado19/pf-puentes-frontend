@@ -93,7 +93,7 @@ import { ModalPublicar } from './modal-publicar';
             [class.text-gray-600]="tabActiva !== 'preview'"
             [class.dark:text-gray-400]="tabActiva !== 'preview'"
           >
-            Vista Previa en Vivo (&lt;app-motor-formulario&gt;)
+            Vista Previa en Vivo
           </button>
         </div>
 
