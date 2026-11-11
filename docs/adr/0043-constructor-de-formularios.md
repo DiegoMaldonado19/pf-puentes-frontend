@@ -5,10 +5,12 @@
 - Trazabilidad: RN-FRM-03, RN-FRM-05, RN-FRM-07. Backend: [0068](../../../pf-puentes-backend/docs/adr/0068-esquema-base-y-composicion-de-campos-adicionales.md).
 
 ## Contexto
+
 El administrador editaba el JSON Schema completo. Un error de sintaxis o de estructura solo
 se veía al guardar, y el motor no distinguía los campos base de los adicionales.
 
 ## Decisión
+
 - **Base fija.** La pantalla lista las secciones del esquema base (`GET /formularios/base`).
   Las que no admiten campos aparecen con candado; las demás reciben campos nuevos.
 - **Campos adicionales.** El formulario "Añadir campo" pide sección, título, clave, tipo y
@@ -25,6 +27,7 @@ se veía al guardar, y el motor no distinguía los campos base de los adicionale
   `format: date` como selector de fecha.
 
 ## Consecuencias
+
 - La composición de la vista previa replica la del servidor solo para mostrarla; el servidor
   sigue siendo quien compone, valida y guarda.
 - Quedan pendientes el resumen de errores al pulsar Enviar en el motor (pestañas con contador

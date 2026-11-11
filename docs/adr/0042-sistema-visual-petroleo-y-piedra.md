@@ -5,12 +5,14 @@
 - Revisa: [0011](0011-componente-compartido-de-estado-del-puente.md) y el kit `hvc-*` existente.
 
 ## Contexto
+
 La interfaz usaba azul marino con naranja y tenía el chrome oscuro. El texto de las tarjetas
 dentro de la barra superior heredaba el color claro, y el texto secundario tenía poco
 contraste. Las pantallas fijaban colores de Tailwind (`text-slate-600`, `bg-emerald-50`, …),
 así que cualquier cambio de paleta exigía tocar muchos archivos.
 
 ## Decisión
+
 - **Tokens únicos.** Todo color sale de `src/styles.css`: primario petróleo (700/800/900 y
   tintes), neutros piedra (lienzo, superficie, bordes, textos) y estados (bueno, regular,
   malo, info, sin evaluar), cada uno con texto, tinte y sólido.
@@ -27,6 +29,7 @@ así que cualquier cambio de paleta exigía tocar muchos archivos.
   sistema operativo, así que se quitó `@custom-variant dark`.
 
 ## Consecuencias
+
 - Cambiar la paleta es editar una sola vez `styles.css`.
 - Los contrastes de texto sobre los tintes de estado superan 4.5:1. Los sólidos llevan texto
   blanco. Falta la auditoría automática con axe.
