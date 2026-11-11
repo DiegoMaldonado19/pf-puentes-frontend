@@ -57,6 +57,22 @@ describe('MotorFormularioComponent: envío con campos incompletos (B7)', () => {
     );
   });
 
+  it('tras intentar enviar, cada pestaña cuenta los campos que le faltan', () => {
+    const fixture = TestBed.createComponent(MotorFormularioComponent);
+    fixture.componentRef.setInput('esquema', esquema);
+    fixture.detectChanges();
+    const motor = fixture.componentInstance;
+    const pestanas = (fixture.nativeElement as HTMLElement).querySelectorAll('nav button');
+    expect(motor.contadorErrores('datos_generales')).toBe(1);
+    expect(pestanas[1]?.textContent).not.toContain('campos por completar');
+
+    motor.marcarTodoComoTocado();
+    fixture.detectChanges();
+
+    expect(pestanas[1]?.textContent).toContain('campos por completar en esta sección');
+    expect(pestanas[0]?.textContent).not.toContain('campos por completar');
+  });
+
   it('enfocarPrimerError muestra la sección del primer error y su campo', () => {
     const fixture = TestBed.createComponent(MotorFormularioComponent);
     fixture.componentRef.setInput('esquema', esquema);

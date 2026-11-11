@@ -105,6 +105,7 @@
           </button>
         } @else if (detalle().datos; as orden) {
           <p>{{ orden.descripcion }}</p>
+          <app-linea-estados-orden [estado]="orden.estado" />
           @if (puedeEditarOrden(orden)) {
             <button type="button" [disabled]="operacionPendiente()" (click)="editar.emit(orden)">
               {{ textosFormulario.editarBoton }}

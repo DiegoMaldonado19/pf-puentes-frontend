@@ -49,6 +49,13 @@
               }}<span class="sr-only"> {{ correcciones.observacionesSeccion }}</span></span
             >
           }
+          @let faltan = contadorErrores(seccion.clave);
+          @if (intentoEnvio && faltan > 0) {
+            <span
+              class="ml-2 inline-flex min-w-5 justify-center rounded-full bg-malo-tinte px-1.5 text-xs font-bold text-malo-texto"
+              >{{ faltan }}<span class="sr-only"> {{ textos.camposPorCompletar }}</span></span
+            >
+          }
         </button>
       }
     </nav>

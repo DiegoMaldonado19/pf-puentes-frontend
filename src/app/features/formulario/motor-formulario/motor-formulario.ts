@@ -111,8 +111,17 @@ export class MotorFormularioComponent implements OnInit, OnChanges, OnDestroy {
    * bloquea por la validez; el resumen y el salto al primer error lo resuelven.
    */
   marcarTodoComoTocado(): void {
+    this.intentoEnvio = true;
     this.formGroup.markAllAsTouched();
     this.cdr.markForCheck();
+  }
+
+  /** Tras intentar enviar, cada pestaña muestra cuántos campos le faltan (B7). */
+  intentoEnvio = false;
+
+  /** Campos de una sección que aún no cumplen. */
+  contadorErrores(seccionClave: string): number {
+    return this.camposConError().filter((e) => e.seccion === seccionClave).length;
   }
 
   /** Campos de secciones de objeto que no cumplen, con el título con que se muestran. */

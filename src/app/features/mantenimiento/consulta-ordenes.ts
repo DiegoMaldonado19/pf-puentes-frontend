@@ -18,6 +18,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { finalize } from 'rxjs';
 import { TEXTOS } from '../../shared/textos';
 import { AjustePrioridadOrden } from './ajuste-prioridad-orden';
+import { LineaEstadosOrden } from './linea-estados-orden';
 import { ProgramacionOrden } from './programacion-orden';
 import { SeguimientoRutinario } from './seguimiento-rutinario';
 import { DecisionConMotivoOrden } from './decision-con-motivo-orden';
@@ -43,6 +44,7 @@ interface EstadoConsulta<T> {
     AjustePrioridadOrden,
     ProgramacionOrden,
     SeguimientoRutinario,
+    LineaEstadosOrden,
   ],
   providers: [{ provide: LOCALE_ID, useValue: 'es-GT' }],
   templateUrl: './consulta-ordenes.html',

@@ -115,6 +115,11 @@ export const TEXTOS = {
     errorGuardar: 'No se pudo guardar la orden. Revise los datos e intente de nuevo.',
     soloTipoYDescripcion: 'En una orden abierta solo se corrigen el tipo y la descripción.',
   },
+  lineaEstadosOrden: {
+    titulo: 'Estado de la orden',
+    siguientes: 'Siguientes pasos válidos',
+    cerrada: 'Ninguno: la orden está cerrada.',
+  },
   mantenimientoGlobal: {
     titulo: 'Mantenimiento',
     descripcion: 'Órdenes de todos los puentes, con filtros por estado, tipo, prioridad y texto.',
@@ -1328,6 +1333,7 @@ export const TEXTOS = {
         'Esta inspección fue capturada con la versión {codigo}. Vista de solo lectura.',
       guardandoBorrador: 'Guardando datos en borrador local…',
       sinEsquema: 'No se ha cargado el esquema del formulario.',
+      camposPorCompletar: 'campos por completar en esta sección',
       seccionAnterior: 'Sección anterior',
       seccionSiguiente: 'Siguiente sección',
       resumenSeccion: 'Resumen de la sección',
