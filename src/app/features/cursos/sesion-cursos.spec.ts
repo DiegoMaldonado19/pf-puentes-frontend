@@ -15,7 +15,7 @@ import { routes } from '../../app.routes';
 import { TEXTOS } from '../../shared/textos';
 import { CursosApi } from './cursos-api';
 import { MisAsignaciones } from './mis-asignaciones';
-import { CursoDetalle } from './curso-detalle';
+import { CursoEstudiantes } from './curso-estudiantes';
 import { destinoCursos, proveerSesionCursos, SESION_CURSOS, SesionCursos } from './sesion-cursos';
 
 @Component({ template: 'Acceso de P2 (solo prueba)' })
@@ -152,26 +152,23 @@ describe('Integración P7 con el proveedor de sesión de P2', () => {
     },
   );
 
-  it('un rechazo de acceso en detalle limpia también formularios, curso y selección', async () => {
+  it('un rechazo de acceso en la sección de estudiantes limpia formularios y datos', async () => {
     preparar(docente);
     const api = {
       obtener: vi.fn(() => of({ id: 'curso', vigente: true })),
       inscripciones: () => of(pagina),
       estudiantes: () => of(pagina),
-      puentes: () => of(pagina),
-      actualizar: () => throwError(() => new HttpErrorResponse({ status: 403 })),
+      inscribir: () => throwError(() => new HttpErrorResponse({ status: 403 })),
     };
     TestBed.overrideProvider(CursosApi, { useValue: api });
     const harness = await RouterTestingHarness.create();
-    const vista = await harness.navigateByUrl('/cursos/curso', CursoDetalle);
+    const vista = await harness.navigateByUrl('/cursos/curso/estudiantes', CursoEstudiantes);
     vista.inscripcion.controls.estudiante.setValue('alumno');
-    vista.asignacion.controls.puente.setValue('puente');
-    await vista.guardar({ nombre: 'Curso', anio: 2026, semestre: 2, vigente: true });
+    await vista.inscribir();
     expect(vista.curso()).toBeNull();
     expect(vista.inscritos()).toBeNull();
-    expect(vista.seleccionada()).toBeNull();
+    expect(vista.estudiantes()).toBeNull();
     expect(vista.inscripcion.controls.estudiante.value).toBe('');
-    expect(vista.asignacion.controls.puente.value).toBe('');
   });
 });
 

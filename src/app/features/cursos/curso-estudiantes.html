@@ -1,0 +1,209 @@
+<section [attr.aria-busy]="ocupado()">
+  <a routerLink="/cursos">{{ textos.volver }}</a>
+  @if (error() && !modalInscripcionAbierto()) {
+    <p role="alert">{{ error() }}</p>
+    <button type="button" [disabled]="ocupado()" (click)="cargar()">{{ textos.reintentar }}</button>
+  }
+  @if (mensaje()) {
+    <p role="status">{{ mensaje() }}</p>
+  }
+  @if (ocupado()) {
+    <p role="status">{{ textos.cargando }}</p>
+  }
+
+  @if (curso(); as actual) {
+    <header class="cabecera-cursos">
+      <div>
+        <h1>{{ textos.estudiantes }}</h1>
+        <p class="descripcion">
+          {{ actual.nombre }} · {{ textos.periodo }}: {{ actual.anio }} / {{ actual.semestre }}
+        </p>
+      </div>
+      <button
+        type="button"
+        class="btn-hvc-primary"
+        [disabled]="ocupado() || !actual.vigente"
+        (click)="abrirModalInscripcion()"
+      >
+        {{ textos.inscribir }}
+      </button>
+    </header>
+
+    <div class="bloque-curso">
+      <div class="encabezado-seccion-inscritos">
+        <div>
+          <h2>{{ textos.estudiantes }}</h2>
+          @if (!actual.vigente) {
+            <p class="descripcion">{{ textos.cursoCerrado }}</p>
+          }
+        </div>
+        <label class="busqueda-inscritos">
+          <span class="hvc-label">Buscar estudiante inscrito</span>
+          <input
+            type="search"
+            class="hvc-input"
+            [value]="busquedaInscritos()"
+            (input)="busquedaInscritos.set($any($event.target).value)"
+            placeholder="Escribe un nombre o identificador"
+          />
+        </label>
+      </div>
+
+      @if (inscritosFiltrados().length) {
+        <ul class="lista-inscritos">
+          @for (inscrito of inscritosFiltrados(); track inscrito.id) {
+            <li>
+              <button type="button" class="item-inscrito" (click)="verDetalleInscrito(inscrito)">
+                <span class="item-inscrito__nombre">{{
+                  inscrito.estudiante_nombre || inscrito.estudiante_id
+                }}</span>
+                <span class="item-inscrito__meta">Ver datos y puentes asignados</span>
+              </button>
+            </li>
+          }
+        </ul>
+      } @else if (inscritos().length) {
+        <p role="status">No se encontraron estudiantes inscritos con esa búsqueda.</p>
+      } @else {
+        <p role="status">{{ textos.sinInscritos }}</p>
+      }
+    </div>
+
+    @if (modalInscripcionAbierto()) {
+      <div
+        class="modal-cursos-overlay"
+        role="presentation"
+        (click)="cerrarModalInscripcion()"
+        (keydown.escape)="cerrarModalInscripcion()"
+      >
+        <div
+          class="modal-cursos"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="titulo-modal-inscribir"
+          (click)="$event.stopPropagation()"
+        >
+          <header class="modal-cursos__encabezado">
+            <div>
+              <h2 id="titulo-modal-inscribir">{{ textos.inscribir }}</h2>
+              <p class="descripcion">{{ textos.matriculaDescripcion }}</p>
+            </div>
+          </header>
+
+          @if (error()) {
+            <p role="alert">{{ error() }}</p>
+          }
+          @if (!actual.vigente) {
+            <p>{{ textos.cursoCerrado }}</p>
+          }
+
+          <form [formGroup]="inscripcion" (ngSubmit)="inscribir()" class="form-modal-cursos">
+            <fieldset [disabled]="ocupado() || !actual.vigente">
+              <legend>{{ textos.elegirEstudiante }}</legend>
+              <div class="combobox-elegible">
+                <label for="buscar-elegible-curso">{{ textos.buscarEstudiante }}</label>
+                <input
+                  id="buscar-elegible-curso"
+                  type="text"
+                  [value]="textoElegible()"
+                  (input)="buscarElegibles($any($event.target).value)"
+                  (focus)="abrirOpcionesElegibles()"
+                  (click)="abrirOpcionesElegibles()"
+                  (blur)="ocultarOpcionesElegibles()"
+                  placeholder="Selecciona una opción o escribe un nombre"
+                  maxlength="120"
+                  autocomplete="off"
+                  role="combobox"
+                  aria-autocomplete="list"
+                  [attr.aria-expanded]="mostrarOpcionesElegibles()"
+                />
+                @if (mostrarOpcionesElegibles()) {
+                  @if (elegibles().length) {
+                    <ul class="lista-elegibles" role="listbox" aria-label="Estudiantes elegibles">
+                      @for (estudiante of elegibles(); track estudiante.id) {
+                        <li role="option">
+                          <button type="button" class="opcion-elegible" (mousedown)="seleccionarElegible(estudiante)">
+                            <span>{{ estudiante.nombre }}</span>
+                          </button>
+                        </li>
+                      }
+                    </ul>
+                  } @else if (textoElegible().trim()) {
+                    <p role="status">{{ textos.sinElegibles }}</p>
+                  }
+                }
+              </div>
+              <input type="hidden" formControlName="estudiante" />
+              <div class="acciones-modal-cursos">
+                <button type="button" class="secundario" [disabled]="ocupado()" (click)="cerrarModalInscripcion()">
+                  Cancelar
+                </button>
+                <button type="submit" [disabled]="ocupado() || !actual.vigente || inscripcion.invalid">
+                  {{ textos.inscribir }}
+                </button>
+              </div>
+            </fieldset>
+          </form>
+
+          <p class="descripcion">{{ textos.activacionAviso }}</p>
+        </div>
+      </div>
+    }
+
+    @if (inscritoDetalle(); as inscrito) {
+      <div
+        class="modal-cursos-overlay"
+        role="presentation"
+        (click)="cerrarDetalleInscrito()"
+        (keydown.escape)="cerrarDetalleInscrito()"
+      >
+        <div
+          class="modal-cursos"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="titulo-detalle-inscrito"
+          (click)="$event.stopPropagation()"
+        >
+          <header class="modal-cursos__encabezado">
+            <div>
+              <h2 id="titulo-detalle-inscrito">Datos del estudiante</h2>
+              <p class="descripcion">Información del estudiante inscrito y sus puentes asignados.</p>
+            </div>
+            <button type="button" class="btn-hvc-secondary btn-hvc-compact" (click)="cerrarDetalleInscrito()">
+              Cerrar
+            </button>
+          </header>
+
+          <dl class="detalle-inscrito">
+            <div>
+              <dt>Nombre del estudiante</dt>
+              <dd>{{ nombreInscrito(inscrito) }}</dd>
+            </div>
+            <div>
+              <dt>Fecha de inscripción</dt>
+              <dd>{{ fechaInscripcion(inscrito.creado_en) }}</dd>
+            </div>
+          </dl>
+
+          <h3>Puentes asignados</h3>
+          @if (cargandoDetalle()) {
+            <p role="status">{{ textos.cargando }}</p>
+          } @else if (puentesAsignados().length) {
+            <ul class="lista-puentes-asignados">
+              @for (asig of puentesAsignados(); track asig.id) {
+                <li>
+                  <strong>{{ asig.puente_nombre || asig.puente_id }}</strong>
+                  @if (asig.puente_codigo) {
+                    <span class="codigo-puente">({{ asig.puente_codigo }})</span>
+                  }
+                </li>
+              }
+            </ul>
+          } @else {
+            <p>Este estudiante no tiene puentes asignados en este curso.</p>
+          }
+        </div>
+      </div>
+    }
+  }
+</section>

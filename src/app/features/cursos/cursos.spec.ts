@@ -6,7 +6,9 @@ import { RouterTestingHarness } from '@angular/router/testing';
 import { firstValueFrom, of, throwError } from 'rxjs';
 import { TEXTOS } from '../../shared/textos';
 import { routes } from '../../app.routes';
+import { CursoAsignaciones } from './curso-asignaciones';
 import { CursoDetalle } from './curso-detalle';
+import { CursoEstudiantes } from './curso-estudiantes';
 import { CursosApi, mensajeErrorCursos } from './cursos-api';
 import { FormularioCurso } from './formulario-curso';
 import { MisAsignaciones } from './mis-asignaciones';
@@ -228,28 +230,6 @@ describe('Formulario y flujos de cursos', () => {
   const prepararDetalle = async (vigente = true) => {
     const api = {
       obtener: vi.fn(() => of({ ...curso, vigente })),
-      inscripciones: vi.fn(() =>
-        of(
-          pagina([
-            {
-              id: 'inscripcion',
-              estudiante_id: 'estudiante',
-              estudiante_nombre: 'Estudiante visible',
-              curso_id: curso.id,
-              creado_en: curso.creado_en,
-            },
-          ]),
-        ),
-      ),
-      estudiantes: vi.fn(() =>
-        of(pagina([{ id: 'estudiante', nombre: 'Estudiante', estado: 'ACTIVO' }])),
-      ),
-      puentes: vi.fn(() =>
-        of(pagina([{ id: 'puente', codigo: 'GT-09-0901-0001', nombre: 'Puente' }])),
-      ),
-      asignaciones: vi.fn(() => of(pagina([asignacion]))),
-      inscribir: vi.fn(() => of({})),
-      asignar: vi.fn(() => of(asignacion)),
       actualizar: vi.fn(() => of({ ...curso, vigente: false })),
     };
     TestBed.configureTestingModule({
@@ -267,11 +247,108 @@ describe('Formulario y flujos de cursos', () => {
     return { api, fixture, componente: fixture.componentInstance };
   };
 
-  it('inscribe y asigna solo usando la inscripción seleccionada del curso', async () => {
-    const { api, componente } = await prepararDetalle();
+  const prepararEstudiantes = async (vigente = true) => {
+    const api = {
+      obtener: vi.fn(() => of({ ...curso, vigente })),
+      inscripciones: vi.fn(() =>
+        of(
+          pagina([
+            {
+              id: 'inscripcion',
+              estudiante_id: 'estudiante',
+              estudiante_nombre: 'Estudiante visible',
+              curso_id: curso.id,
+              creado_en: curso.creado_en,
+            },
+          ]),
+        ),
+      ),
+      estudiantes: vi.fn(() =>
+        of(pagina([{ id: 'estudiante', nombre: 'Estudiante', estado: 'ACTIVO' }])),
+      ),
+      inscribir: vi.fn(() => of({})),
+    };
+    TestBed.configureTestingModule({
+      providers: [
+        provideRouter([]),
+        {
+          provide: ActivatedRoute,
+          useValue: { snapshot: { paramMap: convertToParamMap({ cursoId: curso.id }) } },
+        },
+        { provide: CursosApi, useValue: api },
+      ],
+    });
+    const fixture = TestBed.createComponent(CursoEstudiantes);
+    await fixture.whenStable();
+    return { api, fixture, componente: fixture.componentInstance };
+  };
+
+  const prepararAsignaciones = async (vigente = true) => {
+    const api = {
+      obtener: vi.fn(() => of({ ...curso, vigente })),
+      inscripciones: vi.fn(() =>
+        of(
+          pagina([
+            {
+              id: 'inscripcion',
+              estudiante_id: 'estudiante',
+              estudiante_nombre: 'Estudiante visible',
+              curso_id: curso.id,
+              creado_en: curso.creado_en,
+            },
+          ]),
+        ),
+      ),
+      puentes: vi.fn(() =>
+        of(pagina([{ id: 'puente', codigo: 'GT-09-0901-0001', nombre: 'Puente' }])),
+      ),
+      asignaciones: vi.fn(() => of(pagina([asignacion]))),
+      asignar: vi.fn(() => of(asignacion)),
+    };
+    TestBed.configureTestingModule({
+      providers: [
+        provideRouter([]),
+        {
+          provide: ActivatedRoute,
+          useValue: { snapshot: { paramMap: convertToParamMap({ cursoId: curso.id }) } },
+        },
+        { provide: CursosApi, useValue: api },
+      ],
+    });
+    const fixture = TestBed.createComponent(CursoAsignaciones);
+    await fixture.whenStable();
+    return { api, fixture, componente: fixture.componentInstance };
+  };
+
+  it('el detalle permite configurar el curso y navegar a secciones separadas', async () => {
+    const { api, componente, fixture } = await prepararDetalle();
+    fixture.detectChanges();
+    const html = fixture.nativeElement as HTMLElement;
+    expect(html.querySelector('app-formulario-curso')).not.toBeNull();
+    const hrefs = [...html.querySelectorAll('a.btn-hvc-secondary')].map((a) => a.getAttribute('href'));
+    expect(hrefs).toEqual([
+      `/cursos/${curso.id}/estudiantes`,
+      `/cursos/${curso.id}/asignaciones`,
+    ]);
+    await componente.guardar({ nombre: 'Puentes', anio: 2026, semestre: 2, vigente: true });
+    expect(api.actualizar).toHaveBeenCalledWith(curso.id, {
+      nombre: 'Puentes',
+      anio: 2026,
+      semestre: 2,
+      vigente: true,
+    });
+  });
+
+  it('inscribe estudiantes en la sección separada de estudiantes', async () => {
+    const { api, componente } = await prepararEstudiantes();
     componente.inscripcion.controls.estudiante.setValue('estudiante');
     await componente.inscribir();
     expect(api.inscribir).toHaveBeenCalledWith(curso.id, 'estudiante');
+    expect(componente.mensaje()).toBe(TEXTOS.cursos.inscrito);
+  });
+
+  it('asigna puentes en la sección separada de asignaciones', async () => {
+    const { api, componente } = await prepararAsignaciones();
     await componente.seleccionar(componente.inscritos()!.content[0]);
     componente.asignacion.controls.puente.setValue('puente');
     await componente.asignar();
@@ -279,52 +356,41 @@ describe('Formulario y flujos de cursos', () => {
     expect(componente.mensaje()).toBe(TEXTOS.cursos.asignado);
   });
 
-  it('busca desde la primera página y conserva el filtro aplicado al paginar', async () => {
-    const { api, componente } = await prepararDetalle();
-    componente.inscripcion.controls.estudiante.setValue('estudiante');
-    componente.buscarEstudiante.controls.texto.setValue('  Estudiante  ');
-    await componente.buscar('estudiantes');
-    expect(api.estudiantes).toHaveBeenLastCalledWith(0, 'Estudiante');
-    expect(componente.inscripcion.controls.estudiante.value).toBe('');
-    componente.buscarEstudiante.controls.texto.setValue('Sin aplicar');
-    await componente.paginar('estudiantes', 1);
-    expect(api.estudiantes).toHaveBeenLastCalledWith(1, 'Estudiante');
-    componente.buscarPuente.controls.texto.setValue('GT-09');
-    await componente.buscar('puentes');
-    await componente.paginar('puentes', 1);
-    expect(api.puentes).toHaveBeenLastCalledWith(1, 'GT-09');
+  it('busca elegibles en estudiantes y conserva filtros al paginar puentes en asignaciones', async () => {
+    const estudiantes = await prepararEstudiantes();
+    await estudiantes.componente.buscarElegibles('  Estudiante  ');
+    expect(estudiantes.api.estudiantes).toHaveBeenLastCalledWith(0, 'Estudiante');
+    expect(estudiantes.componente.inscripcion.controls.estudiante.value).toBe('');
+    estudiantes.componente.seleccionarElegible({ id: 'estudiante', nombre: 'Estudiante', estado: 'ACTIVO' });
+    expect(estudiantes.componente.inscripcion.controls.estudiante.value).toBe('estudiante');
+    expect(estudiantes.componente.textoElegible()).toBe('Estudiante');
+
+    const asignaciones = await prepararAsignaciones();
+    asignaciones.componente.buscarPuente.controls.texto.setValue('GT-09');
+    await asignaciones.componente.buscar();
+    await asignaciones.componente.paginar('puentes', 1);
+    expect(asignaciones.api.puentes).toHaveBeenLastCalledWith(1, 'GT-09');
   });
 
-  it('no consulta búsquedas excesivas ni cambia el filtro aplicado si falla una búsqueda', async () => {
-    const { api, componente } = await prepararDetalle();
-    api.estudiantes.mockClear();
-    componente.buscarEstudiante.controls.texto.setValue('a'.repeat(121));
-    await componente.buscar('estudiantes');
-    expect(api.estudiantes).not.toHaveBeenCalled();
-    componente.buscarEstudiante.controls.texto.setValue('Estudiante');
-    await componente.buscar('estudiantes');
+  it('reporta error si falla la búsqueda de estudiantes elegibles', async () => {
+    const { api, componente } = await prepararEstudiantes();
     api.estudiantes.mockImplementationOnce(() =>
       throwError(() => new HttpErrorResponse({ status: 500 })),
     );
-    componente.buscarEstudiante.controls.texto.setValue('Otro');
-    await componente.buscar('estudiantes');
+    await componente.buscarElegibles('Otro');
     expect(componente.error()).toBe(TEXTOS.cursos.error);
-    await componente.paginar('estudiantes', 1);
-    expect(api.estudiantes).toHaveBeenLastCalledWith(1, 'Estudiante');
   });
 
-  it('muestra el nombre del estudiante y limpia la selección anterior al recargar', async () => {
-    const { componente, fixture } = await prepararDetalle();
+  it('muestra inscritos y limpia selección al recargar asignaciones', async () => {
+    const { componente, fixture } = await prepararAsignaciones();
     fixture.detectChanges();
     expect((fixture.nativeElement as HTMLElement).textContent).toContain('Estudiante visible');
     await componente.seleccionar(componente.inscritos()!.content[0]);
-    componente.inscripcion.controls.estudiante.setValue('estudiante');
     componente.asignacion.controls.puente.setValue('puente');
     await componente.cargar();
     expect(componente.seleccionada()).toBeNull();
     expect(componente.asignaciones()).toBeNull();
     expect(componente.asignacion.controls.puente.value).toBe('');
-    expect(componente.inscripcion.controls.estudiante.value).toBe('');
   });
 
   it('la vista del estudiante presenta etiquetas de puente y curso sin perder los UUID', async () => {
@@ -352,23 +418,25 @@ describe('Formulario y flujos de cursos', () => {
     expect(fixture.componentInstance.pagina()!.content[0].puente_id).toBe('puente');
   });
 
-  it('un curso cerrado conserva consulta y bloquea inscribir/asignar', async () => {
-    const { api, componente, fixture } = await prepararDetalle(false);
-    componente.inscripcion.controls.estudiante.setValue('estudiante');
-    await componente.inscribir();
-    await componente.seleccionar(componente.inscritos()!.content[0]);
-    componente.asignacion.controls.puente.setValue('puente');
-    await componente.asignar();
-    expect(api.inscribir).not.toHaveBeenCalled();
-    expect(api.asignar).not.toHaveBeenCalled();
-    fixture.detectChanges();
-    expect((fixture.nativeElement as HTMLElement).textContent).toContain(
+  it('un curso cerrado conserva consulta y bloquea inscribir/asignar en secciones separadas', async () => {
+    const estudiantes = await prepararEstudiantes(false);
+    estudiantes.componente.inscripcion.controls.estudiante.setValue('estudiante');
+    await estudiantes.componente.inscribir();
+    expect(estudiantes.api.inscribir).not.toHaveBeenCalled();
+    estudiantes.fixture.detectChanges();
+    expect((estudiantes.fixture.nativeElement as HTMLElement).textContent).toContain(
       TEXTOS.cursos.cursoCerrado,
     );
+
+    const asignaciones = await prepararAsignaciones(false);
+    await asignaciones.componente.seleccionar(asignaciones.componente.inscritos()!.content[0]);
+    asignaciones.componente.asignacion.controls.puente.setValue('puente');
+    await asignaciones.componente.asignar();
+    expect(asignaciones.api.asignar).not.toHaveBeenCalled();
   });
 
   it('una activación no disponible muestra el error sin anunciar éxito ni borrar la selección', async () => {
-    const { api, componente } = await prepararDetalle();
+    const { api, componente } = await prepararEstudiantes();
     api.inscribir.mockImplementation(() =>
       throwError(() => new HttpErrorResponse({ status: 503 })),
     );

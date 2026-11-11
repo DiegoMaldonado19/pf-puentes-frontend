@@ -18,6 +18,7 @@ import { EstimacionPreliminarIcDTO, JuegoPesosDTO } from '../admin/pesos/modelos
 import { PesosService } from '../admin/pesos/pesos.service';
 import { RecalculoIc } from '../admin/pesos/recalculo-ic';
 import { MotorFormularioComponent } from '../formulario/motor-formulario/motor-formulario';
+import { CicloRevision, ObservacionRevision, RevisionApi } from '../revision/revision-api';
 import { TEXTOS } from '../../shared/textos';
 import { fechaSinHora } from '../puentes/formato';
 import { ChipEstadoInspeccion } from './chip-estado-inspeccion';
@@ -67,10 +68,14 @@ export class CapturaInspeccion {
   protected readonly errorIc = signal('');
   protected readonly juegos = signal<readonly JuegoPesosDTO[]>([]);
   protected readonly errorJuegos = signal('');
+  protected readonly correcciones = signal<ObservacionRevision[]>([]);
+  protected readonly cargandoCorrecciones = signal(false);
+  protected readonly correccionesError = signal('');
 
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   private readonly pesos = inject(PesosService);
+  private readonly revision = inject(RevisionApi);
 
   protected readonly rol = this.auth.rol;
   protected readonly puedeVerRecalculos = computed(
@@ -113,7 +118,19 @@ export class CapturaInspeccion {
     effect(() => {
       const id = this.id();
       this.estimacion.set(null);
+      this.correcciones.set([]);
+      this.correccionesError.set('');
       untracked(() => void this.store.cargar(id));
+    });
+    effect(() => {
+      const inspeccion = this.store.inspeccion();
+      const id = inspeccion?.id;
+      if (!id || !this.esAutor()) {
+        this.correcciones.set([]);
+        this.correccionesError.set('');
+        return;
+      }
+      untracked(() => this.cargarCorrecciones(id));
     });
     effect(() => {
       if (this.store.sucio()) this.estimacion.set(null);
@@ -211,6 +228,38 @@ export class CapturaInspeccion {
       this.errorIc.set(mensajeInspeccion(error));
     } finally {
       this.estimando.set(false);
+    }
+  }
+
+  protected async cargarCorrecciones(inspeccionId: string): Promise<void> {
+    this.cargandoCorrecciones.set(true);
+    this.correccionesError.set('');
+    try {
+      const observaciones: ObservacionRevision[] = [];
+      let pagina = 0;
+      let totalPaginas = 1;
+      while (pagina < totalPaginas) {
+        const respuesta = await firstValueFrom(this.revision.historial(inspeccionId, pagina));
+        observaciones.push(
+          ...(respuesta.content ?? [])
+            .filter((c) => c.emitida_en)
+            .flatMap((c) => c.observaciones ?? []),
+        );
+        totalPaginas = respuesta.total_pages ?? 0;
+        pagina += 1;
+      }
+      if (this.store.inspeccion()?.id === inspeccionId) {
+        this.correcciones.set(observaciones);
+      }
+    } catch {
+      if (this.store.inspeccion()?.id === inspeccionId) {
+        this.correcciones.set([]);
+        this.correccionesError.set('No se pudieron cargar las correcciones del revisor.');
+      }
+    } finally {
+      if (this.store.inspeccion()?.id === inspeccionId) {
+        this.cargandoCorrecciones.set(false);
+      }
     }
   }
 

@@ -1,0 +1,127 @@
+<section [attr.aria-busy]="ocupado()">
+  <a routerLink="/cursos">{{ textos.volver }}</a>
+  @if (error()) {
+    <p role="alert">{{ error() }}</p>
+    <button type="button" [disabled]="ocupado()" (click)="cargar()">{{ textos.reintentar }}</button>
+  }
+  @if (mensaje()) {
+    <p role="status">{{ mensaje() }}</p>
+  }
+  @if (ocupado()) {
+    <p role="status">{{ textos.cargando }}</p>
+  }
+
+  @if (curso(); as actual) {
+    <header class="cabecera-cursos">
+      <div>
+        <h1>{{ textos.asignaciones }}</h1>
+        <p class="descripcion">{{ actual.nombre }} · {{ textos.periodo }}: {{ actual.anio }} / {{ actual.semestre }}</p>
+      </div>
+      <nav class="acciones-curso" aria-label="Secciones del curso">
+        <a class="accion-enlace" [routerLink]="['/cursos', actual.id]">{{ textos.configuracion }}</a>
+        <a class="accion-enlace" [routerLink]="['/cursos', actual.id, 'estudiantes']">{{ textos.estudiantes }}</a>
+      </nav>
+    </header>
+
+    <div class="bloque-curso">
+      <p class="descripcion">{{ textos.asignacionesDescripcion }}</p>
+      @if (!actual.vigente) {
+        <p>{{ textos.cursoCerrado }}</p>
+      }
+
+      <h2>{{ textos.estudiantes }}</h2>
+      @if (inscritos(); as datos) {
+        <ul>
+          @for (inscrito of datos.content; track inscrito.id) {
+            <li>
+              {{ textos.estudianteId }} {{ inscrito.estudiante_nombre || inscrito.estudiante_id }}
+              <button type="button" [disabled]="ocupado()" (click)="seleccionar(inscrito)">
+                {{ textos.verAsignaciones }}
+              </button>
+            </li>
+          } @empty {
+            <li>{{ textos.sinInscritos }}</li>
+          }
+        </ul>
+        <app-paginacion-cursos
+          [etiqueta]="textos.estudiantes"
+          [pagina]="datos.number"
+          [paginas]="datos.total_pages"
+          [ocupado]="ocupado()"
+          (cambio)="paginar('inscritos', $event)"
+        />
+      }
+
+      @if (seleccionada(); as inscrito) {
+        <div class="panel-asignaciones">
+          <h2>{{ textos.asignar }}</h2>
+          <p>{{ textos.estudianteId }} {{ inscrito.estudiante_nombre || inscrito.estudiante_id }}</p>
+
+          <form [formGroup]="asignacion" (ngSubmit)="asignar()">
+            <fieldset [disabled]="ocupado() || !actual.vigente">
+              <legend>{{ textos.asignar }}</legend>
+              <label
+                >{{ textos.elegirPuente }}
+                <select formControlName="puente">
+                  <option value="">{{ textos.seleccionar }}</option>
+                  @for (puente of puentes()?.content ?? []; track puente.id) {
+                    <option [value]="puente.id">{{ puente.codigo }} — {{ puente.nombre }}</option>
+                  }
+                </select>
+              </label>
+              <button type="submit" [disabled]="ocupado() || !actual.vigente || asignacion.invalid">
+                {{ textos.asignar }}
+              </button>
+            </fieldset>
+          </form>
+
+          <form [formGroup]="buscarPuente" (ngSubmit)="buscar()">
+            <label
+              >{{ textos.buscarPuente }}
+              <input type="search" formControlName="texto" maxlength="120"
+            /></label>
+            <button type="submit" [disabled]="ocupado() || buscarPuente.invalid">
+              {{ textos.buscar }}
+            </button>
+          </form>
+
+          @if (puentes(); as datos) {
+            @if (!datos.content.length) {
+              <p role="status">{{ textos.sinPuentes }}</p>
+            }
+            <app-paginacion-cursos
+              [etiqueta]="textos.elegirPuente"
+              [pagina]="datos.number"
+              [paginas]="datos.total_pages"
+              [ocupado]="ocupado()"
+              (cambio)="paginar('puentes', $event)"
+            />
+          }
+
+          @if (asignaciones(); as datos) {
+            <h3>{{ textos.asignaciones }}</h3>
+            <ul>
+              @for (asignada of datos.content; track asignada.id) {
+                <li>
+                  {{ textos.puenteId }} {{ asignada.puente_codigo || asignada.puente_id }} —
+                  {{ asignada.puente_nombre }}
+                </li>
+              } @empty {
+                <li>{{ textos.sinAsignaciones }}</li>
+              }
+            </ul>
+            <app-paginacion-cursos
+              [etiqueta]="textos.asignaciones"
+              [pagina]="datos.number"
+              [paginas]="datos.total_pages"
+              [ocupado]="ocupado()"
+              (cambio)="paginar('asignaciones', $event)"
+            />
+          }
+        </div>
+      } @else {
+        <p role="status">Selecciona un estudiante inscrito para gestionar sus asignaciones de puentes.</p>
+      }
+    </div>
+  }
+</section>

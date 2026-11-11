@@ -82,9 +82,13 @@
             [queryParams]="{ ref: campo.referencia }"
             >Ir a inspección</a
           >
-          <pre class="my-2 max-h-48 overflow-auto whitespace-pre-wrap rounded bg-slate-50 p-3">{{
-            valorLegible(campo.valor)
-          }}</pre>
+          <div
+            class="my-2 max-h-48 overflow-auto whitespace-pre-wrap rounded border border-slate-200 bg-slate-50 p-3 text-sm text-slate-800"
+            role="textbox"
+            aria-readonly="true"
+          >
+            {{ valorLegible(campo.valor) }}
+          </div>
           <app-marcador-anclado
             [elementoRef]="campo.referencia"
             [marcas]="marcas(campo.referencia)"

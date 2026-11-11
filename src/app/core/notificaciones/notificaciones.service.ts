@@ -5,7 +5,7 @@ import { TEXTOS } from '../../shared/textos';
 import { ConteoNoLeidas, Notificacion, PaginaNotificaciones } from './modelos';
 
 const API = '/api/v1/notificaciones';
-const TAMANO_DEFECTO = 20;
+const TAMANO_DEFECTO = 5;
 const TAMANO_MAXIMO = 100;
 
 @Injectable({ providedIn: 'root' })
