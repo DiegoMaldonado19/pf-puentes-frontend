@@ -34,7 +34,7 @@ import { CursoDTO, GuardarCursoDTO } from './modelos';
       </fieldset>
     </form>
   `,
-  styleUrl: './cursos.css',
+  host: { class: 'pantalla-cursos' },
 })
 export class FormularioCurso {
   readonly textos = TEXTOS.cursos;

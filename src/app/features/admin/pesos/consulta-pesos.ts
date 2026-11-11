@@ -13,7 +13,7 @@ registerLocaleData(localeEsGt);
   imports: [DatePipe, DecimalPipe],
   providers: [{ provide: LOCALE_ID, useValue: 'es-GT' }],
   templateUrl: './consulta-pesos.html',
-  styleUrl: './consulta-pesos.css',
+  host: { class: 'pantalla-pesos' },
 })
 export class ConsultaPesos {
   // La selección de versiones corresponde al módulo de formularios, no a una lista fija de P8.

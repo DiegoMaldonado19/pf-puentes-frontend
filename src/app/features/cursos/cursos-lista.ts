@@ -12,7 +12,7 @@ import { vigilarSesionCursos } from './sesion-cursos';
   selector: 'app-cursos-lista',
   imports: [RouterLink, FormularioCurso, PaginacionCursos],
   templateUrl: './cursos-lista.html',
-  styleUrl: './cursos.css',
+  host: { class: 'pantalla-cursos' },
 })
 export class CursosLista {
   readonly textos = TEXTOS.cursos;

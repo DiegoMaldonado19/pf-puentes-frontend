@@ -7,7 +7,7 @@ import { OrdenMantenimientoDTO, SeguimientoRutinarioDTO } from './modelos';
 @Component({
   selector: 'app-seguimiento-rutinario',
   templateUrl: './seguimiento-rutinario.html',
-  styleUrls: ['./bandeja-propuestas.css', './consulta-ordenes.css'],
+  host: { class: 'pantalla-bandeja pantalla-consulta' },
 })
 export class SeguimientoRutinario {
   readonly puenteId = input.required<string>();

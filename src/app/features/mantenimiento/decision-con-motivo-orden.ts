@@ -22,7 +22,7 @@ import { OrdenMantenimientoDTO } from './modelos';
   selector: 'app-decision-con-motivo-orden',
   imports: [ReactiveFormsModule],
   templateUrl: './decision-con-motivo-orden.html',
-  styleUrls: ['./bandeja-propuestas.css', './decision-con-motivo-orden.css'],
+  host: { class: 'pantalla-bandeja pantalla-decision' },
 })
 export class DecisionConMotivoOrden {
   readonly orden = input.required<OrdenMantenimientoDTO>();

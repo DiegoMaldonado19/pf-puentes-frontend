@@ -48,7 +48,7 @@ interface EstadoConsulta<T> {
   ],
   providers: [{ provide: LOCALE_ID, useValue: 'es-GT' }],
   templateUrl: './consulta-ordenes.html',
-  styleUrls: ['./bandeja-propuestas.css', './consulta-ordenes.css'],
+  host: { class: 'pantalla-bandeja pantalla-consulta' },
 })
 export class ConsultaOrdenes {
   readonly puenteId = input.required<string>();

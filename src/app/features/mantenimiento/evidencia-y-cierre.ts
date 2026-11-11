@@ -23,7 +23,7 @@ import { OrdenMantenimientoDTO, PaginaEvidencias } from './modelos';
   selector: 'app-evidencia-y-cierre',
   imports: [CapturaFoto, ReactiveFormsModule],
   templateUrl: './evidencia-y-cierre.html',
-  styleUrls: ['./bandeja-propuestas.css', './evidencia-y-cierre.css'],
+  host: { class: 'pantalla-bandeja pantalla-evidencia' },
 })
 export class EvidenciaYCierre {
   readonly orden = input.required<OrdenMantenimientoDTO>();

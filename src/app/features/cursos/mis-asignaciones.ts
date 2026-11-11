@@ -63,7 +63,7 @@ import { vigilarSesionCursos } from './sesion-cursos';
       }
     </section>
   `,
-  styleUrl: './cursos.css',
+  host: { class: 'pantalla-cursos' },
 })
 export class MisAsignaciones {
   readonly textos = TEXTOS.cursos;

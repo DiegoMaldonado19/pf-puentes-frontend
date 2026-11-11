@@ -21,7 +21,7 @@ import { OrdenMantenimientoDTO, PrioridadOrden } from './modelos';
   selector: 'app-ajuste-prioridad-orden',
   imports: [ReactiveFormsModule],
   templateUrl: './ajuste-prioridad-orden.html',
-  styleUrls: ['./bandeja-propuestas.css', './ajuste-prioridad-orden.css'],
+  host: { class: 'pantalla-bandeja pantalla-ajuste' },
 })
 export class AjustePrioridadOrden {
   readonly orden = input.required<OrdenMantenimientoDTO>();

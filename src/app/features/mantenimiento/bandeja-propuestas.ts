@@ -12,7 +12,7 @@ import {
   selector: 'app-bandeja-propuestas',
   imports: [AceptacionPropuesta],
   templateUrl: './bandeja-propuestas.html',
-  styleUrl: './bandeja-propuestas.css',
+  host: { class: 'pantalla-bandeja' },
 })
 export class BandejaPropuestas {
   readonly puenteId = input.required<string>();

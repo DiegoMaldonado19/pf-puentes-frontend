@@ -21,7 +21,7 @@ import { OrdenMantenimientoDTO } from './modelos';
   selector: 'app-programacion-orden',
   imports: [ReactiveFormsModule],
   templateUrl: './programacion-orden.html',
-  styleUrls: ['./bandeja-propuestas.css', './programacion-orden.css'],
+  host: { class: 'pantalla-bandeja pantalla-programacion' },
 })
 export class ProgramacionOrden {
   readonly orden = input.required<OrdenMantenimientoDTO>();

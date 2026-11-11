@@ -21,7 +21,7 @@ import { vigilarSesionCursos } from './sesion-cursos';
   selector: 'app-curso-detalle',
   imports: [RouterLink, ReactiveFormsModule, FormularioCurso, PaginacionCursos],
   templateUrl: './curso-detalle.html',
-  styleUrl: './cursos.css',
+  host: { class: 'pantalla-cursos' },
 })
 export class CursoDetalle {
   readonly textos = TEXTOS.cursos;
