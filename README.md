@@ -7,9 +7,9 @@
 - **Captura**: al enviar con campos incompletos se marcan, se listan y se lleva al primero; cada pestaña cuenta sus pendientes. Las observaciones del revisor aparecen junto a su campo, y «Ir al campo» cambia de pestaña. «Mis inspecciones» marca «Devuelta con cambios».
 - **Mantenimiento**: listado global con filtros, alta y edición de órdenes, y línea de estados con solo las transiciones válidas.
 - **Inicio por rol** con panel de alertas y disparo manual de avisos para administradores.
-- **Accesibilidad**: diez rutas auditadas con axe-core 4.10.2 (WCAG 2 A/AA, incluido contraste) a 1280 px, sin violaciones.
+- **Accesibilidad**: doce rutas auditadas con axe-core 4.10.2 (WCAG 2 A/AA, incluido contraste) a 1280 px, sin violaciones.
 
-Pendiente: el patrón de validación al enviar en cursos, foro, filtros y datos permanentes; el aviso «N propuestas generadas» al publicar; la consolidación de los CSS por función en el kit; y la verificación a 360 y 768 px con axe.
+Pendiente de verificación: el paso entre páginas del paginador y el aviso «N propuestas generadas» de extremo a extremo (requieren una cuenta catedrático que publique y datos de más de una página); la consulta de pesos (la base de desarrollo no tiene juegos de pesos); cursos, revisión, foro y datos permanentes (la cuenta administradora no puede abrirlos); y axe a 360 y 768 px. Las hojas de estilo de cursos, mantenimiento y pesos están plegadas en el kit; F5 queda fuera de este bloque.
 
 ### Renovación de sesión ante fallos de conexión
 
