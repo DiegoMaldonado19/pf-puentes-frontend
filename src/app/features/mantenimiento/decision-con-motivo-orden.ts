@@ -1,3 +1,4 @@
+import { validarAlEnviar } from '../../shared/ui/formularios';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
   Component,
@@ -74,8 +75,7 @@ export class DecisionConMotivoOrden {
       this.bloqueada()
     )
       return;
-    if (this.motivo.invalid) {
-      this.motivo.markAsTouched();
+    if (!validarAlEnviar(this.motivo)) {
       this.error.set(this.t().motivoRequerido);
       return;
     }

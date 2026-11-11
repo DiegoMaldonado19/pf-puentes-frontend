@@ -1,3 +1,4 @@
+import { validarAlEnviar } from '../../shared/ui/formularios';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
   Component,
@@ -86,8 +87,7 @@ export class AjustePrioridadOrden {
       this.error.set(this.t.sinCambio);
       return;
     }
-    if (this.formulario.invalid) {
-      this.formulario.markAllAsTouched();
+    if (!validarAlEnviar(this.formulario)) {
       this.error.set(this.t.justificacionRequerida);
       return;
     }

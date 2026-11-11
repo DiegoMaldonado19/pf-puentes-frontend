@@ -1,3 +1,5 @@
+import { ToastService } from '../../shared/ui/toast';
+import { validarAlEnviar } from '../../shared/ui/formularios';
 import {
   AbstractControl,
   FormBuilder,
@@ -38,6 +40,7 @@ function noEnBlanco(control: AbstractControl): ValidationErrors | null {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FormularioOrden implements OnInit {
+  private readonly toast = inject(ToastService);
   readonly puenteId = input.required<string>();
   /** Sin orden: alta. Con orden: edición de tipo y descripción. */
   readonly orden = input<OrdenMantenimientoDTO | null>(null);
@@ -88,8 +91,7 @@ export class FormularioOrden implements OnInit {
 
   protected enviar(): void {
     if (this.enviando()) return;
-    this.formulario.markAllAsTouched();
-    if (this.formulario.invalid) return;
+    if (!validarAlEnviar(this.formulario)) return;
 
     const valor = this.formulario.getRawValue();
     const descripcion = valor.descripcion.trim();
@@ -107,6 +109,7 @@ export class FormularioOrden implements OnInit {
     peticion.pipe(takeUntilDestroyed(this.destruir)).subscribe({
       next: (guardada) => {
         this.enviando.set(false);
+        this.toast.ok(TEXTOS.toast.ordenGuardada);
         this.guardada.emit(guardada);
       },
       error: () => {

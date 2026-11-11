@@ -156,9 +156,7 @@
             <button
               type="submit"
               class="btn-hvc-primary"
-              [disabled]="
-                publicando() || formulario.invalid || !formulario.controls.texto.value.trim()
-              "
+              [disabled]="publicando() || !formulario.controls.texto.value.trim()"
             >
               {{ publicando() ? 'Publicando…' : 'Publicar comentario' }}
             </button>
