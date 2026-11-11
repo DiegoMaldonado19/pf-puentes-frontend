@@ -39,12 +39,17 @@ export class VerificarCorreo {
 
   private readonly cuenta = inject(CuentaService);
   private readonly token = inject(ActivatedRoute).snapshot.queryParamMap.get('token')?.trim() ?? '';
+  private verificacionIniciada = false;
 
   constructor() {
     if (!this.token) {
       this.error.set(this.t.faltaToken);
       return;
     }
+    if (this.verificacionIniciada) {
+      return;
+    }
+    this.verificacionIniciada = true;
     this.enviando.set(true);
     this.cuenta
       .verificarCorreo(this.token)

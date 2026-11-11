@@ -50,10 +50,30 @@ export const routes: Routes = [
     loadComponent: () => import('./features/cursos/cursos-lista').then((m) => m.CursosLista),
   },
   {
+    path: 'cursos/nuevo',
+    canActivate: [rolCursosGuard],
+    data: { rol: 'CATEDRATICO' },
+    loadComponent: () => import('./features/cursos/crear-curso').then((m) => m.CrearCurso),
+  },
+  {
     path: 'cursos/:cursoId',
     canActivate: [rolCursosGuard],
     data: { rol: 'CATEDRATICO' },
     loadComponent: () => import('./features/cursos/curso-detalle').then((m) => m.CursoDetalle),
+  },
+  {
+    path: 'cursos/:cursoId/estudiantes',
+    canActivate: [rolCursosGuard],
+    data: { rol: 'CATEDRATICO' },
+    loadComponent: () =>
+      import('./features/cursos/curso-estudiantes').then((m) => m.CursoEstudiantes),
+  },
+  {
+    path: 'cursos/:cursoId/asignaciones',
+    canActivate: [rolCursosGuard],
+    data: { rol: 'CATEDRATICO' },
+    loadComponent: () =>
+      import('./features/cursos/curso-asignaciones').then((m) => m.CursoAsignaciones),
   },
   {
     path: 'mis-asignaciones',

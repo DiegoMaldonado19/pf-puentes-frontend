@@ -6,7 +6,7 @@ import { CursosApi } from './cursos-api';
 import { CursosLista } from './cursos-lista';
 
 describe('Panel de gestión de cursos', () => {
-  it('presenta creación, total del servidor y acceso al detalle con su vigencia', async () => {
+  it('presenta acceso a crear curso, total del servidor y accesos separados por curso', async () => {
     TestBed.configureTestingModule({
       providers: [
         provideRouter([]),
@@ -31,8 +31,20 @@ describe('Panel de gestión de cursos', () => {
     const html: HTMLElement = fixture.nativeElement;
     expect(html.querySelector('.resumen-cursos')?.textContent).toContain('23');
     expect(html.querySelector('.insignia')?.textContent).toContain(TEXTOS.cursos.cerrado);
-    expect(html.querySelector('a.accion-enlace')?.getAttribute('href')).toBe('/cursos/curso');
-    expect(html.querySelector('app-formulario-curso')).not.toBeNull();
+
+    const crear = [...html.querySelectorAll('a')].find((a) =>
+      a.textContent?.includes(TEXTOS.cursos.nuevo),
+    );
+    expect(crear?.getAttribute('href')).toBe('/cursos/nuevo');
+
+    const hrefs = [...html.querySelectorAll('a.accion-enlace')].map((a) => a.getAttribute('href'));
+    expect(hrefs).toEqual([
+      '/cursos/curso',
+      '/cursos/curso/estudiantes',
+      '/cursos/curso/asignaciones',
+    ]);
+
+    expect(html.querySelector('app-formulario-curso')).toBeNull();
     expect(html.querySelector('app-paginacion-cursos')).not.toBeNull();
   });
 });

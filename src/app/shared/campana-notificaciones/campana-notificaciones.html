@@ -42,10 +42,10 @@
       role="region"
       [attr.aria-label]="textos.titulo"
       (keydown.escape)="cerrar()"
-      class="hvc-card absolute right-0 z-50 mt-3 max-h-[min(32rem,75vh)] w-[min(24rem,calc(100vw-2rem))] overflow-y-auto shadow-xl"
+      class="hvc-card absolute right-0 z-50 mt-3 max-h-[min(32rem,75vh)] w-[min(24rem,calc(100vw-2rem))] overflow-y-auto bg-white text-slate-800 shadow-xl"
     >
       <div class="mb-3 flex items-center justify-between gap-3 border-b border-slate-200 pb-3">
-        <h2 class="text-lg font-bold">{{ textos.titulo }}</h2>
+        <h2 class="text-lg font-bold text-slate-900">{{ textos.titulo }}</h2>
         <button type="button" class="btn-hvc-secondary btn-hvc-compact" (click)="cerrar()">
           {{ textos.cerrar }}
         </button>
@@ -54,26 +54,26 @@
       @if (!servicio.sesionActiva()) {
         @if (servicio.error(); as errorSesion) {
           <div role="alert" class="hvc-alert">
-            <p class="text-red-700">{{ errorSesion }}</p>
+            <p class="font-medium text-red-700">{{ errorSesion }}</p>
           </div>
         } @else {
-          <p class="text-muted">{{ textos.sinSesion }}</p>
+          <p class="text-slate-600">{{ textos.sinSesion }}</p>
         }
       } @else if (servicio.cargando()) {
-        <p role="status" class="text-muted">{{ textos.cargando }}</p>
+        <p role="status" class="text-slate-600">{{ textos.cargando }}</p>
       } @else if (servicio.error(); as mensajeError) {
         <div role="alert" class="hvc-alert">
-          <p class="text-red-700">{{ mensajeError }}</p>
-          <button type="button" class="mt-1 underline" (click)="reintentar()">
+          <p class="font-medium text-red-700">{{ mensajeError }}</p>
+          <button type="button" class="mt-1 text-slate-700 underline" (click)="reintentar()">
             {{ textos.reintentar }}
           </button>
         </div>
       } @else if (servicio.notificaciones().length === 0) {
-        <p class="text-muted">{{ textos.vacio }}</p>
+        <p class="text-slate-600">{{ textos.vacio }}</p>
       } @else {
         <ul class="divide-y divide-slate-100">
           @for (n of servicio.notificaciones(); track n.id) {
-            <li class="rounded p-3" [class.bg-blue-50]="!n.leida_en">
+            <li class="rounded p-3 text-slate-800" [class.bg-blue-50]="!n.leida_en">
               <div class="flex items-start gap-2">
                 <span
                   class="mt-1.5 size-2 shrink-0 rounded-full"
@@ -82,7 +82,10 @@
                   aria-hidden="true"
                 ></span>
                 <div class="min-w-0">
-                  <p class="text-sm wrap-break-word" [class.font-semibold]="!n.leida_en">
+                  <p
+                    class="text-sm wrap-break-word text-slate-800"
+                    [class.font-semibold]="!n.leida_en"
+                  >
                     {{ n.mensaje }}
                   </p>
                   <p class="text-xs text-slate-500">
@@ -92,14 +95,14 @@
               </div>
               <div class="mt-1 flex gap-3 ps-4">
                 @if (esInterno(n.enlace)) {
-                  <button type="button" class="hvc-link" (click)="ver(n)">
+                  <button type="button" class="hvc-link text-sm" (click)="ver(n)">
                     {{ textos.ver }}
                   </button>
                 }
                 @if (!n.leida_en) {
                   <button
                     type="button"
-                    class="text-muted"
+                    class="text-sm text-slate-600 hover:text-slate-900 disabled:opacity-50"
                     [disabled]="servicio.marcando().has(n.id)"
                     (click)="marcar(n)"
                   >
@@ -113,23 +116,23 @@
         @if (servicio.totalPaginas() > 0) {
           <nav
             [attr.aria-label]="textos.paginacion"
-            class="mt-2 flex items-center justify-between border-t border-slate-100 pt-2 text-sm"
+            class="mt-2 flex items-center justify-between border-t border-slate-100 pt-2 text-sm text-slate-700"
           >
             <button
               type="button"
-              class="rounded px-2 py-1 hover:bg-slate-100 disabled:opacity-50"
+              class="rounded px-2 py-1 text-slate-700 hover:bg-slate-100 disabled:opacity-50"
               [disabled]="servicio.pagina() === 0 || servicio.cargando()"
               (click)="paginaAnterior()"
             >
               {{ textos.anterior }}
             </button>
-            <span>
+            <span class="text-slate-600">
               {{ textos.pagina }} {{ servicio.pagina() + 1 }} {{ textos.de }}
               {{ servicio.totalPaginas() }}
             </span>
             <button
               type="button"
-              class="rounded px-2 py-1 hover:bg-slate-100 disabled:opacity-50"
+              class="rounded px-2 py-1 text-slate-700 hover:bg-slate-100 disabled:opacity-50"
               [disabled]="servicio.pagina() + 1 >= servicio.totalPaginas() || servicio.cargando()"
               (click)="paginaSiguiente()"
             >

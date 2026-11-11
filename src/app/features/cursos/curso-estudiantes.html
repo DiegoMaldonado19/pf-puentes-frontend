@@ -1,0 +1,100 @@
+<section [attr.aria-busy]="ocupado()">
+  <a [routerLink]="['/cursos', curso()?.id || '']">{{ textos.volver }}</a>
+  @if (error()) {
+    <p role="alert">{{ error() }}</p>
+    <button type="button" [disabled]="ocupado()" (click)="cargar()">{{ textos.reintentar }}</button>
+  }
+  @if (mensaje()) {
+    <p role="status">{{ mensaje() }}</p>
+  }
+  @if (ocupado()) {
+    <p role="status">{{ textos.cargando }}</p>
+  }
+
+  @if (curso(); as actual) {
+    <header class="cabecera-cursos">
+      <div>
+        <h1>{{ textos.estudiantes }}</h1>
+        <p class="descripcion">{{ actual.nombre }} · {{ textos.periodo }}: {{ actual.anio }} / {{ actual.semestre }}</p>
+      </div>
+      <nav class="acciones-curso" aria-label="Secciones del curso">
+        <a class="accion-enlace" [routerLink]="['/cursos', actual.id]">{{ textos.configuracion }}</a>
+        <a class="accion-enlace" [routerLink]="['/cursos', actual.id, 'asignaciones']">{{ textos.asignaciones }}</a>
+      </nav>
+    </header>
+
+    <div class="bloque-curso">
+      <h2>{{ textos.inscribir }}</h2>
+      <p class="descripcion">{{ textos.matriculaDescripcion }}</p>
+      @if (!actual.vigente) {
+        <p>{{ textos.cursoCerrado }}</p>
+      }
+
+      <form [formGroup]="inscripcion" (ngSubmit)="inscribir()">
+        <fieldset [disabled]="ocupado() || !actual.vigente">
+          <legend>{{ textos.inscribir }}</legend>
+          <label
+            >{{ textos.elegirEstudiante }}
+            <select formControlName="estudiante">
+              <option value="">{{ textos.seleccionar }}</option>
+              @for (estudiante of estudiantes()?.content ?? []; track estudiante.id) {
+                <option [value]="estudiante.id">
+                  {{ estudiante.nombre }} —
+                  {{ estudiante.estado === 'ACTIVO' ? textos.activo : textos.pendiente }}
+                </option>
+              }
+            </select>
+          </label>
+          <button type="submit" [disabled]="ocupado() || !actual.vigente || inscripcion.invalid">
+            {{ textos.inscribir }}
+          </button>
+        </fieldset>
+      </form>
+
+      <form [formGroup]="buscarEstudiante" (ngSubmit)="buscar()">
+        <label
+          >{{ textos.buscarEstudiante }}
+          <input type="search" formControlName="texto" maxlength="120"
+        /></label>
+        <button type="submit" [disabled]="ocupado() || buscarEstudiante.invalid">
+          {{ textos.buscar }}
+        </button>
+      </form>
+
+      <p>{{ textos.activacionAviso }}</p>
+
+      @if (estudiantes() && !estudiantes()!.content.length) {
+        <p role="status">{{ textos.sinElegibles }}</p>
+      }
+      @if (estudiantes(); as datos) {
+        <app-paginacion-cursos
+          [etiqueta]="textos.elegirEstudiante"
+          [pagina]="datos.number"
+          [paginas]="datos.total_pages"
+          [ocupado]="ocupado()"
+          (cambio)="paginar('estudiantes', $event)"
+        />
+      }
+
+      <h2>{{ textos.estudiantes }}</h2>
+      @if (inscritos(); as datos) {
+        <ul>
+          @for (inscrito of datos.content; track inscrito.id) {
+            <li>
+              {{ textos.estudianteId }} {{ inscrito.estudiante_nombre || inscrito.estudiante_id }}
+            </li>
+          } @empty {
+            <li>{{ textos.sinInscritos }}</li>
+          }
+        </ul>
+        <app-paginacion-cursos
+          [etiqueta]="textos.estudiantes"
+          [pagina]="datos.number"
+          [paginas]="datos.total_pages"
+          [ocupado]="ocupado()"
+          (cambio)="paginar('inscritos', $event)"
+        />
+      }
+    </div>
+  }
+</section>

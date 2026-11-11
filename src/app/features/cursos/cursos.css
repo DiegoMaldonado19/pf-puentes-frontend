@@ -90,6 +90,13 @@ a {
   text-decoration: underline;
   text-underline-offset: 3px;
 }
+
+a.btn-hvc-primary,
+a.btn-hvc-primary:hover,
+a.btn-hvc-primary:focus-visible {
+  color: var(--color-surface);
+  text-decoration: none;
+}
 :focus-visible {
   outline: 3px solid var(--color-primary);
   outline-offset: 3px;
@@ -160,29 +167,90 @@ li button {
 .bloque-curso > h2 {
   margin-top: 0;
 }
+.encabezado-listado-cursos {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.busqueda-cursos {
+  margin: 1rem 0 1.25rem;
+  max-width: 28rem;
+}
+
+.busqueda-cursos .hvc-label {
+  margin-bottom: 0.375rem;
+}
+
 .tarjetas-cursos {
   list-style: none;
   padding: 0;
   display: grid;
   gap: 1rem;
 }
-.tarjetas-cursos > li {
+
+.tarjetas-cursos--grid {
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  align-items: stretch;
+}
+
+.tarjetas-cursos > li,
+.tarjeta-curso {
   margin: 0;
   padding: 1.25rem;
   background: var(--color-surface);
+  border: 1px solid var(--color-gray-light);
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
 }
+
+.tarjeta-curso {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.tarjeta-curso:hover {
+  border-color: var(--color-gray);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+}
+
 .tarjetas-cursos h3 {
   font-size: 1.125rem;
   font-weight: 600;
+  margin: 0;
 }
+
 .tarjetas-cursos h2 {
   font-size: 1.125rem;
   margin-top: 0;
 }
+
+.meta-curso {
+  margin: 0.25rem 0 0;
+  color: var(--color-primary-light);
+  font-size: 0.875rem;
+}
+
+.tarjeta-curso dl {
+  margin: 0.75rem 0 1rem;
+}
+
+.tarjeta-curso .acciones-tarjeta-curso {
+  margin-top: auto;
+  padding-top: 0.5rem;
+}
+
+.tarjeta-curso--vacia {
+  text-align: center;
+  align-items: center;
+}
+
 .resumen-cursos {
   color: var(--color-primary-light);
-  border-top: 1px solid var(--color-gray-light);
-  padding-top: 1rem;
+  margin: 0;
 }
 .insignia {
   display: inline-block;
@@ -250,4 +318,34 @@ button.secundario:hover:not(:disabled) {
   .bloque-curso {
     padding: 1rem;
   }
+}
+
+.acciones-cabecera-cursos,
+.acciones-tarjeta-curso,
+.acciones-curso .acciones-tarjeta-curso {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.acciones-cabecera-cursos .btn-hvc-primary,
+.acciones-cabecera-cursos .secundario {
+  text-decoration: none;
+}
+
+.acciones-tarjeta-curso .accion-enlace,
+.acciones-tarjeta-curso .btn-hvc-secondary {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+}
+
+.acciones-curso.bloque-curso {
+  margin-top: 1rem;
+}
+
+.panel-cursos {
+  display: grid;
+  gap: 1.5rem;
 }

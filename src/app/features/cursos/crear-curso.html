@@ -1,0 +1,21 @@
+<section [attr.aria-busy]="ocupado()">
+  <a routerLink="/cursos">{{ textos.volver }}</a>
+
+  <header class="cabecera-cursos">
+    <div>
+      <h1>{{ textos.nuevo }}</h1>
+      <p class="descripcion">{{ textos.crearDescripcion }}</p>
+    </div>
+  </header>
+
+  @if (error()) {
+    <p role="alert">{{ error() }}</p>
+  }
+  @if (ocupado()) {
+    <p role="status">{{ textos.cargando }}</p>
+  }
+
+  <div class="bloque-curso">
+    <app-formulario-curso [ocupado]="ocupado()" (guardado)="crear($event)" />
+  </div>
+</section>

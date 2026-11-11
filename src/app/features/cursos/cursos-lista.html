@@ -4,15 +4,19 @@
       <h1>{{ textos.misCursos }}</h1>
       <p class="descripcion">{{ textos.descripcion }}</p>
     </div>
-    <button
-      class="secundario"
-      type="button"
-      [disabled]="ocupado()"
-      (click)="cargar(pagina()?.number ?? 0)"
-    >
-      {{ textos.actualizar }}
-    </button>
+    <div class="acciones-cabecera-cursos">
+      <a class="btn-hvc-primary" routerLink="/cursos/nuevo">{{ textos.nuevo }}</a>
+      <button
+        class="secundario"
+        type="button"
+        [disabled]="ocupado()"
+        (click)="cargar(pagina()?.number ?? 0)"
+      >
+        {{ textos.actualizar }}
+      </button>
+    </div>
   </header>
+
   @if (error()) {
     <p role="alert">{{ error() }}</p>
     <button type="button" [disabled]="ocupado()" (click)="cargar()">{{ textos.reintentar }}</button>
@@ -20,54 +24,78 @@
   @if (ocupado()) {
     <p role="status">{{ textos.cargando }}</p>
   }
+
   <div class="panel-cursos">
-    <aside class="panel-creacion" aria-labelledby="titulo-crear-curso">
-      <h2 id="titulo-crear-curso">{{ textos.nuevo }}</h2>
-      <p class="descripcion">{{ textos.crearDescripcion }}</p>
-      <app-formulario-curso [ocupado]="ocupado()" (guardado)="crear($event)" />
-    </aside>
     <div class="panel-listado" aria-labelledby="titulo-listado-cursos">
-      <h2 id="titulo-listado-cursos">{{ textos.listado }}</h2>
-      <p class="descripcion">{{ textos.listadoDescripcion }}</p>
+      <div class="encabezado-listado-cursos">
+        <div>
+          <h2 id="titulo-listado-cursos">{{ textos.listado }}</h2>
+          <p class="descripcion">{{ textos.listadoDescripcion }}</p>
+        </div>
+        @if (pagina(); as datos) {
+          <p class="resumen-cursos">
+            {{ textos.totalCursos }}: <strong>{{ datos.total_elements }}</strong>
+          </p>
+        }
+      </div>
+
+      <div class="busqueda-cursos">
+        <label class="hvc-label" for="buscar-curso">Buscar curso</label>
+        <input
+          id="buscar-curso"
+          class="hvc-input"
+          type="search"
+          [value]="busqueda()"
+          (input)="actualizarBusqueda($any($event.target).value)"
+          placeholder="Buscar por nombre, año o semestre"
+          autocomplete="off"
+        />
+      </div>
+
       @if (pagina(); as datos) {
-        <p class="resumen-cursos">
-          {{ textos.totalCursos }}: <strong>{{ datos.total_elements }}</strong>
-        </p>
-        <ul class="tarjetas-cursos">
-          @for (curso of datos.content; track curso.id) {
-            <li>
-              <div class="cabecera-tarjeta">
-                <h3>
-                  <a [routerLink]="['/cursos', curso.id]">{{ curso.nombre }}</a>
-                </h3>
-                <span class="insignia" [class.insignia-vigente]="curso.vigente">{{
-                  curso.vigente ? textos.vigente : textos.cerrado
-                }}</span>
-              </div>
-              <dl>
-                <div>
-                  <dt>{{ textos.anio }}</dt>
-                  <dd>{{ curso.anio }}</dd>
+        @if (cursosFiltrados().length) {
+          <ul class="tarjetas-cursos tarjetas-cursos--grid">
+            @for (curso of cursosFiltrados(); track curso.id) {
+              <li class="tarjeta-curso">
+                <div class="cabecera-tarjeta">
+                  <h3>
+                    <a [routerLink]="['/cursos', curso.id]">{{ curso.nombre }}</a>
+                  </h3>
+                  <span class="insignia" [class.insignia-vigente]="curso.vigente">{{
+                    curso.vigente ? textos.vigente : textos.cerrado
+                  }}</span>
                 </div>
-                <div>
-                  <dt>{{ textos.semestre }}</dt>
-                  <dd>{{ curso.semestre }}</dd>
+                <p class="meta-curso">Curso académico</p>
+                <dl>
+                  <div>
+                    <dt>{{ textos.anio }}</dt>
+                    <dd>{{ curso.anio }}</dd>
+                  </div>
+                  <div>
+                    <dt>{{ textos.semestre }}</dt>
+                    <dd>{{ curso.semestre }}</dd>
+                  </div>
+                </dl>
+                <div class="acciones-tarjeta-curso">
+                  <a class="accion-enlace" [routerLink]="['/cursos', curso.id]">Configuración</a>
+                  <a class="accion-enlace" [routerLink]="['/cursos', curso.id, 'estudiantes']">{{ textos.estudiantes }}</a>
+                  <a class="accion-enlace" [routerLink]="['/cursos', curso.id, 'asignaciones']">{{ textos.asignaciones }}</a>
                 </div>
-              </dl>
-              <a
-                class="accion-enlace"
-                [routerLink]="['/cursos', curso.id]"
-                [attr.aria-label]="textos.gestionar + ': ' + curso.nombre"
-                >{{ textos.gestionar }} →</a
-              >
-            </li>
-          } @empty {
-            <li class="estado-vacio">
-              <h3>{{ textos.sinCursos }}</h3>
-              <p>{{ textos.sinCursosDescripcion }}</p>
-            </li>
-          }
-        </ul>
+              </li>
+            }
+          </ul>
+        } @else if (datos.content.length === 0) {
+          <div class="estado-vacio tarjeta-curso tarjeta-curso--vacia">
+            <h3>{{ textos.sinCursos }}</h3>
+            <p>{{ textos.sinCursosDescripcion }}</p>
+            <a class="btn-hvc-primary" routerLink="/cursos/nuevo">{{ textos.nuevo }}</a>
+          </div>
+        } @else {
+          <div class="estado-vacio tarjeta-curso tarjeta-curso--vacia">
+            <h3>No se encontraron cursos</h3>
+            <p>No hay cursos que coincidan con la búsqueda en esta página.</p>
+          </div>
+        }
         <app-paginacion-cursos
           [etiqueta]="textos.misCursos"
           [pagina]="datos.number"
