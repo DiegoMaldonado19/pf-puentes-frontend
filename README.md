@@ -1,5 +1,16 @@
 # pf-puentes-frontend
 
+## Rediseño visual y correcciones de la calificación — 11/11/2026
+
+- **Sistema visual «Petróleo y piedra»** (ADR 0042): tokens en `src/styles.css` y kit `hvc-*` en `src/styles/components.css`. No hay variantes `dark:` ni colores de Tailwind por defecto en `src/app`.
+- **Constructor de formularios** (ADR 0043): secciones base bloqueadas, campos adicionales, vista previa con el motor y JSON de solo lectura en «Avanzado».
+- **Captura**: al enviar con campos incompletos se marcan, se listan y se lleva al primero; cada pestaña cuenta sus pendientes. Las observaciones del revisor aparecen junto a su campo, y «Ir al campo» cambia de pestaña. «Mis inspecciones» marca «Devuelta con cambios».
+- **Mantenimiento**: listado global con filtros, alta y edición de órdenes, y línea de estados con solo las transiciones válidas.
+- **Inicio por rol** con panel de alertas y disparo manual de avisos para administradores.
+- **Accesibilidad**: diez rutas auditadas con axe-core 4.10.2 (WCAG 2 A/AA, incluido contraste) a 1280 px, sin violaciones.
+
+Pendiente: el patrón de validación al enviar en cursos, foro, filtros y datos permanentes; el aviso «N propuestas generadas» al publicar; la consolidación de los CSS por función en el kit; y la verificación a 360 y 768 px con axe.
+
 ### Renovación de sesión ante fallos de conexión
 
 `AuthService.renovar()` sólo invalida la identidad ante HTTP 401/403. Los fallos de red
