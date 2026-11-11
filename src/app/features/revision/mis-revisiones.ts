@@ -58,8 +58,10 @@ import {
               }
             </li>
           } @empty {
-            <li role="status" class="rounded bg-lienzo p-8 text-center">
-              {{ t.sinPendientes }}
+            <li class="rounded bg-lienzo p-8 text-center">
+              <span role="status">
+                {{ t.sinPendientes }}
+              </span>
             </li>
           }
         </ul>

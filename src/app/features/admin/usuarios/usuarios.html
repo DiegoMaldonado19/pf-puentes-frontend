@@ -9,7 +9,6 @@
           routerLinkActive
           [routerLinkActiveOptions]="{ exact: true }"
           #pestanaUsuarios="routerLinkActive"
-          [attr.aria-selected]="pestanaUsuarios.isActive"
           >{{ pestanas.usuarios }}</a
         >
         <a
@@ -17,7 +16,6 @@
           routerLink="/admin/invitaciones"
           routerLinkActive
           #pestanaInvitaciones="routerLinkActive"
-          [attr.aria-selected]="pestanaInvitaciones.isActive"
           >{{ pestanas.invitaciones }}</a
         >
       </nav>

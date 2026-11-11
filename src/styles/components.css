@@ -455,7 +455,8 @@ select.hvc-input {
   color: var(--color-texto);
 }
 
-.hvc-tab[aria-selected='true'] {
+.hvc-tab[aria-selected='true'],
+.hvc-tab[aria-current='page'] {
   border-bottom-color: var(--color-primario-700);
   color: var(--color-primario-900);
 }

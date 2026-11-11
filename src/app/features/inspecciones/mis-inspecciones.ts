@@ -123,7 +123,9 @@ const ESTADOS: readonly EstadoInspeccion[] = [
               </div>
             </li>
           } @empty {
-            <li role="status" class="rounded bg-lienzo p-8 text-center">{{ t.vacio }}</li>
+            <li class="rounded bg-lienzo p-8 text-center">
+              <span role="status">{{ t.vacio }}</span>
+            </li>
           }
         </ul>
         <nav class="mt-5 flex items-center gap-4" [attr.aria-label]="comun.paginas">
