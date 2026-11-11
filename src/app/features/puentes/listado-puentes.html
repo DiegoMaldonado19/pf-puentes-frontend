@@ -114,6 +114,11 @@
         </button>
       </div>
     } @else if (resultado.value(); as datos) {
+      @if (cuantosVencidos(datos.contenido) > 0) {
+        <p role="status" class="hvc-alert hvc-alert--warn">
+          {{ textosAlertas.enListado }} {{ cuantosVencidos(datos.contenido) }}
+        </p>
+      }
       @if (datos.contenido.length === 0) {
         <p role="status" class="hvc-empty">
           {{ hayFiltros() ? t.listado.sinCoincidencias : t.listado.vacio }}
@@ -141,12 +146,12 @@
           </thead>
           <tbody>
             @for (puente of datos.contenido; track puente.id) {
-              <tr class="border-b border-slate-200">
+              <tr class="border-b border-borde">
                 <td class="p-2 font-mono text-sm">{{ puente.codigo }}</td>
                 <td class="p-2">
                   <a [routerLink]="['/puentes', puente.id]" class="hvc-link">{{ puente.nombre }}</a>
                   @if (!puente.activo) {
-                    <span class="ml-2 rounded bg-slate-200 px-2 py-0.5 text-xs font-semibold">{{
+                    <span class="ml-2 rounded bg-borde px-2 py-0.5 text-xs font-semibold">{{
                       t.filtros.dadoDeBaja
                     }}</span>
                   }
@@ -168,7 +173,7 @@
                 <app-estado-puente [estado]="puente.estado_actual" />
               </div>
               @if (!puente.activo) {
-                <p class="rounded bg-slate-200 px-2 py-0.5 text-xs font-semibold w-fit">
+                <p class="rounded bg-borde px-2 py-0.5 text-xs font-semibold w-fit">
                   {{ t.filtros.dadoDeBaja }}
                 </p>
               }

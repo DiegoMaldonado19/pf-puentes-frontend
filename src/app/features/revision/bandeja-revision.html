@@ -49,7 +49,7 @@
     <p class="text-muted mb-3">{{ t.total }}: {{ datos.total_elements }}</p>
     <ul class="grid gap-4">
       @for (fila of datos.content; track fila.inspeccion_id) {
-        <li class="rounded-lg border border-slate-300 bg-white p-5">
+        <li class="rounded-lg border border-borde bg-superficie p-5">
           <div class="flex flex-wrap items-center justify-between gap-3">
             <h2 class="text-lg font-semibold">{{ fila.puente_codigo }}</h2>
             <span class="hvc-badge hvc-badge--off">{{

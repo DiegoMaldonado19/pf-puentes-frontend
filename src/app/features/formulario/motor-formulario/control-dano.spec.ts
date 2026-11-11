@@ -57,16 +57,16 @@ describe('ControlDanoComponent', () => {
     const fixture = TestBed.createComponent(ControlDanoComponent);
     const comp = fixture.componentInstance;
 
-    // Al seleccionar nivel 1 (amarillo/ámbar), debe usar texto oscuro contrastante text-amber-950
+    // Nivel 1 (ámbar) seleccionado: texto oscuro sobre tinte claro, nunca texto claro sobre ámbar
     comp.seleccionar(1);
     const claseNivel1 = comp.obtenerClase(1);
-    expect(claseNivel1).toContain('text-amber-950');
-    expect(claseNivel1).toContain('bg-amber-400');
-    expect(claseNivel1).not.toContain('text-white');
+    expect(claseNivel1).toContain('text-regular-texto');
+    expect(claseNivel1).toContain('bg-regular-tinte');
+    expect(claseNivel1).not.toContain('text-superficie');
 
     // Botón no seleccionado debe tener texto legible
     comp.seleccionar(0);
     const claseNivel1SinSeleccionar = comp.obtenerClase(1);
-    expect(claseNivel1SinSeleccionar).toContain('text-amber-900');
+    expect(claseNivel1SinSeleccionar).toContain('text-regular-texto');
   });
 });

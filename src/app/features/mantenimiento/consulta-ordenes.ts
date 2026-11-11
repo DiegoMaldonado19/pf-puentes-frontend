@@ -57,6 +57,10 @@ export class ConsultaOrdenes {
   // Mantiene el modo de solo lectura si el host todavía no aporta este permiso de P2.
   readonly puedeIniciar = input(false);
   readonly iniciada = output<OrdenMantenimientoDTO>();
+  /** B9: permiso para corregir el tipo y la descripción de una orden abierta. */
+  readonly puedeEditar = input(false);
+  readonly editar = output<OrdenMantenimientoDTO>();
+  protected readonly textosFormulario = TEXTOS.formularioOrden;
   readonly puedeConsultarEvidencia = input(false);
   readonly puedeSubirEvidencia = input(false);
   readonly puedeCerrar = input(false);
@@ -201,6 +205,16 @@ export class ConsultaOrdenes {
       });
       limpiar(() => peticion.unsubscribe());
     });
+  }
+
+  /** Solo las órdenes abiertas se corrigen; ejecutadas, descartadas y canceladas ya no. */
+  protected puedeEditarOrden(orden: OrdenMantenimientoDTO): boolean {
+    return this.puedeEditar() && !['EJECUTADA', 'DESCARTADA', 'CANCELADA'].includes(orden.estado);
+  }
+
+  /** Vuelve a cargar la página actual, por ejemplo tras crear o editar una orden. */
+  recargarLista(): void {
+    this.consultar();
   }
 
   protected consultar(page = this.lista().datos?.page ?? 0) {

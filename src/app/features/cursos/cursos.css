@@ -1,6 +1,6 @@
 :host {
   display: block;
-  color: var(--color-primary-dark);
+  color: var(--color-texto);
   font-family: inherit;
 }
 section {
@@ -35,10 +35,10 @@ fieldset {
   min-width: 0;
   display: grid;
   gap: 1rem;
-  border: 1px solid var(--color-gray-light);
+  border: 1px solid var(--color-borde);
   border-radius: 0.75rem;
   padding: 1.25rem;
-  background: var(--color-surface);
+  background: var(--color-superficie);
 }
 legend {
   padding: 0 0.5rem;
@@ -49,14 +49,14 @@ select {
   display: block;
   width: 100%;
   margin-top: 0.375rem;
-  border: 1px solid var(--color-gray);
+  border: 1px solid var(--color-borde-control);
   border-radius: 0.375rem;
-  background: var(--color-surface);
-  color: var(--color-primary-dark);
+  background: var(--color-superficie);
+  color: var(--color-texto);
 }
 input[type='checkbox'] {
   min-height: auto;
-  accent-color: var(--color-primary-dark);
+  accent-color: var(--color-texto);
 }
 select {
   max-width: 100%;
@@ -69,51 +69,51 @@ button {
   padding: 0.5rem;
 }
 button {
-  color: var(--color-surface);
-  background: var(--color-primary);
-  border: 1px solid var(--color-primary);
+  color: var(--color-superficie);
+  background: var(--color-primario-700);
+  border: 1px solid var(--color-primario-700);
   border-radius: 0.375rem;
   padding: 0.625rem 1rem;
   cursor: pointer;
 }
 button:hover:not(:disabled) {
-  background: var(--color-primary-dark);
+  background: var(--color-primario-900);
 }
 button:disabled {
-  color: var(--color-primary-dark);
-  background: var(--color-canvas);
-  border-color: var(--color-gray);
+  color: var(--color-texto);
+  background: var(--color-lienzo);
+  border-color: var(--color-borde-control);
   cursor: default;
 }
 a {
-  color: var(--color-primary);
+  color: var(--color-primario-700);
   text-decoration: underline;
   text-underline-offset: 3px;
 }
 :focus-visible {
-  outline: 3px solid var(--color-primary);
+  outline: 3px solid var(--color-primario-700);
   outline-offset: 3px;
 }
 li {
   margin: 0.75rem 0;
   overflow-wrap: anywhere;
   padding: 1rem;
-  border: 1px solid var(--color-gray-light);
+  border: 1px solid var(--color-borde);
   border-radius: 0.5rem;
-  background: var(--color-canvas);
+  background: var(--color-lienzo);
 }
 li button {
   margin: 0.5rem;
 }
 [role='alert'] {
-  color: var(--color-danger);
-  background: color-mix(in srgb, var(--color-danger) 10%, white);
-  border-left: 4px solid var(--color-danger);
+  color: var(--color-malo);
+  background: color-mix(in srgb, var(--color-malo) 10%, white);
+  border-left: 4px solid var(--color-malo);
   padding: 0.75rem 1rem;
 }
 [role='status'] {
-  color: var(--color-primary-dark);
-  background: var(--color-canvas);
+  color: var(--color-texto);
+  background: var(--color-lienzo);
   padding: 0.75rem 1rem;
   border-radius: 0.375rem;
 }
@@ -132,7 +132,7 @@ li button {
   margin-top: 0;
 }
 .descripcion {
-  color: var(--color-primary-light);
+  color: var(--color-texto-secundario);
   line-height: 1.6;
   max-width: 72ch;
 }
@@ -146,9 +146,9 @@ li button {
 .bloque-curso {
   min-width: 0;
   padding: 1.5rem;
-  border: 1px solid var(--color-gray-light);
+  border: 1px solid var(--color-borde);
   border-radius: 0.75rem;
-  background: var(--color-surface);
+  background: var(--color-superficie);
 }
 .panel-creacion h2,
 .panel-listado h2 {
@@ -169,7 +169,7 @@ li button {
 .tarjetas-cursos > li {
   margin: 0;
   padding: 1.25rem;
-  background: var(--color-surface);
+  background: var(--color-superficie);
 }
 .tarjetas-cursos h3 {
   font-size: 1.125rem;
@@ -180,22 +180,22 @@ li button {
   margin-top: 0;
 }
 .resumen-cursos {
-  color: var(--color-primary-light);
-  border-top: 1px solid var(--color-gray-light);
+  color: var(--color-texto-secundario);
+  border-top: 1px solid var(--color-borde);
   padding-top: 1rem;
 }
 .insignia {
   display: inline-block;
   padding: 0.25rem 0.75rem;
   border-radius: 999px;
-  background: var(--color-canvas);
-  color: var(--color-primary-dark);
+  background: var(--color-lienzo);
+  color: var(--color-texto);
   font-size: 0.875rem;
   font-weight: 600;
 }
 .insignia-vigente {
-  background: color-mix(in srgb, var(--color-success) 12%, white);
-  color: var(--color-success);
+  background: color-mix(in srgb, var(--color-bueno) 12%, white);
+  color: var(--color-bueno);
 }
 dl {
   display: flex;
@@ -204,7 +204,7 @@ dl {
   margin: 1rem 0;
 }
 dt {
-  color: var(--color-primary-light);
+  color: var(--color-texto-secundario);
   font-size: 0.875rem;
 }
 dd {
@@ -219,24 +219,24 @@ dd {
   font-weight: 600;
 }
 button.secundario {
-  background: var(--color-surface);
-  color: var(--color-primary);
+  background: var(--color-superficie);
+  color: var(--color-primario-700);
 }
 button.secundario:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--color-primary) 8%, white);
+  background: color-mix(in srgb, var(--color-primario-700) 8%, white);
 }
 .estado-vacio {
   border-style: dashed;
   text-align: center;
-  color: var(--color-primary-light);
+  color: var(--color-texto-secundario);
 }
 .panel-asignaciones {
   margin-top: 2rem;
   padding-top: 1rem;
-  border-top: 1px solid var(--color-gray-light);
+  border-top: 1px solid var(--color-borde);
 }
 .codigo-puente {
-  color: var(--color-primary-light);
+  color: var(--color-texto-secundario);
   font-family: monospace;
 }
 @media (min-width: 960px) {

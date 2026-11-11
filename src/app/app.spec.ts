@@ -154,13 +154,14 @@ describe('App', () => {
     expect(hrefs(html)).toEqual([
       '/',
       '/perfil',
-      '/inspecciones',
-      '/mis-revisiones',
-      '/mis-asignaciones',
+      '/inicio',
       '/puentes',
       '/puentes/mapa',
       '/offline/local',
       '/foro',
+      '/inspecciones',
+      '/mis-revisiones',
+      '/mis-asignaciones',
     ]);
     expect(html.querySelector('.hvc-side-logout')?.textContent).toContain('Cerrar sesión');
   });
@@ -184,15 +185,17 @@ describe('App', () => {
     expect(hrefs(html)).toEqual([
       '/',
       '/perfil',
+      '/inicio',
+      '/puentes',
+      '/puentes/mapa',
+      '/offline/local',
+      '/foro',
+      '/mantenimiento',
       '/admin/pesos',
       '/admin/usuarios',
       '/admin/invitaciones',
       '/admin/auditoria',
       '/admin/formularios',
-      '/puentes',
-      '/puentes/mapa',
-      '/offline/local',
-      '/foro',
     ]);
   });
 

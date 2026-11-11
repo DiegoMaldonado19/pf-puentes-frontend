@@ -65,7 +65,7 @@
                     {{ s.solicitada }} {{ sol.creado_en | date: 'dd/MM/yyyy' : '-0600' }}
                   </p>
                 </div>
-                <p class="rounded border border-slate-500 px-2 py-1 text-sm font-medium">
+                <p class="rounded border border-borde-control px-2 py-1 text-sm font-medium">
                   {{ s.estados[sol.estado] }}
                 </p>
               </div>
@@ -83,7 +83,7 @@
                   <div class="mt-2 flex gap-2">
                     <button
                       type="button"
-                      class="rounded bg-green-700 px-3 py-2 font-medium text-white hover:bg-green-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-900"
+                      class="rounded bg-bueno-texto px-3 py-2 font-medium text-superficie hover:bg-bueno-texto focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-bueno"
                       (click)="abrir('aprobar', sol.id)"
                     >
                       {{ s.aprobar }}
@@ -112,7 +112,7 @@
                       }
                     } @else {
                       <form
-                        class="rounded border-2 border-red-700 p-3"
+                        class="rounded border-2 border-malo p-3"
                         (submit)="$event.preventDefault(); rechazar(sol.id)"
                       >
                         <label [for]="'motivo-' + sol.id" class="block font-medium"
@@ -134,14 +134,14 @@
                         <div class="mt-2 flex gap-2">
                           <button
                             type="submit"
-                            class="rounded bg-red-700 px-3 py-2 font-medium text-white hover:bg-red-800 disabled:opacity-50"
+                            class="rounded bg-malo px-3 py-2 font-medium text-superficie hover:bg-malo-texto disabled:opacity-50"
                             [disabled]="enviando()"
                           >
                             {{ s.confirmarRechazo }}
                           </button>
                           <button
                             type="button"
-                            class="rounded border border-slate-500 px-3 py-2 hover:bg-slate-100"
+                            class="rounded border border-borde-control px-3 py-2 hover:bg-lienzo"
                             (click)="cerrar()"
                           >
                             {{ s.cancelar }}

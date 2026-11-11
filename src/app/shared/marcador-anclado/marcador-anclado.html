@@ -1,23 +1,23 @@
-<section class="rounded border border-gray-200 p-2" [attr.aria-label]="etiquetaSeccion()">
-  <p class="mb-1 text-xs text-gray-600">
+<section class="rounded border border-borde p-2" [attr.aria-label]="etiquetaSeccion()">
+  <p class="mb-1 text-xs text-texto-secundario">
     {{ textos.titulo }}: <code>{{ elementoRef() }}</code>
   </p>
 
   @switch (estado()) {
     @case ('CARGANDO') {
-      <p role="status" class="text-sm text-gray-600">{{ textos.cargando }}</p>
+      <p role="status" class="text-sm text-texto-secundario">{{ textos.cargando }}</p>
     }
     @case ('VACIO') {
-      <p class="text-sm text-gray-600">{{ textos.vacio }}</p>
+      <p class="text-sm text-texto-secundario">{{ textos.vacio }}</p>
     }
     @case ('ERROR') {
-      <p role="alert" class="text-sm text-red-700">{{ mensajeError() }}</p>
+      <p role="alert" class="text-sm text-malo-texto">{{ mensajeError() }}</p>
     }
     @case ('NO_INTEGRADO') {
-      <p class="text-sm text-gray-600">{{ textos.noIntegrado }}</p>
+      <p class="text-sm text-texto-secundario">{{ textos.noIntegrado }}</p>
     }
     @case ('SIN_PERMISOS') {
-      <p role="alert" class="text-sm text-gray-700">{{ textos.sinPermisos }}</p>
+      <p role="alert" class="text-sm text-texto-secundario">{{ textos.sinPermisos }}</p>
     }
     @case ('LISTO') {
       <ul class="flex flex-wrap gap-1" [attr.aria-label]="textos.titulo">
@@ -25,11 +25,11 @@
           <li>
             <button
               type="button"
-              class="hvc-alert hvc-alert--warn bg-amber-50"
+              class="hvc-alert hvc-alert--warn bg-regular-tinte"
               [attr.aria-label]="textos.abrir + ': ' + marca.etiqueta"
               (click)="abrirMarca(marca)"
             >
-              <span class="text-xs text-gray-600">[{{ marca.tipo }}]</span>
+              <span class="text-xs text-texto-secundario">[{{ marca.tipo }}]</span>
               {{ marca.etiqueta }}
             </button>
           </li>

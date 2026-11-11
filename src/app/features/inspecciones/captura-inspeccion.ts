@@ -21,6 +21,7 @@ import { MotorFormularioComponent } from '../formulario/motor-formulario/motor-f
 import { TEXTOS } from '../../shared/textos';
 import { fechaSinHora } from '../puentes/formato';
 import { ChipEstadoInspeccion } from './chip-estado-inspeccion';
+import { PanelCorrecciones } from './panel-correcciones';
 import { referenciasDeElemento } from './esquema';
 import { mensajeInspeccion } from './errores';
 import { InspeccionStore } from './inspeccion-store';
@@ -40,6 +41,7 @@ import { PanelAcompanantes } from './panel-acompanantes';
     DecimalPipe,
     MotorFormularioComponent,
     PanelAcompanantes,
+    PanelCorrecciones,
     PanelArchivos,
     RouterLink,
     IcPreliminar,

@@ -26,7 +26,7 @@ import { DatosPermanentesDTO } from './modelos';
       @if (cargando()) {
         <p role="status">{{ comun.cargando }}</p>
       } @else if (store.noEncontrada()) {
-        <p role="alert" class="rounded border border-slate-500 bg-slate-100 p-3">
+        <p role="alert" class="rounded border border-borde-control bg-lienzo p-3">
           {{ capturaTextos.noEncontradaDetalle }}
         </p>
       } @else if (errorCarga()) {
@@ -49,7 +49,7 @@ import { DatosPermanentesDTO } from './modelos';
           </p>
         }
         @if (!store.editable()) {
-          <p role="note" class="mb-3 rounded border border-slate-500 bg-slate-100 p-3">
+          <p role="note" class="mb-3 rounded border border-borde-control bg-lienzo p-3">
             {{ capturaTextos.soloLecturaEstado }}
           </p>
         }
@@ -63,7 +63,7 @@ import { DatosPermanentesDTO } from './modelos';
               (datosChange)="datosEditados.set($event)"
             />
           } @else {
-            <p role="status" class="rounded bg-slate-100 p-4">{{ t.sinCampos }}</p>
+            <p role="status" class="rounded bg-lienzo p-4">{{ t.sinCampos }}</p>
           }
         }
 

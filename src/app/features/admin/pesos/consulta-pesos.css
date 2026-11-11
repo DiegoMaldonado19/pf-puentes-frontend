@@ -1,7 +1,7 @@
 :host {
   display: block;
-  color: var(--color-primary-dark);
-  background: var(--color-surface);
+  color: var(--color-texto);
+  background: var(--color-superficie);
 }
 .consulta {
   max-width: 70rem;
@@ -22,7 +22,7 @@ p {
 }
 .tabla {
   overflow-x: auto;
-  border: 1px solid var(--color-gray-light);
+  border: 1px solid var(--color-borde);
   border-radius: 0.5rem;
 }
 table {
@@ -38,11 +38,11 @@ caption {
 th,
 td {
   padding: 0.75rem;
-  border-top: 1px solid var(--color-gray-light);
+  border-top: 1px solid var(--color-borde);
   overflow-wrap: anywhere;
 }
 thead {
-  background: var(--color-canvas);
+  background: var(--color-lienzo);
 }
 nav {
   display: flex;
@@ -52,34 +52,34 @@ nav {
   margin-block: 1rem;
 }
 button {
-  border: 1px solid var(--color-primary);
+  border: 1px solid var(--color-primario-700);
   border-radius: 0.375rem;
   padding: 0.5rem 0.875rem;
   min-height: 2.75rem;
-  color: var(--color-surface);
-  background: var(--color-primary);
+  color: var(--color-superficie);
+  background: var(--color-primario-700);
   cursor: pointer;
 }
 button:hover:not(:disabled) {
-  background: var(--color-primary-dark);
+  background: var(--color-primario-900);
 }
 button[aria-pressed='true'] {
-  color: var(--color-primary-dark);
-  background: color-mix(in srgb, var(--color-primary) 12%, white);
+  color: var(--color-texto);
+  background: color-mix(in srgb, var(--color-primario-700) 12%, white);
 }
 button:disabled {
-  color: var(--color-primary-dark);
-  background: var(--color-canvas);
-  border-color: var(--color-gray);
+  color: var(--color-texto);
+  background: var(--color-lienzo);
+  border-color: var(--color-borde-control);
   cursor: default;
 }
 button:focus-visible,
 .tabla:focus-visible {
-  outline: 3px solid var(--color-primary-dark);
+  outline: 3px solid var(--color-texto);
   outline-offset: 3px;
 }
 [role='alert'] {
-  color: var(--color-danger);
+  color: var(--color-malo);
 }
 dl {
   display: grid;

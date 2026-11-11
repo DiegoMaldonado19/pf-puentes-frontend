@@ -41,7 +41,7 @@ import { PersistenciaOffline } from './persistencia';
           {{ estado() }}
         </p>
         @if (avisoUbicacion(); as aviso) {
-          <p role="status" class="hvc-alert hvc-alert--warn mt-3 bg-amber-50">
+          <p role="status" class="hvc-alert hvc-alert--warn mt-3 bg-regular-tinte">
             {{ aviso }}
           </p>
         }

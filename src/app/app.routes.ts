@@ -116,5 +116,18 @@ export const routes: Routes = [
     path: '',
     loadChildren: () => import('./features/auth/auth.routes').then((m) => m.RUTAS_AUTH),
   },
+  {
+    path: 'inicio',
+    title: TEXTOS.inicio.titulo,
+    canActivate: [sesionGuard],
+    loadComponent: () => import('./features/inicio/inicio').then((m) => m.Inicio),
+  },
+  {
+    path: 'mantenimiento',
+    title: TEXTOS.mantenimientoGlobal.titulo,
+    canActivate: [rolGuard('CATEDRATICO', 'ADMINISTRADOR')],
+    loadComponent: () =>
+      import('./features/mantenimiento/mantenimiento-global').then((m) => m.MantenimientoGlobal),
+  },
   { path: '**', redirectTo: 'puentes' },
 ];

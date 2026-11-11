@@ -2,13 +2,32 @@
   <div class="flex flex-wrap items-start justify-between gap-3">
     <div>
       <h1 id="titulo-usuarios" class="text-h1">{{ t.titulo }}</h1>
+      <nav class="hvc-tabs mt-3" aria-label="Cuentas e invitaciones">
+        <a
+          class="hvc-tab no-underline"
+          routerLink="/admin/usuarios"
+          routerLinkActive
+          [routerLinkActiveOptions]="{ exact: true }"
+          #pestanaUsuarios="routerLinkActive"
+          [attr.aria-selected]="pestanaUsuarios.isActive"
+          >{{ pestanas.usuarios }}</a
+        >
+        <a
+          class="hvc-tab no-underline"
+          routerLink="/admin/invitaciones"
+          routerLinkActive
+          #pestanaInvitaciones="routerLinkActive"
+          [attr.aria-selected]="pestanaInvitaciones.isActive"
+          >{{ pestanas.invitaciones }}</a
+        >
+      </nav>
       <p class="text-muted">{{ t.descripcion }}</p>
     </div>
     <button type="button" [class]="claseBoton" (click)="abrirAlta()">{{ g.nuevo }}</button>
   </div>
 
   @if (aviso()) {
-    <p role="status" class="mt-3 rounded bg-slate-100 p-3 font-medium text-slate-800">
+    <p role="status" class="mt-3 rounded bg-lienzo p-3 font-medium text-texto">
       {{ aviso() }}
     </p>
   }
@@ -18,7 +37,7 @@
 
   @if (formulario(); as abierto) {
     <form
-      class="mt-4 grid gap-4 rounded border border-slate-300 p-4 sm:grid-cols-2"
+      class="mt-4 grid gap-4 rounded border border-borde p-4 sm:grid-cols-2"
       aria-labelledby="titulo-formulario-usuario"
       [formGroup]="form"
       (ngSubmit)="guardar()"
@@ -141,7 +160,7 @@
         </p>
       } @else {
         <div class="overflow-x-auto">
-          <table class="gc-table w-full border-collapse text-left">
+          <table class="gc-table hvc-tabla-responsiva w-full border-collapse text-left">
             <caption class="sr-only">
               {{
                 t.titulo
@@ -159,12 +178,14 @@
             </thead>
             <tbody>
               @for (usuario of lista.content; track usuario.id) {
-                <tr class="border-b border-slate-200">
-                  <td class="p-2">{{ usuario.nombre }}</td>
-                  <td class="p-2">{{ usuario.correo }}</td>
-                  <td class="p-2">{{ rolesTexto[usuario.rol] }}</td>
-                  <td class="p-2">{{ estadosTexto[usuario.estado] }}</td>
-                  <td class="p-2">
+                <tr class="border-b border-borde">
+                  <td class="p-2" [attr.data-etiqueta]="t.nombre">{{ usuario.nombre }}</td>
+                  <td class="p-2" [attr.data-etiqueta]="t.correo">{{ usuario.correo }}</td>
+                  <td class="p-2" [attr.data-etiqueta]="t.rol">{{ rolesTexto[usuario.rol] }}</td>
+                  <td class="p-2" [attr.data-etiqueta]="t.estado">
+                    {{ estadosTexto[usuario.estado] }}
+                  </td>
+                  <td class="p-2" [attr.data-etiqueta]="g.acciones">
                     <div class="flex flex-wrap gap-3">
                       <button type="button" class="hvc-link" (click)="abrirEdicion(usuario)">
                         {{ g.editar }}
@@ -186,7 +207,7 @@
                       }
                     </div>
                   </td>
-                  <td class="p-2">
+                  <td class="p-2" [attr.data-etiqueta]="t.ver">
                     <a [routerLink]="['/admin/usuarios', usuario.id]" [class]="claseEnlace">{{
                       t.ver
                     }}</a>

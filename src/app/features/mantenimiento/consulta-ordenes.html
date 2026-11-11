@@ -105,6 +105,11 @@
           </button>
         } @else if (detalle().datos; as orden) {
           <p>{{ orden.descripcion }}</p>
+          @if (puedeEditarOrden(orden)) {
+            <button type="button" [disabled]="operacionPendiente()" (click)="editar.emit(orden)">
+              {{ textosFormulario.editarBoton }}
+            </button>
+          }
           <dl>
             <dt>{{ t.tipo }}</dt>
             <dd>{{ t.tipos[orden.tipo] }}</dd>

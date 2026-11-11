@@ -41,7 +41,7 @@ describe('ModalPublicar', () => {
     const titulo = fixture.nativeElement.querySelector('h3');
     expect(titulo.textContent).toContain('V2.0.0');
 
-    const advertencia = fixture.nativeElement.querySelector('.bg-amber-50');
+    const advertencia = fixture.nativeElement.querySelector('.bg-regular-tinte');
     expect(advertencia).toBeTruthy();
   });
 

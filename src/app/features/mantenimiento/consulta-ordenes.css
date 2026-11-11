@@ -1,5 +1,5 @@
 .detalle {
-  border: 1px solid var(--color-gray);
+  border: 1px solid var(--color-borde-control);
   border-radius: 0.5rem;
   padding: 1rem;
 }

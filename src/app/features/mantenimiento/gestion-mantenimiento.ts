@@ -7,11 +7,13 @@ import { TEXTOS } from '../../shared/textos';
 import { PuentesService } from '../puentes/puentes.service';
 import { ConsultaOrdenes } from './consulta-ordenes';
 import { ConsultaPropuestas } from './consulta-propuestas';
+import { FormularioOrden } from './formulario-orden';
+import { OrdenMantenimientoDTO } from './modelos';
 
 /** Conecta los permisos ya acordados de P8 con la sesión real de P2 y el inventario P3. */
 @Component({
   selector: 'app-gestion-mantenimiento',
-  imports: [RouterLink, ConsultaOrdenes, ConsultaPropuestas],
+  imports: [RouterLink, ConsultaOrdenes, ConsultaPropuestas, FormularioOrden],
   templateUrl: './gestion-mantenimiento.html',
 })
 export class GestionMantenimiento {
@@ -19,6 +21,10 @@ export class GestionMantenimiento {
   private readonly auth = inject(AuthService);
   private readonly puentes = inject(PuentesService);
   protected readonly t = TEXTOS.mantenimiento.gestion;
+  protected readonly textosFormulario = TEXTOS.formularioOrden;
+  /** B9: alta de una orden nueva, o edición de la orden abierta elegida en la lista. */
+  protected readonly creando = signal(false);
+  protected readonly editando = signal<OrdenMantenimientoDTO | null>(null);
   protected readonly permitido = computed(
     () => this.auth.listo() && this.auth.autenticado() && this.auth.esGestorMantenimiento(),
   );
@@ -53,5 +59,29 @@ export class GestionMantenimiento {
 
   protected recargar() {
     if (this.permitido() && !this.operacionPendiente()) this.intento.update((v) => v + 1);
+  }
+
+  protected nuevaOrden() {
+    if (!this.operacionPendiente()) {
+      this.editando.set(null);
+      this.creando.set(true);
+    }
+  }
+
+  protected editarOrden(orden: OrdenMantenimientoDTO) {
+    if (!this.operacionPendiente()) {
+      this.creando.set(false);
+      this.editando.set(orden);
+    }
+  }
+
+  protected cerrarFormulario() {
+    this.creando.set(false);
+    this.editando.set(null);
+  }
+
+  protected alGuardarOrden() {
+    this.cerrarFormulario();
+    this.ordenes()?.recargarLista();
   }
 }

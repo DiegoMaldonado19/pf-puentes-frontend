@@ -1,0 +1,83 @@
+<form
+  class="hvc-card grid gap-3"
+  novalidate
+  aria-labelledby="titulo-formulario-orden"
+  [formGroup]="formulario"
+  (submit)="$event.preventDefault(); enviar()"
+>
+  <h3 id="titulo-formulario-orden" class="text-h3 m-0">
+    {{ orden() ? t.editar : t.nueva }}
+  </h3>
+  @if (orden()) {
+    <p class="hvc-hint m-0">{{ t.soloTipoYDescripcion }}</p>
+  }
+
+  <div class="hvc-campo">
+    <label class="hvc-label" for="orden-tipo">{{ t.tipo }}</label>
+    <select
+      id="orden-tipo"
+      class="hvc-input"
+      formControlName="tipo"
+      [attr.aria-invalid]="errorTipo() !== null"
+    >
+      @for (valor of tipos; track valor) {
+        <option [value]="valor">{{ etiquetasTipo[valor] }}</option>
+      }
+    </select>
+    @if (errorTipo(); as mensaje) {
+      <span class="hvc-error">{{ mensaje }}</span>
+    }
+  </div>
+
+  @if (!orden()) {
+    <div class="hvc-campo">
+      <label class="hvc-label" for="orden-prioridad">{{ t.prioridad }}</label>
+      <select
+        id="orden-prioridad"
+        class="hvc-input"
+        formControlName="prioridad"
+        [attr.aria-invalid]="errorPrioridad() !== null"
+      >
+        @for (valor of prioridades; track valor) {
+          <option [value]="valor">{{ etiquetasPrioridad[valor] }}</option>
+        }
+      </select>
+      @if (errorPrioridad(); as mensaje) {
+        <span class="hvc-error">{{ mensaje }}</span>
+      }
+    </div>
+
+    <div class="hvc-campo">
+      <label class="hvc-label" for="orden-elemento">{{ t.elementoRef }}</label>
+      <input id="orden-elemento" class="hvc-input" maxlength="200" formControlName="elementoRef" />
+    </div>
+  }
+
+  <div class="hvc-campo">
+    <label class="hvc-label" for="orden-descripcion">{{ t.descripcion }}</label>
+    <textarea
+      id="orden-descripcion"
+      class="hvc-input"
+      rows="4"
+      maxlength="2000"
+      formControlName="descripcion"
+      [attr.aria-invalid]="errorDescripcion() !== null"
+    ></textarea>
+    @if (errorDescripcion(); as mensaje) {
+      <span class="hvc-error">{{ mensaje }}</span>
+    }
+  </div>
+
+  @if (errorEnvio(); as mensaje) {
+    <p role="alert" class="hvc-alert m-0">{{ mensaje }}</p>
+  }
+
+  <div class="flex flex-wrap justify-end gap-2">
+    <button type="button" class="btn-hvc-secondary" (click)="cancelada.emit()">
+      {{ t.cancelar }}
+    </button>
+    <button type="submit" class="btn-hvc-primary" [disabled]="enviando()">
+      {{ enviando() ? t.guardando : t.guardar }}
+    </button>
+  </div>
+</form>

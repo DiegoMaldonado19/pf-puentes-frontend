@@ -26,7 +26,7 @@ export function elementoMarcador(puente: PuenteDTO): HTMLButtonElement {
     `${puente.nombre} (${puente.codigo}): ${TEXTOS.estadoPuente[clave]}`,
   );
   boton.className =
-    'grid h-7 w-7 place-items-center rounded-full border-2 border-white text-xs font-bold shadow focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-black';
+    'grid h-7 w-7 place-items-center rounded-full border-2 border-superficie text-xs font-bold shadow focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-black';
   boton.style.background = estilo.fondo;
   boton.style.color = estilo.texto;
   return boton;
@@ -48,7 +48,7 @@ export function contenidoPopup(puente: PuenteDTO, abrirFicha: (id: string) => vo
   estado.textContent = `${t.campos.estado}: ${TEXTOS.estadoPuente[clave]}`;
   const enlace = document.createElement('a');
   enlace.href = `/puentes/${puente.id}`;
-  enlace.className = 'text-blue-800 underline';
+  enlace.className = 'text-primario-900 underline';
   enlace.textContent = t.mapa.verFicha;
   enlace.addEventListener('click', (evento) => {
     evento.preventDefault();

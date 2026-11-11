@@ -11,6 +11,7 @@ import { fechaSinHora } from './formato';
 import { MapaUbicacion } from './mapa/mapa-ubicacion';
 import { PuentesService } from './puentes.service';
 import { ROL_PUENTES } from './rol-puentes';
+import { sinInspeccionDesde12Meses } from './inspeccion-vencida';
 
 registerLocaleData(localeEsGt);
 
@@ -24,6 +25,8 @@ export class FichaPuente {
   /** Parámetro :id de la ruta (withComponentInputBinding). */
   readonly id = input.required<string>();
   protected readonly t = TEXTOS.puentes;
+  protected readonly textosAlertas = TEXTOS.alertasInspeccion;
+  protected readonly vencida = sinInspeccionDesde12Meses;
   protected readonly textosForo = TEXTOS.foro;
   protected readonly textosInspecciones = TEXTOS.inspecciones;
   protected readonly rol = inject(ROL_PUENTES);

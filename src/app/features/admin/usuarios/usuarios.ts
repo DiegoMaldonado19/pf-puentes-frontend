@@ -1,7 +1,7 @@
 import { Component, computed, inject, linkedSignal, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { RouterLink, RouterLinkActive } from '@angular/router';
 import { firstValueFrom, Observable } from 'rxjs';
 import { EstadoUsuario, Rol, UsuarioAdminDTO } from '../../../core/auth/modelos';
 import { TEXTOS } from '../../../shared/textos';
@@ -22,7 +22,7 @@ const ESTADOS: readonly EstadoUsuario[] = ['PENDIENTE', 'ACTIVO', 'INACTIVO'];
 
 @Component({
   selector: 'app-usuarios',
-  imports: [PaginacionAdmin, ReactiveFormsModule, RouterLink],
+  imports: [PaginacionAdmin, ReactiveFormsModule, RouterLink, RouterLinkActive],
   templateUrl: './usuarios.html',
 })
 export class Usuarios {
@@ -30,6 +30,7 @@ export class Usuarios {
   protected readonly g = TEXTOS.admin.usuarios.gestion;
   protected readonly rolesTexto = TEXTOS.auth.roles;
   protected readonly estadosTexto = TEXTOS.auth.estados;
+  protected readonly pestanas = TEXTOS.auth.nav;
   protected readonly roles = ROLES;
   protected readonly estados = ESTADOS;
   protected readonly claseCampo = CLASE_CAMPO;

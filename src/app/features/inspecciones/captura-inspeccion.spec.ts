@@ -1,3 +1,5 @@
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
@@ -72,6 +74,9 @@ async function montar(
   TestBed.configureTestingModule({
     providers: [
       provideRouter([]),
+      // El panel de correcciones pide sus propios datos; aquí quedan sin responder
+      provideHttpClient(),
+      provideHttpClientTesting(),
       {
         provide: InspeccionApi,
         useValue: { detalle: () => of(detalle), archivos: () => of([]), guardarAvance: vi.fn() },

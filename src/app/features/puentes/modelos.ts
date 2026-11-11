@@ -57,6 +57,8 @@ export interface PuenteCercanoDTO {
   readonly id: string;
   readonly codigo: string;
   readonly nombre: string;
+  readonly latitud: number;
+  readonly longitud: number;
   readonly distancia_metros: number;
 }
 

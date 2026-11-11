@@ -6,15 +6,24 @@ import { IndicadorOffline } from './offline/indicador';
 import { NotificacionesService } from './core/notificaciones/notificaciones.service';
 import { CampanaNotificaciones } from './shared/campana-notificaciones/campana-notificaciones';
 import { TEXTOS } from './shared/textos';
+import { Icono } from './shared/ui/icono';
 
 @Component({
-  imports: [RouterLink, RouterLinkActive, RouterOutlet, IndicadorOffline, CampanaNotificaciones],
+  imports: [
+    RouterLink,
+    RouterLinkActive,
+    RouterOutlet,
+    IndicadorOffline,
+    CampanaNotificaciones,
+    Icono,
+  ],
   providers: [EstadoLocal],
   selector: 'app-root',
   styleUrl: './app.css',
   templateUrl: './app.html',
 })
 export class App {
+  protected readonly tShell = TEXTOS.shell;
   protected readonly textosRevision = TEXTOS.revision;
   protected readonly textosCursos = TEXTOS.cursos;
   protected readonly textosInspecciones = TEXTOS.inspecciones;

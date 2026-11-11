@@ -32,23 +32,23 @@ import { TEXTOS } from '../../shared/textos';
     button {
       min-height: 44px;
       padding: 0.5rem 1rem;
-      color: var(--color-primary-dark);
-      background: color-mix(in srgb, var(--color-primary-light) 20%, white);
+      color: var(--color-texto);
+      background: color-mix(in srgb, var(--color-texto-secundario) 20%, white);
       border: none;
       border-radius: var(--radius-md);
       cursor: pointer;
     }
     button:hover:not(:disabled) {
-      background: var(--color-primary);
-      color: var(--color-surface);
+      background: var(--color-primario-700);
+      color: var(--color-superficie);
     }
     button:disabled {
-      color: var(--color-primary-light);
+      color: var(--color-texto-secundario);
       opacity: 0.5;
       cursor: default;
     }
     button:focus-visible {
-      outline: 3px solid var(--color-primary);
+      outline: 3px solid var(--color-primario-700);
       outline-offset: 3px;
     }
   `,

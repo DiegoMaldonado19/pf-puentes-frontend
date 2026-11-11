@@ -2,6 +2,7 @@ import { DatePipe } from '@angular/common';
 import { Component, computed, inject, linkedSignal, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { RouterLink, RouterLinkActive } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { EstadoInvitacion, InvitacionDTO, RolInvitable } from '../../../core/auth/modelos';
 import { TEXTOS } from '../../../shared/textos';
@@ -30,11 +31,12 @@ const ESTADOS: readonly EstadoInvitacion[] = ['ABIERTA', 'ACEPTADA', 'REVOCADA',
 
 @Component({
   selector: 'app-invitaciones',
-  imports: [DatePipe, PaginacionAdmin, ReactiveFormsModule],
+  imports: [DatePipe, PaginacionAdmin, ReactiveFormsModule, RouterLink, RouterLinkActive],
   templateUrl: './invitaciones.html',
 })
 export class Invitaciones {
   protected readonly t = TEXTOS.admin.invitaciones;
+  protected readonly pestanas = TEXTOS.auth.nav;
   protected readonly roles = TEXTOS.auth.roles;
   protected readonly rolesInvitables = ROLES_INVITABLES;
   protected readonly estados = ESTADOS;

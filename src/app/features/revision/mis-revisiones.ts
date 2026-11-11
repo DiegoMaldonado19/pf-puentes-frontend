@@ -58,7 +58,7 @@ import {
               }
             </li>
           } @empty {
-            <li role="status" class="rounded bg-slate-100 p-8 text-center">
+            <li role="status" class="rounded bg-lienzo p-8 text-center">
               {{ t.sinPendientes }}
             </li>
           }
@@ -95,7 +95,7 @@ import {
               }}</a>
             </li>
           } @empty {
-            <li class="rounded bg-slate-100 p-4">{{ t.sinHistorial }}</li>
+            <li class="rounded bg-lienzo p-4">{{ t.sinHistorial }}</li>
           }
         </ul>
         <nav class="mt-4 flex items-center gap-4" [attr.aria-label]="t.historial">

@@ -2,11 +2,14 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable, tap } from 'rxjs';
 import {
+  CampoExtraDTO,
   CrearFormularioVersionDTO,
   EditarFormularioVersionDTO,
+  EsquemaBaseDTO,
   FormularioVersionDTO,
   PaginaFormularioVersionDTO,
   PublicarFormularioVersionDTO,
+  ResultadoValidacionFormularioDTO,
 } from './modelos';
 import { BaseLocal } from '../../offline/base-local';
 import { Json, ReferenciaLocal } from '../../offline/modelos';
@@ -65,5 +68,17 @@ export class FormularioService {
       `${this.base}/${encodeURIComponent(id)}/publicar`,
       datos ?? {},
     );
+  }
+
+  /** Esquema base SIECA y secciones que admiten campos adicionales (B2). */
+  esquemaBase(): Observable<EsquemaBaseDTO> {
+    return this.http.get<EsquemaBaseDTO>(`${this.base}/base`);
+  }
+
+  /** Validación en seco de los campos adicionales; no guarda nada. */
+  validarComposicion(camposExtra: CampoExtraDTO[]): Observable<ResultadoValidacionFormularioDTO> {
+    return this.http.post<ResultadoValidacionFormularioDTO>(`${this.base}/validacion`, {
+      campos_extra: camposExtra,
+    });
   }
 }

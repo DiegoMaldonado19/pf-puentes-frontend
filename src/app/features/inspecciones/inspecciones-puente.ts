@@ -59,7 +59,7 @@ import { InspeccionApi, TAMANO_PAGINA } from './inspeccion-api';
               </div>
             </li>
           } @empty {
-            <li role="status" class="rounded bg-slate-100 p-8 text-center">{{ t.vacio }}</li>
+            <li role="status" class="rounded bg-lienzo p-8 text-center">{{ t.vacio }}</li>
           }
         </ul>
         <nav class="mt-5 flex items-center gap-4" [attr.aria-label]="comun.paginas">

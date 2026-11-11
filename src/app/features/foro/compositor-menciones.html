@@ -1,13 +1,13 @@
-<section class="rounded-lg border border-gray-200 p-3" [attr.aria-label]="textos.titulo">
+<section class="rounded-lg border border-borde p-3" [attr.aria-label]="textos.titulo">
   <label class="mb-1 block text-sm font-medium" for="menciones-busqueda">
     {{ textos.titulo }}
   </label>
-  <p id="menciones-ayuda" class="mb-2 text-xs text-gray-600">{{ textos.ayuda }}</p>
+  <p id="menciones-ayuda" class="mb-2 text-xs text-texto-secundario">{{ textos.ayuda }}</p>
   <input
     id="menciones-busqueda"
     type="search"
     autocomplete="off"
-    class="w-full rounded border border-gray-300 px-3 py-2 disabled:opacity-50"
+    class="w-full rounded border border-borde px-3 py-2 disabled:opacity-50"
     [value]="busqueda()"
     [disabled]="!puedeBuscar()"
     [attr.aria-describedby]="'menciones-ayuda'"
@@ -18,35 +18,35 @@
 
   @switch (estado()) {
     @case ('CARGANDO') {
-      <p role="status" class="mt-2 text-sm text-gray-600">{{ textos.cargando }}</p>
+      <p role="status" class="mt-2 text-sm text-texto-secundario">{{ textos.cargando }}</p>
     }
     @case ('ERROR') {
-      <p role="alert" class="mt-2 text-sm text-red-700">{{ textos.error }}</p>
+      <p role="alert" class="mt-2 text-sm text-malo-texto">{{ textos.error }}</p>
     }
     @case ('SIN_SESION') {
-      <p class="mt-2 text-sm text-gray-600">{{ textos.sinSesion }}</p>
+      <p class="mt-2 text-sm text-texto-secundario">{{ textos.sinSesion }}</p>
     }
     @case ('SIN_PERMISOS') {
-      <p role="alert" class="mt-2 text-sm text-gray-700">{{ textos.sinPermisos }}</p>
+      <p role="alert" class="mt-2 text-sm text-texto-secundario">{{ textos.sinPermisos }}</p>
     }
     @case ('NO_INTEGRADO') {
-      <p class="mt-2 text-sm text-gray-600">{{ textos.noIntegrado }}</p>
+      <p class="mt-2 text-sm text-texto-secundario">{{ textos.noIntegrado }}</p>
     }
     @case ('SIN_OPCIONES') {
-      <p class="mt-2 text-sm text-gray-600">{{ textos.sinOpciones }}</p>
+      <p class="mt-2 text-sm text-texto-secundario">{{ textos.sinOpciones }}</p>
     }
     @case ('LISTO') {
       @if (!consultaValida()) {
-        <p class="mt-2 text-sm text-gray-600">{{ textos.empieza }}</p>
+        <p class="mt-2 text-sm text-texto-secundario">{{ textos.empieza }}</p>
       } @else if (coincidencias().length === 0) {
-        <p class="mt-2 text-sm text-gray-600">{{ textos.sinCoincidencias }}</p>
+        <p class="mt-2 text-sm text-texto-secundario">{{ textos.sinCoincidencias }}</p>
       } @else {
         <ul id="menciones-opciones" class="mt-2 space-y-1" [attr.aria-label]="textos.titulo">
           @for (persona of coincidencias(); track persona.id) {
             <li>
               <button
                 type="button"
-                class="w-full rounded px-2 py-2 text-left text-sm hover:bg-gray-100 disabled:opacity-50"
+                class="w-full rounded px-2 py-2 text-left text-sm hover:bg-lienzo disabled:opacity-50"
                 [disabled]="yaSeleccionada(persona.id)"
                 [attr.aria-pressed]="yaSeleccionada(persona.id)"
                 [attr.aria-label]="textos.opcion + ': ' + persona.etiqueta"
@@ -66,11 +66,11 @@
       <h3 class="hvc-label">{{ textos.seleccionadas }}</h3>
       <ul class="mt-1 flex flex-wrap gap-2" [attr.aria-label]="textos.seleccionadas">
         @for (persona of seleccionadas(); track persona.id) {
-          <li class="hvc-badge hvc-badge--accent inline-flex items-center gap-1 bg-blue-50">
+          <li class="hvc-badge hvc-badge--accent inline-flex items-center gap-1 bg-primario-50">
             <span>&#64;{{ persona.etiqueta }}</span>
             <button
               type="button"
-              class="rounded px-1 text-gray-700 hover:bg-blue-100"
+              class="rounded px-1 text-texto-secundario hover:bg-primario-100"
               [attr.aria-label]="textos.quitar + ': ' + persona.etiqueta"
               (click)="quitar(persona.id)"
             >

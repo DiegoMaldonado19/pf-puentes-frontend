@@ -32,7 +32,7 @@ import { InspeccionApi, TAMANO_PAGINA } from './inspeccion-api';
                 <h2 class="text-lg font-semibold">{{ puente.nombre }}</h2>
                 <p class="text-muted">{{ t.curso }}: {{ puente.curso_nombre ?? t.sinCurso }}</p>
                 @if (puente.borrador_en_curso) {
-                  <p class="hvc-badge hvc-badge--warn mt-1 inline-block bg-amber-50">
+                  <p class="hvc-badge hvc-badge--warn mt-1 inline-block bg-regular-tinte">
                     {{ t.borradorEnCurso }}
                   </p>
                 }
@@ -54,7 +54,7 @@ import { InspeccionApi, TAMANO_PAGINA } from './inspeccion-api';
               }
             </li>
           } @empty {
-            <li role="status" class="rounded bg-slate-100 p-8 text-center">{{ t.vacio }}</li>
+            <li role="status" class="rounded bg-lienzo p-8 text-center">{{ t.vacio }}</li>
           }
         </ul>
         <nav class="mt-5 flex items-center gap-4" [attr.aria-label]="comun.paginas">

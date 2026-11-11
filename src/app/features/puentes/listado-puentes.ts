@@ -10,6 +10,7 @@ import { EstadoFiltro, FiltrosPuentes, SituacionPuentes } from './modelos';
 import { Paginacion } from './paginacion';
 import { PuentesService } from './puentes.service';
 import { ROL_PUENTES } from './rol-puentes';
+import { sinInspeccionDesde12Meses } from './inspeccion-vencida';
 
 export const TAMANO_PAGINA_LISTADO = 20;
 
@@ -21,6 +22,12 @@ export const TAMANO_PAGINA_LISTADO = 20;
 })
 export class ListadoPuentes {
   protected readonly t = TEXTOS.puentes;
+  protected readonly textosAlertas = TEXTOS.alertasInspeccion;
+  protected cuantosVencidos(
+    puentes: readonly { fecha_ultima_inspeccion: string | null }[],
+  ): number {
+    return puentes.filter((p) => sinInspeccionDesde12Meses(p.fecha_ultima_inspeccion)).length;
+  }
   protected readonly estadosFiltro: readonly EstadoFiltro[] = [
     'BUENO',
     'REGULAR',

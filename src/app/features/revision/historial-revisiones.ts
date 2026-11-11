@@ -36,11 +36,11 @@ import { CicloRevision, PaginaSeguimiento, RevisionApi } from './revision-api';
               <p class="my-2 whitespace-pre-wrap">{{ ciclo.observacion }}</p>
               <ul class="grid gap-3">
                 @for (observacion of ciclo.observaciones; track observacion.id) {
-                  <li class="rounded bg-slate-50 p-3">
+                  <li class="rounded bg-lienzo p-3">
                     <strong class="break-all">{{ observacion.elemento_ref }}</strong>
                     <p class="whitespace-pre-wrap">{{ observacion.texto }}</p>
                     @if (observacion.resuelta_en) {
-                      <p class="text-sm text-green-800">
+                      <p class="text-sm text-bueno-texto">
                         {{ t.resuelta }}:
                         {{ observacion.resuelta_en | date: 'dd/MM/yyyy HH:mm' : '-0600' }}
                       </p>
@@ -64,7 +64,7 @@ import { CicloRevision, PaginaSeguimiento, RevisionApi } from './revision-api';
               <app-calificacion-revision [revisionId]="ciclo.id" />
             </li>
           } @empty {
-            <li class="rounded bg-slate-100 p-4">{{ t.sinHistorial }}</li>
+            <li class="rounded bg-lienzo p-4">{{ t.sinHistorial }}</li>
           }
         </ol>
         <nav class="mt-4 flex items-center gap-4" [attr.aria-label]="t.paginas">

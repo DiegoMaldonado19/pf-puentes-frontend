@@ -14,6 +14,9 @@
         <p class="text-muted font-mono">{{ p.codigo }}</p>
         <h1 id="titulo-ficha" class="text-h1">{{ p.nombre }}</h1>
         <div class="mt-1"><app-estado-puente [estado]="p.estado_actual" /></div>
+        @if (vencida(p.fecha_ultima_inspeccion)) {
+          <p role="status" class="hvc-alert hvc-alert--warn mt-2">{{ textosAlertas.vencida }}</p>
+        }
       </div>
       <a [routerLink]="['/puentes', p.id, 'foro']" class="btn-hvc-secondary">{{
         textosForo.abrirForo
@@ -55,26 +58,26 @@
     </header>
 
     @if (bajaHecha()) {
-      <p role="status" class="mt-3 rounded bg-slate-100 p-3 text-slate-800 font-medium">
+      <p role="status" class="mt-3 rounded bg-lienzo p-3 text-texto font-medium">
         {{ t.baja.hecha }}
       </p>
     }
     @if (reactivacionHecha()) {
-      <p role="status" class="mt-3 rounded bg-slate-100 p-3 text-slate-800 font-medium">
+      <p role="status" class="mt-3 rounded bg-lienzo p-3 text-texto font-medium">
         {{ t.ficha.reactivado }}
       </p>
     }
     @if (!p.activo) {
-      <div role="note" class="mt-3 rounded border border-slate-500 bg-slate-100 p-3 text-slate-900">
-        <p class="font-semibold text-slate-900">{{ t.ficha.dadoDeBaja }}</p>
-        <p class="text-slate-800">{{ t.campos.motivoBaja }}: {{ p.motivo_baja }}</p>
+      <div role="note" class="mt-3 rounded border border-borde-control bg-lienzo p-3 text-texto">
+        <p class="font-semibold text-texto">{{ t.ficha.dadoDeBaja }}</p>
+        <p class="text-texto">{{ t.campos.motivoBaja }}: {{ p.motivo_baja }}</p>
         @if (p.baja_en) {
-          <p class="text-slate-800">
+          <p class="text-texto">
             {{ t.ficha.fechaBaja }}: {{ p.baja_en | date: 'dd/MM/yyyy HH:mm' }}.
             {{ t.ficha.autorBaja }}.
           </p>
         } @else {
-          <p class="text-slate-800">{{ t.ficha.sinFechaBaja }}</p>
+          <p class="text-texto">{{ t.ficha.sinFechaBaja }}</p>
         }
         @if (rol() === 'ADMINISTRADOR') {
           <button
@@ -92,7 +95,7 @@
     @if (reactivarAbierta()) {
       <form
         id="panel-reactivacion"
-        class="mt-3 grid gap-2 rounded border border-slate-300 p-3"
+        class="mt-3 grid gap-2 rounded border border-borde p-3"
         aria-labelledby="titulo-reactivacion"
         (submit)="$event.preventDefault(); reactivar()"
       >
@@ -127,7 +130,7 @@
     @if (bajaAbierta()) {
       <form
         id="panel-baja"
-        class="mt-3 rounded border-2 border-red-700 p-4"
+        class="mt-3 rounded border-2 border-malo p-4"
         aria-labelledby="titulo-baja"
         (submit)="$event.preventDefault(); darDeBaja()"
       >
@@ -155,14 +158,14 @@
         <div class="mt-3 flex gap-2">
           <button
             type="submit"
-            class="rounded bg-red-700 px-4 py-2 font-medium text-white hover:bg-red-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-900 disabled:opacity-50"
+            class="rounded bg-malo px-4 py-2 font-medium text-superficie hover:bg-malo-texto focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-malo disabled:opacity-50"
             [disabled]="enviandoBaja()"
           >
             {{ enviandoBaja() ? t.baja.enviando : t.baja.confirmar }}
           </button>
           <button
             type="button"
-            class="rounded border border-slate-500 px-4 py-2 hover:bg-slate-100"
+            class="rounded border border-borde-control px-4 py-2 hover:bg-lienzo"
             (click)="bajaAbierta.set(false)"
           >
             {{ t.baja.cancelar }}
