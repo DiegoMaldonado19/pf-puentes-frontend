@@ -9,6 +9,7 @@ import {
   input,
   signal,
   untracked,
+  viewChild,
 } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { EMPTY, expand, firstValueFrom, reduce } from 'rxjs';
@@ -56,10 +57,32 @@ export class CapturaInspeccion {
   protected readonly store = inject(InspeccionStore);
   protected readonly t = TEXTOS.inspecciones.captura;
   protected readonly comun = TEXTOS.inspecciones.comun;
+  protected readonly tAlertas = TEXTOS.alertasInspeccion;
   protected readonly textosAcompanantes = TEXTOS.inspecciones.acompanantes;
   protected readonly fechaSinHora = fechaSinHora;
   protected readonly minimoFotos = MINIMO_FOTOS_ENVIO;
   protected readonly confirmandoEnvio = signal(false);
+  private readonly motor = viewChild(MotorFormularioComponent);
+  /** Campos que impiden enviar, con su título; se muestran junto al botón (B7). */
+  protected readonly erroresDeEnvio = signal<{ seccion: string; campo: string; titulo: string }[]>(
+    [],
+  );
+
+  /**
+   * Enviar con el formulario incompleto no abre la confirmación: marca los campos, lista los que
+   * faltan y lleva al primero. Con el formulario completo, el envío sigue como antes.
+   */
+  protected intentarEnviar(): void {
+    const motor = this.motor();
+    if (motor && !this.store.formularioValido()) {
+      motor.marcarTodoComoTocado();
+      this.erroresDeEnvio.set(motor.camposConError());
+      motor.enfocarPrimerError();
+      return;
+    }
+    this.erroresDeEnvio.set([]);
+    this.confirmandoEnvio.set(true);
+  }
   protected readonly impresion = signal(false);
   private readonly detector = inject(ChangeDetectorRef);
   protected readonly confirmandoBaja = signal(false);

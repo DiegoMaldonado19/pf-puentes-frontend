@@ -48,6 +48,23 @@ const VERSION: FormularioVersionDTO = {
   },
 };
 
+/** Igual que VERSION, con un campo obligatorio: el motor reporta el formulario como incompleto. */
+const VERSION_OBLIGATORIA: FormularioVersionDTO = {
+  ...VERSION,
+  esquema: {
+    title: 'SIECA',
+    type: 'object',
+    properties: {
+      datos_generales: {
+        type: 'object',
+        title: 'Datos generales',
+        required: ['longitud_total'],
+        properties: { longitud_total: { type: 'number', title: 'Longitud' } },
+      },
+    },
+  },
+};
+
 function inspeccion(cambios: Partial<InspeccionDTO> = {}): InspeccionDTO {
   return {
     id: 'i1',
@@ -69,6 +86,7 @@ async function montar(
   detalle: InspeccionDTO,
   usuarioId = 'autor',
   rol: Rol = 'ESTUDIANTE',
+  version: FormularioVersionDTO = VERSION,
 ): Promise<ComponentFixture<CapturaInspeccion>> {
   const usuario = signal({ id: usuarioId, nombre: 'Ana', rol });
   TestBed.configureTestingModule({
@@ -82,7 +100,7 @@ async function montar(
         useValue: { detalle: () => of(detalle), archivos: () => of([]), guardarAvance: vi.fn() },
       },
       { provide: PesosService, useValue: pesos },
-      { provide: FormularioService, useValue: { detalle: () => of(VERSION) } },
+      { provide: FormularioService, useValue: { detalle: () => of(version) } },
       { provide: AuthService, useValue: { usuario, rol: signal(rol) } },
     ],
   });
@@ -107,6 +125,49 @@ function botones(fixture: ComponentFixture<CapturaInspeccion>): string[] {
 }
 
 describe('CapturaInspeccion', () => {
+  it('avisa cuando la inspección usa un formulario que ya no es el vigente', async () => {
+    const retirada: FormularioVersionDTO = { ...VERSION, codigo: 'V0.9.0', estado: 'RETIRADA' };
+    const fixture = await montar(
+      inspeccion({ estado: 'BORRADOR' }),
+      'autor',
+      'ESTUDIANTE',
+      retirada,
+    );
+
+    expect(texto(fixture)).toContain('Formulario V0.9.0 (no es la vigente)');
+  });
+
+  it('enviar con el formulario incompleto no abre la confirmación: marca, nombra y lleva al campo', async () => {
+    const fixture = await montar(inspeccion(), 'autor', 'ESTUDIANTE', VERSION_OBLIGATORIA);
+    const store = fixture.debugElement.injector.get(InspeccionStore);
+    expect(store.formularioValido()).toBe(false);
+    const captura = fixture.componentInstance;
+
+    captura['intentarEnviar']();
+    fixture.detectChanges();
+
+    expect(captura['confirmandoEnvio']()).toBe(false);
+    const aviso = Array.from(
+      (fixture.nativeElement as HTMLElement).querySelectorAll('[role="alert"]'),
+    ).find((elemento) => elemento.querySelector('li'));
+    expect(aviso?.textContent).toContain('Antes de enviar, complete los campos marcados:');
+    expect(aviso?.querySelector('li')?.textContent?.trim()).toBe('Longitud');
+    expect(document.activeElement?.id).toBe('longitud_total');
+  });
+
+  it('con el formulario completo, enviar abre la confirmación sin errores', async () => {
+    const fixture = await montar(inspeccion());
+    const store = fixture.debugElement.injector.get(InspeccionStore);
+    expect(store.formularioValido()).toBe(true);
+    const captura = fixture.componentInstance;
+
+    captura['intentarEnviar']();
+    fixture.detectChanges();
+
+    expect(captura['confirmandoEnvio']()).toBe(true);
+    expect(captura['erroresDeEnvio']()).toEqual([]);
+  });
+
   const crearUrlOriginal = Object.getOwnPropertyDescriptor(URL, 'createObjectURL');
   const revocarUrlOriginal = Object.getOwnPropertyDescriptor(URL, 'revokeObjectURL');
   beforeEach(() => vi.clearAllMocks());

@@ -40,6 +40,13 @@
     @if (inspeccion.estado !== 'PUBLICADA') {
       <app-panel-correcciones [inspeccionId]="inspeccion.id" [editable]="store.editable()" />
     }
+    @if (store.version(); as version) {
+      @if (version.estado !== 'ACTIVA') {
+        <p role="status" class="hvc-alert hvc-alert--warn mt-3">
+          {{ tAlertas.formulario }} {{ version.codigo }} {{ tAlertas.noVigente }}
+        </p>
+      }
+    }
 
     @if (!enConexion()) {
       <p role="status" class="hvc-alert hvc-alert--warn mt-3 bg-regular-tinte">
@@ -278,10 +285,20 @@
             type="button"
             class="btn-hvc-primary"
             [disabled]="!store.puedeEnviar()"
-            (click)="confirmandoEnvio.set(true)"
+            (click)="intentarEnviar()"
           >
             {{ store.enviando() ? t.enviando : textoEnviar() }}
           </button>
+          @if (erroresDeEnvio().length > 0) {
+            <div role="alert" class="hvc-alert mt-3">
+              <p class="m-0 font-semibold">{{ t.envioConErrores }}</p>
+              <ul class="m-0 mt-2 list-disc pl-5">
+                @for (error of erroresDeEnvio(); track error.seccion + error.campo) {
+                  <li>{{ error.titulo }}</li>
+                }
+              </ul>
+            </div>
+          }
           <button
             type="button"
             class="btn-hvc-danger ml-auto"

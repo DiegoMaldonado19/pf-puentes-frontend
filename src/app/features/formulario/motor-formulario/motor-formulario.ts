@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import {
   ChangeDetectorRef,
   Component,
+  ElementRef,
   EventEmitter,
   inject,
   Input,
@@ -64,6 +65,7 @@ export class MotorFormularioComponent implements OnInit, OnChanges, OnDestroy {
 
   readonly textos = TEXTOS.formulario.motor;
   private cdr = inject(ChangeDetectorRef);
+  private readonly elemento = inject<ElementRef<HTMLElement>>(ElementRef);
 
   formGroup: FormGroup = new FormGroup({});
   secciones: SeccionMeta[] = [];
@@ -93,6 +95,44 @@ export class MotorFormularioComponent implements OnInit, OnChanges, OnDestroy {
     if (index >= 0 && index < this.secciones.length) {
       this.seccionActiva = index;
     }
+  }
+
+  /**
+   * Al intentar enviar (B7): marca todos los campos para que muestren su error. El envío nunca se
+   * bloquea por la validez; el resumen y el salto al primer error lo resuelven.
+   */
+  marcarTodoComoTocado(): void {
+    this.formGroup.markAllAsTouched();
+    this.cdr.markForCheck();
+  }
+
+  /** Campos de secciones de objeto que no cumplen, con el título con que se muestran. */
+  camposConError(): { seccion: string; campo: string; titulo: string }[] {
+    const errores: { seccion: string; campo: string; titulo: string }[] = [];
+    for (const seccion of this.secciones) {
+      if (seccion.tipo !== 'object') continue;
+      const grupo = this.formGroup.get(seccion.clave);
+      if (!(grupo instanceof FormGroup)) continue;
+      for (const [campo, control] of Object.entries(grupo.controls)) {
+        if (control.invalid) {
+          const titulo = this.esquema.properties[seccion.clave]?.properties?.[campo]?.title;
+          errores.push({ seccion: seccion.clave, campo, titulo: titulo ?? campo });
+        }
+      }
+    }
+    return errores;
+  }
+
+  /** Muestra la sección del primer error y enfoca su campo. */
+  enfocarPrimerError(): void {
+    const primero = this.camposConError()[0];
+    if (!primero) return;
+    const indice = this.secciones.findIndex((s) => s.clave === primero.seccion);
+    this.cambiarSeccion(indice);
+    this.cdr.detectChanges();
+    // Los ids de los campos son sus claves (snake_case): basta el selector por atributo
+    const campo = this.elemento.nativeElement.querySelector<HTMLElement>(`[id="${primero.campo}"]`);
+    campo?.focus();
   }
 
   obtenerTituloPestana(seccion: SeccionMeta, index: number): string {

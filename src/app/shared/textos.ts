@@ -3,6 +3,8 @@ export const TEXTOS = {
   alertasInspeccion: {
     vencida: 'Más de 12 meses sin inspección publicada.',
     enListado: 'Puentes de esta página con más de 12 meses sin inspección:',
+    formulario: 'Formulario',
+    noVigente: '(no es la vigente)',
   },
   // Menú lateral agrupado (F1). Las etiquetas de cada enlace viven en su sección de origen.
   shell: {
@@ -1635,8 +1637,8 @@ export const TEXTOS = {
       checkFotos: 'Al menos {minimo} fotos (en esta sesión: {subidas})',
       checkFotosPrevias: 'Ya subí al menos {minimo} fotos en una sesión anterior',
       checkFormulario: 'Campos del formulario completos',
-      checkFormularioPendiente:
-        'Hay campos pendientes. Puedes enviar: el servidor listará todo lo que falte.',
+      checkFormularioPendiente: 'Hay campos pendientes. Al enviar se marcan y se listan.',
+      envioConErrores: 'Antes de enviar, complete los campos marcados:',
       gps: 'GPS',
       gpsNoDisponible: 'GPS no disponible al iniciar',
       distancia: 'A {metros} m del puente',
