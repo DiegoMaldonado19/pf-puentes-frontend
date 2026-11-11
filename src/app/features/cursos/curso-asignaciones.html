@@ -1,5 +1,5 @@
 <section [attr.aria-busy]="ocupado()">
-  <a [routerLink]="['/cursos', curso()?.id || '']">{{ textos.volver }}</a>
+  <a routerLink="/cursos">{{ textos.volver }}</a>
   @if (error()) {
     <p role="alert">{{ error() }}</p>
     <button type="button" [disabled]="ocupado()" (click)="cargar()">{{ textos.reintentar }}</button>

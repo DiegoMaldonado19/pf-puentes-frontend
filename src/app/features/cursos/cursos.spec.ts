@@ -356,15 +356,14 @@ describe('Formulario y flujos de cursos', () => {
     expect(componente.mensaje()).toBe(TEXTOS.cursos.asignado);
   });
 
-  it('busca y conserva filtros al paginar en estudiantes y asignaciones', async () => {
+  it('busca elegibles en estudiantes y conserva filtros al paginar puentes en asignaciones', async () => {
     const estudiantes = await prepararEstudiantes();
-    estudiantes.componente.inscripcion.controls.estudiante.setValue('estudiante');
-    estudiantes.componente.buscarEstudiante.controls.texto.setValue('  Estudiante  ');
-    await estudiantes.componente.buscar();
+    await estudiantes.componente.buscarElegibles('  Estudiante  ');
     expect(estudiantes.api.estudiantes).toHaveBeenLastCalledWith(0, 'Estudiante');
     expect(estudiantes.componente.inscripcion.controls.estudiante.value).toBe('');
-    await estudiantes.componente.paginar('estudiantes', 1);
-    expect(estudiantes.api.estudiantes).toHaveBeenLastCalledWith(1, 'Estudiante');
+    estudiantes.componente.seleccionarElegible({ id: 'estudiante', nombre: 'Estudiante', estado: 'ACTIVO' });
+    expect(estudiantes.componente.inscripcion.controls.estudiante.value).toBe('estudiante');
+    expect(estudiantes.componente.textoElegible()).toBe('Estudiante');
 
     const asignaciones = await prepararAsignaciones();
     asignaciones.componente.buscarPuente.controls.texto.setValue('GT-09');
@@ -373,22 +372,13 @@ describe('Formulario y flujos de cursos', () => {
     expect(asignaciones.api.puentes).toHaveBeenLastCalledWith(1, 'GT-09');
   });
 
-  it('no consulta búsquedas inválidas ni cambia filtro si falla una búsqueda de estudiantes', async () => {
+  it('reporta error si falla la búsqueda de estudiantes elegibles', async () => {
     const { api, componente } = await prepararEstudiantes();
-    api.estudiantes.mockClear();
-    componente.buscarEstudiante.controls.texto.setValue('a'.repeat(121));
-    await componente.buscar();
-    expect(api.estudiantes).not.toHaveBeenCalled();
-    componente.buscarEstudiante.controls.texto.setValue('Estudiante');
-    await componente.buscar();
     api.estudiantes.mockImplementationOnce(() =>
       throwError(() => new HttpErrorResponse({ status: 500 })),
     );
-    componente.buscarEstudiante.controls.texto.setValue('Otro');
-    await componente.buscar();
+    await componente.buscarElegibles('Otro');
     expect(componente.error()).toBe(TEXTOS.cursos.error);
-    await componente.paginar('estudiantes', 1);
-    expect(api.estudiantes).toHaveBeenLastCalledWith(1, 'Estudiante');
   });
 
   it('muestra inscritos y limpia selección al recargar asignaciones', async () => {

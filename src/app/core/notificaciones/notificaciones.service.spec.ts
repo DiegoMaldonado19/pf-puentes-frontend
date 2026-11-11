@@ -35,7 +35,7 @@ describe('NotificacionesService', () => {
       .flush({
         contenido: [],
         pagina: 0,
-        tamano: 20,
+        tamano: 5,
         total_elementos: 0,
         total_paginas: 0,
       });
@@ -72,7 +72,7 @@ describe('NotificacionesService', () => {
       .flush({
         contenido: [],
         pagina: 0,
-        tamano: 20,
+        tamano: 5,
         total_elementos: 0,
         total_paginas: 0,
       });
@@ -97,7 +97,7 @@ describe('NotificacionesService', () => {
       .flush({
         contenido: [aviso],
         pagina: 0,
-        tamano: 20,
+        tamano: 5,
         total_elementos: 1,
         total_paginas: 1,
       });
@@ -114,7 +114,7 @@ describe('NotificacionesService', () => {
       .flush({
         contenido: [leida],
         pagina: 0,
-        tamano: 20,
+        tamano: 5,
         total_elementos: 1,
         total_paginas: 1,
       });
