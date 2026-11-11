@@ -46,9 +46,21 @@
     >
       <div class="mb-3 flex items-center justify-between gap-3 border-b border-slate-200 pb-3">
         <h2 class="text-lg font-bold">{{ textos.titulo }}</h2>
-        <button type="button" class="btn-hvc-secondary btn-hvc-compact" (click)="cerrar()">
-          {{ textos.cerrar }}
-        </button>
+        <div class="flex flex-wrap justify-end gap-2">
+          @if (servicio.noLeidas() > 0) {
+            <button
+              type="button"
+              class="btn-hvc-secondary btn-hvc-compact"
+              [disabled]="servicio.cargando()"
+              (click)="marcarTodas()"
+            >
+              {{ textos.marcarTodas }}
+            </button>
+          }
+          <button type="button" class="btn-hvc-secondary btn-hvc-compact" (click)="cerrar()">
+            {{ textos.cerrar }}
+          </button>
+        </div>
       </div>
 
       @if (!servicio.sesionActiva()) {
@@ -86,7 +98,8 @@
                     {{ n.mensaje }}
                   </p>
                   <p class="text-xs text-slate-500">
-                    {{ fecha(n.creado_en) }} · {{ n.leida_en ? textos.leida : textos.noLeida }}
+                    {{ etiquetaTipo(n.tipo) }} · {{ fecha(n.creado_en) }} ·
+                    {{ n.leida_en ? textos.leida : textos.noLeida }}
                   </p>
                 </div>
               </div>

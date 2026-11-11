@@ -200,8 +200,10 @@ select.hvc-input {
   font-weight: 500;
 }
 
+/* El color va explícito: una tarjeta dentro de la barra superior hereda su texto claro. */
 .hvc-card {
   background: var(--color-surface);
+  color: var(--hvc-texto);
   border: var(--border-subtle);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);

@@ -72,6 +72,7 @@
   --color-gray-light: #a4abbd;
   --hvc-gray: var(--color-gray);
   --hvc-gray-light: var(--color-gray-light);
+  --hvc-texto: var(--color-primary-dark);
 
   --chrome-sidebar: var(--color-primary-dark);
   --chrome-sidebar-hover: var(--color-primary);

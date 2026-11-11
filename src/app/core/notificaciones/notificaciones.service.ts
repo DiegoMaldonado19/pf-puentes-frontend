@@ -7,6 +7,8 @@ import { ConteoNoLeidas, Notificacion, PaginaNotificaciones } from './modelos';
 const API = '/api/v1/notificaciones';
 const TAMANO_DEFECTO = 20;
 const TAMANO_MAXIMO = 100;
+/** El conteo se actualiza solo; sin pestaña visible o sin conexión no se consulta (B1). */
+const INTERVALO_CONTEO_MS = 60_000;
 
 @Injectable({ providedIn: 'root' })
 export class NotificacionesService {
@@ -16,10 +18,24 @@ export class NotificacionesService {
 
   readonly generacion = signal(0);
   private readonly canceladas = new Subject<void>();
+  private temporizador: ReturnType<typeof setInterval> | null = null;
   private ultimaCarga = 0;
   private ultimoConteo = 0;
   private ultimaPaginaSolicitada = 0;
   private ultimoTamanoSolicitado = TAMANO_DEFECTO;
+
+  constructor() {
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) {
+          this.refrescarSiHaySesion();
+        }
+      });
+    }
+    if (typeof window !== 'undefined') {
+      window.addEventListener('online', () => this.refrescarSiHaySesion());
+    }
+  }
 
   readonly sesionActiva = computed(() => this.propietario() !== null);
   readonly notificaciones = signal<Notificacion[]>([]);
@@ -36,9 +52,41 @@ export class NotificacionesService {
     this.generacion.update((g) => g + 1);
     this.canceladas.next();
     this.reiniciar();
+    this.detenerSondeo();
     if (usuarioId) {
       this.refrescarConteo();
+      this.iniciarSondeo();
     }
+  }
+
+  /** Marca todas las no leídas del usuario y actualiza la lista y el conteo. */
+  marcarTodas(): void {
+    const propietario = this.propietario();
+    if (!propietario) {
+      return;
+    }
+    const generacion = this.generacion();
+    this.error.set(null);
+    this.http
+      .patch<{ marcadas: number }>(`${API}/lectura`, null)
+      .pipe(takeUntil(this.canceladas))
+      .subscribe({
+        next: () => {
+          if (!this.vigente(propietario, generacion)) {
+            return;
+          }
+          this.cargar(this.ultimaPaginaSolicitada, this.ultimoTamanoSolicitado, true);
+          this.refrescarConteo();
+        },
+        error: (err: unknown) => {
+          if (!this.vigente(propietario, generacion)) {
+            return;
+          }
+          if (!this.esNoAutorizado(err)) {
+            this.error.set(TEXTOS.notificaciones.errorLectura);
+          }
+        },
+      });
   }
 
   cargar(pagina = 0, tamano = TAMANO_DEFECTO, silenciosa = false): void {
@@ -175,6 +223,36 @@ export class NotificacionesService {
     return this.propietario() === propietario && this.generacion() === generacion;
   }
 
+  private iniciarSondeo(): void {
+    if (this.temporizador !== null || typeof window === 'undefined') {
+      return;
+    }
+    this.temporizador = setInterval(() => {
+      if (this.sePuedeConsultar()) {
+        this.refrescarConteo();
+      }
+    }, INTERVALO_CONTEO_MS);
+  }
+
+  private detenerSondeo(): void {
+    if (this.temporizador !== null) {
+      clearInterval(this.temporizador);
+      this.temporizador = null;
+    }
+  }
+
+  private refrescarSiHaySesion(): void {
+    if (this.sesionActiva() && this.sePuedeConsultar()) {
+      this.refrescarConteo();
+    }
+  }
+
+  private sePuedeConsultar(): boolean {
+    const visible = typeof document === 'undefined' || !document.hidden;
+    const conectado = typeof navigator === 'undefined' || navigator.onLine !== false;
+    return visible && conectado;
+  }
+
   private esNoAutorizado(err: unknown): boolean {
     if (err instanceof HttpErrorResponse && err.status === 401) {
       this.invalidarContexto();
@@ -187,6 +265,7 @@ export class NotificacionesService {
     this.propietario.set(null);
     this.generacion.update((g) => g + 1);
     this.canceladas.next();
+    this.detenerSondeo();
     this.reiniciar();
     this.error.set(TEXTOS.notificaciones.sesionInvalida);
   }

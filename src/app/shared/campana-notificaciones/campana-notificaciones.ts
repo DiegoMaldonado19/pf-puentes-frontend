@@ -33,10 +33,10 @@ export class CampanaNotificaciones {
   private readonly boton = viewChild<ElementRef<HTMLButtonElement>>('botonCampana');
   private readonly panel = viewChild<ElementRef<HTMLElement>>('panel');
 
+  // Hora local del navegador: el backend guarda instantes en UTC
   private readonly formatoFecha = new Intl.DateTimeFormat('es-GT', {
     dateStyle: 'short',
     timeStyle: 'short',
-    timeZone: 'UTC',
   });
 
   constructor() {
@@ -93,9 +93,16 @@ export class CampanaNotificaciones {
     this.servicio.marcarLeida(n.id);
   }
 
+  protected marcarTodas(): void {
+    this.servicio.marcarTodas();
+  }
+
   protected ver(n: Notificacion): void {
     if (!n.enlace || !esEnlaceInterno(n.enlace)) {
       return;
+    }
+    if (!n.leida_en) {
+      this.servicio.marcarLeida(n.id);
     }
     this.abierto.set(false);
     void this.router.navigateByUrl(n.enlace);
@@ -103,5 +110,10 @@ export class CampanaNotificaciones {
 
   protected fecha(iso: string): string {
     return this.formatoFecha.format(new Date(iso));
+  }
+
+  protected etiquetaTipo(tipo: string): string {
+    const tipos = this.textos.tipos;
+    return tipos[tipo] ?? tipos['general'];
   }
 }
