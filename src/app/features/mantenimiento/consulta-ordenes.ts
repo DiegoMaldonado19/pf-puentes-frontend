@@ -16,8 +16,10 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { finalize } from 'rxjs';
+import { ToastService } from '../../shared/ui/toast';
 import { TEXTOS } from '../../shared/textos';
 import { AjustePrioridadOrden } from './ajuste-prioridad-orden';
+import { AceptacionPropuesta } from './aceptacion-propuesta';
 import { LineaEstadosOrden } from './linea-estados-orden';
 import { ProgramacionOrden } from './programacion-orden';
 import { SeguimientoRutinario } from './seguimiento-rutinario';
@@ -45,12 +47,14 @@ interface EstadoConsulta<T> {
     ProgramacionOrden,
     SeguimientoRutinario,
     LineaEstadosOrden,
+    AceptacionPropuesta,
   ],
   providers: [{ provide: LOCALE_ID, useValue: 'es-GT' }],
   templateUrl: './consulta-ordenes.html',
   host: { class: 'pantalla-bandeja pantalla-consulta' },
 })
 export class ConsultaOrdenes {
+  private readonly toast = inject(ToastService);
   readonly puenteId = input.required<string>();
   readonly puedeConsultar = input.required<boolean>();
   /** Opción de presentación del host; conserva el permiso de lectura del historial. */
@@ -398,6 +402,7 @@ export class ConsultaOrdenes {
       mensaje: this.t[cancelando ? 'cancelacion' : 'descarte'].confirmada,
       error: false,
     });
+    this.toast.ok(this.t[cancelando ? 'cancelacion' : 'descarte'].confirmada);
     if (cancelando) {
       this.cancelada.emit(resultado);
       this.versionSeguimiento.update((v) => v + 1);
@@ -497,8 +502,46 @@ export class ConsultaOrdenes {
         : null,
     }));
     this.avisoInicio.set({ mensaje: this.t.programacion.confirmada, error: false });
+    this.toast.ok(this.t.programacion.confirmada);
     this.fechaProgramada.emit(resultado);
     this.versionSeguimiento.update((v) => v + 1);
+  }
+
+  /** Aceptar una propuesta la programa: misma validación que las demás confirmaciones de la consulta. */
+  protected aceptacionConfirmada(resultado: OrdenMantenimientoDTO) {
+    const actual = this.detalle().datos;
+    if (
+      !this.puedeConsultar() ||
+      !this.puedeProgramar() ||
+      this.accesoDenegado() !== null ||
+      !actual ||
+      resultado.id !== actual.id ||
+      resultado.puente_id !== this.puenteId() ||
+      actual.estado !== 'PROPUESTA' ||
+      resultado.estado !== 'PROGRAMADA'
+    )
+      return;
+    this.detalle.set({ datos: resultado, cargando: false, error: null });
+    this.lista.update((lista) => ({
+      ...lista,
+      datos: lista.datos
+        ? {
+            ...lista.datos,
+            content: lista.datos.content.map((fila) =>
+              fila.id === resultado.id ? resultado : fila,
+            ),
+          }
+        : null,
+    }));
+    this.toast.ok(TEXTOS.aceptacionPropuesta.confirmada);
+    this.versionSeguimiento.update((v) => v + 1);
+  }
+
+  protected falloAceptacion(referencia: { puente_id: string; id: string }) {
+    if (referencia.id !== this.detalle().datos?.id) return;
+    this.toast.error(TEXTOS.aceptacionPropuesta.noAceptada);
+    this.actualizarDetalle();
+    this.recargarLista();
   }
 
   protected seleccionarRutina(orden: OrdenMantenimientoDTO) {

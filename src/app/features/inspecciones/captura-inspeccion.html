@@ -133,6 +133,9 @@
       </p>
     }
 
+    @if (publicadaAhora() && store.inspeccion(); as publicada) {
+      <app-aviso-propuestas-generadas [inspeccionId]="publicada.id" />
+    }
     @if (store.conflicto()) {
       <section
         role="alertdialog"

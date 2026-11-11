@@ -23,6 +23,7 @@ import { TEXTOS } from '../../shared/textos';
 import { fechaSinHora } from '../puentes/formato';
 import { ChipEstadoInspeccion } from './chip-estado-inspeccion';
 import { ObservacionCorreccion, PanelCorrecciones } from './panel-correcciones';
+import { AvisoPropuestasGeneradas } from '../mantenimiento/aviso-propuestas-generadas';
 import { referenciasDeElemento } from './esquema';
 import { mensajeInspeccion } from './errores';
 import { InspeccionStore } from './inspeccion-store';
@@ -38,6 +39,7 @@ import { PanelAcompanantes } from './panel-acompanantes';
 @Component({
   selector: 'app-captura-inspeccion',
   imports: [
+    AvisoPropuestasGeneradas,
     ChipEstadoInspeccion,
     DecimalPipe,
     MotorFormularioComponent,
@@ -63,6 +65,8 @@ export class CapturaInspeccion {
   protected readonly fechaSinHora = fechaSinHora;
   protected readonly minimoFotos = MINIMO_FOTOS_ENVIO;
   protected readonly confirmandoEnvio = signal(false);
+  /** Publicación hecha en esta sesión: muestra cuántas propuestas de mantenimiento generó (B9). */
+  protected readonly publicadaAhora = signal(false);
   private readonly motor = viewChild(MotorFormularioComponent);
   /** Campos que impiden enviar, con su título; se muestran junto al botón (B7). */
   protected readonly erroresDeEnvio = signal<{ seccion: string; campo: string; titulo: string }[]>(
@@ -265,7 +269,8 @@ export class CapturaInspeccion {
 
   protected async confirmarEnvio(): Promise<void> {
     this.confirmandoEnvio.set(false);
-    await this.store.enviar();
+    const enviada = await this.store.enviar();
+    this.publicadaAhora.set(enviada && this.store.inspeccion()?.estado === 'PUBLICADA');
   }
 
   protected async eliminar(): Promise<void> {

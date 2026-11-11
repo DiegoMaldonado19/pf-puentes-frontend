@@ -40,6 +40,9 @@
         <h2 class="text-h3">{{ t.decisionConfirmada }}: {{ t.veredictos[actual.veredicto] }}</h2>
         <p class="whitespace-pre-wrap">{{ actual.observacion }}</p>
       </div>
+      @if (actual.veredicto === 'APROBADA') {
+        <app-aviso-propuestas-generadas [inspeccionId]="actual.inspeccion_id" />
+      }
     }
     <details class="hvc-card my-5">
       <summary class="cursor-pointer font-semibold">{{ t.formularioOriginal }}</summary>

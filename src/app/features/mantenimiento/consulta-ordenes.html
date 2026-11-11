@@ -149,15 +149,37 @@
               {{ iniciando() ? t.inicio.enviando : t.inicio.accion }}
             </button>
           }
-          @if (
-            (orden.estado === 'PROPUESTA' && puedeDescartar()) ||
-            (orden.estado === 'PROGRAMADA' && puedeCancelar())
-          ) {
+          @if (orden.estado === 'PROPUESTA' && (puedeProgramar() || puedeDescartar())) {
+            <section class="mt-4 grid gap-4 md:grid-cols-2" aria-label="Decidir sobre la propuesta">
+              @if (puedeProgramar()) {
+                <app-aceptacion-propuesta
+                  [orden]="orden"
+                  [puedeAceptar]="puedeProgramar()"
+                  (aceptada)="aceptacionConfirmada($event)"
+                  (actualizacionRequerida)="falloAceptacion($event)"
+                />
+              }
+              @if (puedeDescartar()) {
+                <div class="rounded-lg border border-borde bg-superficie p-4">
+                  <app-decision-con-motivo-orden
+                    [orden]="orden"
+                    [puedeConsultar]="puedeConsultar()"
+                    [puedeDecidir]="puedeDescartar()"
+                    operacion="descarte"
+                    [bloqueada]="otraOperacionPendiente()"
+                    (confirmada)="decisionConfirmada($event)"
+                    (actualizacionRequerida)="falloDecision($event)"
+                  />
+                </div>
+              }
+            </section>
+          }
+          @if (orden.estado === 'PROGRAMADA' && puedeCancelar()) {
             <app-decision-con-motivo-orden
               [orden]="orden"
               [puedeConsultar]="puedeConsultar()"
-              [puedeDecidir]="orden.estado === 'PROGRAMADA' ? puedeCancelar() : puedeDescartar()"
-              [operacion]="orden.estado === 'PROGRAMADA' ? 'cancelacion' : 'descarte'"
+              [puedeDecidir]="puedeCancelar()"
+              operacion="cancelacion"
               [bloqueada]="otraOperacionPendiente()"
               (confirmada)="decisionConfirmada($event)"
               (actualizacionRequerida)="falloDecision($event)"
