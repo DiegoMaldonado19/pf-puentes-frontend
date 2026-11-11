@@ -37,7 +37,7 @@
                 <button
                   type="button"
                   class="btn-hvc-secondary btn-hvc-compact"
-                  (click)="irAlCampo(observacion.elemento_ref)"
+                  (click)="pedirIrAlCampo(observacion.elemento_ref)"
                 >
                   {{ t.irAlCampo }}
                 </button>
@@ -59,7 +59,7 @@
         </ul>
       }
 
-      @if (aviso(); as mensaje) {
+      @if (avisoCampo(); as mensaje) {
         <p role="status" class="hvc-note mt-3">{{ mensaje }}</p>
       }
       @if (error(); as mensaje) {

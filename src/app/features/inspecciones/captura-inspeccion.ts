@@ -22,7 +22,7 @@ import { MotorFormularioComponent } from '../formulario/motor-formulario/motor-f
 import { TEXTOS } from '../../shared/textos';
 import { fechaSinHora } from '../puentes/formato';
 import { ChipEstadoInspeccion } from './chip-estado-inspeccion';
-import { PanelCorrecciones } from './panel-correcciones';
+import { ObservacionCorreccion, PanelCorrecciones } from './panel-correcciones';
 import { referenciasDeElemento } from './esquema';
 import { mensajeInspeccion } from './errores';
 import { InspeccionStore } from './inspeccion-store';
@@ -58,6 +58,7 @@ export class CapturaInspeccion {
   protected readonly t = TEXTOS.inspecciones.captura;
   protected readonly comun = TEXTOS.inspecciones.comun;
   protected readonly tAlertas = TEXTOS.alertasInspeccion;
+  protected readonly tCorrecciones = TEXTOS.correcciones;
   protected readonly textosAcompanantes = TEXTOS.inspecciones.acompanantes;
   protected readonly fechaSinHora = fechaSinHora;
   protected readonly minimoFotos = MINIMO_FOTOS_ENVIO;
@@ -83,6 +84,21 @@ export class CapturaInspeccion {
     this.erroresDeEnvio.set([]);
     this.confirmandoEnvio.set(true);
   }
+  /** Observaciones del revisor sin resolver: el motor las muestra junto a su campo (B3). */
+  protected readonly observacionesRevisor = signal<readonly ObservacionCorreccion[]>([]);
+  protected readonly observacionesMotor = computed(() =>
+    this.observacionesRevisor().flatMap((o) =>
+      o.elemento_ref ? [{ referencia: o.elemento_ref, texto: o.texto }] : [],
+    ),
+  );
+  protected readonly avisoCampo = signal<string | null>(null);
+
+  /** «Ir al campo» del panel: el motor cambia de pestaña y enfoca; si no lo encuentra, lo dice. */
+  protected enfocarObservacion(referencia: string): void {
+    const encontrado = this.motor()?.enfocarRef(referencia) ?? false;
+    this.avisoCampo.set(encontrado ? null : this.tCorrecciones.buscarCampo);
+  }
+
   protected readonly impresion = signal(false);
   private readonly detector = inject(ChangeDetectorRef);
   protected readonly confirmandoBaja = signal(false);

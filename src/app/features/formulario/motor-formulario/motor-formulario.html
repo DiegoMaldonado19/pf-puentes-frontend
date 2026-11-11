@@ -41,6 +41,14 @@
           [class.hover:bg-lienzo]="seccionActiva !== i"
         >
           {{ obtenerTituloPestana(seccion, i) }}
+          @let pendientes = contadorObservaciones(seccion.clave);
+          @if (pendientes > 0) {
+            <span
+              class="ml-2 inline-flex min-w-5 justify-center rounded-full bg-regular-tinte px-1.5 text-xs font-bold text-regular-texto"
+              >{{ pendientes
+              }}<span class="sr-only"> {{ correcciones.observacionesSeccion }}</span></span
+            >
+          }
         </button>
       }
     </nav>
@@ -440,6 +448,19 @@
                               [class.bg-lienzo]="prop.esquema.readOnly"
                               [class.text-texto-secundario]="prop.esquema.readOnly"
                             />
+                          }
+
+                          @for (
+                            observacion of observacionesDelCampo(prop.esquema['x-elemento-ref']);
+                            track $index
+                          ) {
+                            <p
+                              role="note"
+                              class="hvc-alert hvc-alert--warn mt-2 bg-regular-tinte text-sm"
+                            >
+                              <strong>{{ correcciones.observacionRevisor }}:</strong>
+                              {{ observacion.texto }}
+                            </p>
                           }
 
                           <!-- Mensaje de error de validación -->

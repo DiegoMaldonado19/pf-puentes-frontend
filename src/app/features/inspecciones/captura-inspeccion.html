@@ -38,7 +38,13 @@
     </header>
 
     @if (inspeccion.estado !== 'PUBLICADA') {
-      <app-panel-correcciones [inspeccionId]="inspeccion.id" [editable]="store.editable()" />
+      <app-panel-correcciones
+        [inspeccionId]="inspeccion.id"
+        [editable]="store.editable()"
+        [avisoCampo]="avisoCampo()"
+        (pendientesCambian)="observacionesRevisor.set($event)"
+        (irAlCampo)="enfocarObservacion($event)"
+      />
     }
     @if (store.version(); as version) {
       @if (version.estado !== 'ACTIVA') {
@@ -188,6 +194,7 @@
         [modo]="store.editable() ? 'edicion' : 'lectura'"
         [impresion]="impresion()"
         [erroresServidor]="store.erroresMotor()"
+        [observaciones]="observacionesMotor()"
         (datosChange)="store.alCambiarDatos($event)"
         (validoChange)="store.formularioValido.set($event)"
         (grupoSinDanos)="store.alMarcarGrupoSano($event)"

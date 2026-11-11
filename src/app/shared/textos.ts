@@ -45,6 +45,9 @@ export const TEXTOS = {
     buscarCampo: 'El campo no está visible en esta pestaña. Búsquelo en su sección.',
     noEditable: 'La inspección ya no se puede editar; no se puede marcar la corrección.',
     errorResolver: 'No se pudo marcar la observación. Intente de nuevo.',
+    devueltaConCambios: 'Devuelta con cambios',
+    observacionRevisor: 'Observación del revisor',
+    observacionesSeccion: 'observaciones pendientes en esta sección',
   },
   constructorFormulario: {
     tituloNuevo: 'Nueva versión del formulario',

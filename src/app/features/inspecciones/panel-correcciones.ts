@@ -7,6 +7,7 @@ import {
   inject,
   input,
   OnInit,
+  output,
   signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -62,13 +63,18 @@ export class PanelCorrecciones implements OnInit {
 
   readonly inspeccionId = input.required<string>();
   readonly editable = input(false);
+  /** Aviso del padre cuando «Ir al campo» no encuentra el campo en el formulario. */
+  readonly avisoCampo = input<string | null>(null);
+  /** «Ir al campo»: el padre enfoca el campo en el motor, que puede estar en otra pestaña. */
+  readonly irAlCampo = output<string>();
+  /** Observaciones sin resolver del último ciclo: el padre las muestra junto a cada campo. */
+  readonly pendientesCambian = output<readonly ObservacionCorreccion[]>();
 
   private readonly http = inject(HttpClient);
   private readonly destruir = inject(DestroyRef);
 
   protected readonly ciclo = signal<CicloRevision | null>(null);
   protected readonly error = signal<string | null>(null);
-  protected readonly aviso = signal<string | null>(null);
   protected readonly ocupadas = signal<ReadonlySet<string>>(new Set());
   protected readonly pendientes = computed(
     () => this.ciclo()?.observaciones.filter((o) => !o.resuelta_en).length ?? 0,
@@ -78,16 +84,8 @@ export class PanelCorrecciones implements OnInit {
     this.cargar();
   }
 
-  protected irAlCampo(referencia: string | null): void {
-    const id = campoDeReferencia(referencia);
-    const elemento = id ? document.getElementById(id) : null;
-    if (elemento) {
-      elemento.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      elemento.focus({ preventScroll: true });
-      this.aviso.set(null);
-    } else {
-      this.aviso.set(this.t.buscarCampo);
-    }
+  protected pedirIrAlCampo(referencia: string | null): void {
+    if (referencia) this.irAlCampo.emit(referencia);
   }
 
   protected marcarResuelta(observacion: ObservacionCorreccion): void {
@@ -116,18 +114,23 @@ export class PanelCorrecciones implements OnInit {
       })
       .pipe(takeUntilDestroyed(this.destruir))
       .subscribe({
-        next: (pagina) => this.ciclo.set(ultimoCicloConCorrecciones(pagina.content)),
-        error: () => this.ciclo.set(null),
+        next: (pagina) => this.mostrar(ultimoCicloConCorrecciones(pagina.content)),
+        error: () => this.mostrar(null),
       });
   }
 
   private reemplazar(resuelta: ObservacionCorreccion): void {
     const actual = this.ciclo();
     if (!actual) return;
-    this.ciclo.set({
+    this.mostrar({
       ...actual,
       observaciones: actual.observaciones.map((o) => (o.id === resuelta.id ? resuelta : o)),
     });
+  }
+
+  private mostrar(ciclo: CicloRevision | null): void {
+    this.ciclo.set(ciclo);
+    this.pendientesCambian.emit(ciclo?.observaciones.filter((o) => !o.resuelta_en) ?? []);
   }
 
   private liberar(id: string): void {

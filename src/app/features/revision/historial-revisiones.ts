@@ -28,7 +28,7 @@ import { CicloRevision, PaginaSeguimiento, RevisionApi } from './revision-api';
         <ol class="grid gap-4">
           @for (ciclo of datos.content; track ciclo.id) {
             <li class="hvc-card">
-              <h3 class="text-h3">{{ ciclo.veredicto || t.enRevision }}</h3>
+              <h3 class="text-h3">{{ etiquetaVeredicto(ciclo.veredicto) }}</h3>
               <p class="text-muted break-all">
                 {{ t.ciclo }}: {{ ciclo.id }} ·
                 {{ ciclo.creado_en | date: 'dd/MM/yyyy HH:mm' : '-0600' }}
@@ -94,6 +94,13 @@ export class HistorialRevisiones {
   readonly inspeccionId = input.required<string>();
   readonly puedeResolver = input(false);
   readonly t = TEXTOS.revision;
+
+  /** Veredicto en el idioma de la interfaz; un ciclo sin veredicto sigue en revisión. */
+  etiquetaVeredicto(veredicto: string | null): string {
+    if (!veredicto) return this.t.enRevision;
+    const etiquetas: Record<string, string> = this.t.veredictos;
+    return etiquetas[veredicto] ?? veredicto;
+  }
   readonly pagina = signal<PaginaSeguimiento<CicloRevision> | null>(null);
   readonly ocupado = signal(false);
   readonly error = signal('');

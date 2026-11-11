@@ -93,6 +93,17 @@ const ESTADOS: readonly EstadoInspeccion[] = [
                 </div>
                 <div class="grid justify-items-end gap-2">
                   <app-chip-estado-inspeccion [estado]="fila.estado" />
+                  @if (
+                    fila.estado === 'BORRADOR' &&
+                    fila.revision?.ultimo_veredicto === 'CAMBIOS_SOLICITADOS'
+                  ) {
+                    <span class="hvc-badge hvc-badge--warn">
+                      {{ tCorrecciones.devueltaConCambios }}
+                      @if (fila.revision; as revision) {
+                        · {{ revision.observaciones_pendientes }} {{ tCorrecciones.pendientes }}
+                      }
+                    </span>
+                  }
                   @if (fila.superada) {
                     <span class="text-muted">{{ comun.superada }}</span>
                   }
@@ -146,6 +157,7 @@ export class MisInspecciones {
   protected readonly t = TEXTOS.inspecciones.mias;
   protected readonly comun = TEXTOS.inspecciones.comun;
   protected readonly etiquetas = TEXTOS.inspecciones.estados;
+  protected readonly tCorrecciones = TEXTOS.correcciones;
   protected readonly estados = ESTADOS;
   protected readonly fechaSinHora = fechaSinHora;
   protected readonly pagina = signal(0);
