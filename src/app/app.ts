@@ -1,3 +1,4 @@
+import { AppToaster } from './shared/ui/toast';
 import { Component, effect, inject, untracked } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthService } from './core/auth/auth';
@@ -10,6 +11,7 @@ import { Icono } from './shared/ui/icono';
 
 @Component({
   imports: [
+    AppToaster,
     RouterLink,
     RouterLinkActive,
     RouterOutlet,

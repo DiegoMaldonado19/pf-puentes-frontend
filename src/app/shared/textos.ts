@@ -115,6 +115,31 @@ export const TEXTOS = {
     errorGuardar: 'No se pudo guardar la orden. Revise los datos e intente de nuevo.',
     soloTipoYDescripcion: 'En una orden abierta solo se corrigen el tipo y la descripción.',
   },
+  paginador: {
+    etiqueta: 'Páginas',
+    anterior: 'Anterior',
+    siguiente: 'Siguiente',
+    pagina: 'Página',
+    de: 'de',
+  },
+  avisoPropuestas: {
+    calculando: 'Contando las propuestas generadas…',
+    ninguna: 'Esta publicación no generó propuestas de mantenimiento.',
+    una: 'Se generó 1 propuesta de mantenimiento a partir de esta inspección.',
+    varias: 'Se generaron {n} propuestas de mantenimiento a partir de esta inspección.',
+    verPropuestas: 'Ver mantenimiento del puente',
+    error:
+      'No se pudieron contar las propuestas generadas. Revísalas en el mantenimiento del puente.',
+  },
+  aceptacionPropuesta: {
+    confirmada: 'Propuesta aceptada: queda programada.',
+    noAceptada: 'La propuesta no se pudo aceptar. Se actualizó el listado.',
+  },
+  toast: {
+    avisos: 'Avisos',
+    ordenGuardada: 'Orden de mantenimiento guardada.',
+    cerrar: 'Cerrar',
+  },
   lineaEstadosOrden: {
     titulo: 'Estado de la orden',
     siguientes: 'Siguientes pasos válidos',
@@ -1567,6 +1592,7 @@ export const TEXTOS = {
       titulo: 'Mis inspecciones',
       descripcion: 'Tus inspecciones en todos los estados, de la más reciente a la más antigua.',
       filtros: 'Filtros',
+      fechasInvertidas: 'La fecha inicial no puede ser posterior a la final.',
       todosEstados: 'Todos los estados',
       desde: 'Desde',
       hasta: 'Hasta',

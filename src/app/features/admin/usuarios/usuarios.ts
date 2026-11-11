@@ -15,14 +15,14 @@ import {
   mensajeHttp,
 } from '../../auth/formulario';
 import { AdminUsuariosService, TAMANO_PAGINA_ADMIN } from '../admin-usuarios';
-import { PaginacionAdmin } from '../paginacion-admin';
+import { Paginador } from '../../../shared/ui/paginador';
 
 const ROLES: readonly Rol[] = ['ESTUDIANTE', 'PROFESIONAL_EXTERNO', 'CATEDRATICO', 'ADMINISTRADOR'];
 const ESTADOS: readonly EstadoUsuario[] = ['PENDIENTE', 'ACTIVO', 'INACTIVO'];
 
 @Component({
   selector: 'app-usuarios',
-  imports: [PaginacionAdmin, ReactiveFormsModule, RouterLink, RouterLinkActive],
+  imports: [Paginador, ReactiveFormsModule, RouterLink, RouterLinkActive],
   templateUrl: './usuarios.html',
 })
 export class Usuarios {

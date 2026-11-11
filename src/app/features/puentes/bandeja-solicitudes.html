@@ -158,10 +158,10 @@
             </li>
           }
         </ul>
-        <app-paginacion
+        <app-paginador
           [pagina]="datos.pagina"
           [totalPaginas]="datos.total_paginas"
-          (cambiar)="pagina.set($event)"
+          (paginaCambia)="pagina.set($event)"
         />
       }
     }

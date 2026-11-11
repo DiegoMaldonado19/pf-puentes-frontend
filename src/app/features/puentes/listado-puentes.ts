@@ -7,7 +7,7 @@ import { TEXTOS } from '../../shared/textos';
 import { CatalogoService } from './catalogo.service';
 import { mensajeDeError } from './errores';
 import { EstadoFiltro, FiltrosPuentes, SituacionPuentes } from './modelos';
-import { Paginacion } from './paginacion';
+import { Paginador } from '../../shared/ui/paginador';
 import { PuentesService } from './puentes.service';
 import { ROL_PUENTES } from './rol-puentes';
 import { sinInspeccionDesde12Meses } from './inspeccion-vencida';
@@ -17,7 +17,7 @@ export const TAMANO_PAGINA_LISTADO = 20;
 /** Público (RN-USR-10): solo puentes activos; el estado siempre con texto (DT-FE-13). */
 @Component({
   selector: 'app-listado-puentes',
-  imports: [EstadoPuente, Paginacion, RouterLink],
+  imports: [EstadoPuente, Paginador, RouterLink],
   templateUrl: './listado-puentes.html',
 })
 export class ListadoPuentes {

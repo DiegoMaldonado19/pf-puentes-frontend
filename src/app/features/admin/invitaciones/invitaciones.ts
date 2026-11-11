@@ -19,7 +19,7 @@ import {
   mensajeHttp,
 } from '../../auth/formulario';
 import { AdminUsuariosService, TAMANO_PAGINA_ADMIN } from '../admin-usuarios';
-import { PaginacionAdmin } from '../paginacion-admin';
+import { Paginador } from '../../../shared/ui/paginador';
 
 const ROLES_INVITABLES: readonly RolInvitable[] = [
   'PROFESIONAL_EXTERNO',
@@ -31,7 +31,7 @@ const ESTADOS: readonly EstadoInvitacion[] = ['ABIERTA', 'ACEPTADA', 'REVOCADA',
 
 @Component({
   selector: 'app-invitaciones',
-  imports: [DatePipe, PaginacionAdmin, ReactiveFormsModule, RouterLink, RouterLinkActive],
+  imports: [DatePipe, Paginador, ReactiveFormsModule, RouterLink, RouterLinkActive],
   templateUrl: './invitaciones.html',
 })
 export class Invitaciones {

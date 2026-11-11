@@ -33,6 +33,6 @@ describe('Panel de gestión de cursos', () => {
     expect(html.querySelector('.insignia')?.textContent).toContain(TEXTOS.cursos.cerrado);
     expect(html.querySelector('a.accion-enlace')?.getAttribute('href')).toBe('/cursos/curso');
     expect(html.querySelector('app-formulario-curso')).not.toBeNull();
-    expect(html.querySelector('app-paginacion-cursos')).not.toBeNull();
+    expect(html.querySelector('app-paginador')).not.toBeNull();
   });
 });

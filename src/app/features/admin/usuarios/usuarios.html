@@ -215,10 +215,10 @@
             </tbody>
           </table>
         </div>
-        <app-paginacion-admin
+        <app-paginador
           [pagina]="lista.number"
           [totalPaginas]="lista.total_pages"
-          (cambiar)="pagina.set($event)"
+          (paginaCambia)="pagina.set($event)"
         />
       }
     }

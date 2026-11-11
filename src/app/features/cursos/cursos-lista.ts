@@ -5,12 +5,12 @@ import { TEXTOS } from '../../shared/textos';
 import { CursosApi, mensajeErrorCursos } from './cursos-api';
 import { FormularioCurso } from './formulario-curso';
 import { CursoDTO, GuardarCursoDTO, PaginaDTO } from './modelos';
-import { PaginacionCursos } from './paginacion';
+import { Paginador } from '../../shared/ui/paginador';
 import { vigilarSesionCursos } from './sesion-cursos';
 
 @Component({
   selector: 'app-cursos-lista',
-  imports: [RouterLink, FormularioCurso, PaginacionCursos],
+  imports: [RouterLink, FormularioCurso, Paginador],
   templateUrl: './cursos-lista.html',
   host: { class: 'pantalla-cursos' },
 })
