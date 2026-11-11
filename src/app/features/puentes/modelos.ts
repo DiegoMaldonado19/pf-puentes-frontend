@@ -32,6 +32,10 @@ export interface PuenteDTO {
   readonly anio_construccion: number | null;
   readonly activo: boolean;
   readonly motivo_baja: string | null;
+  /** Instante UTC de la baja; null si la baja es anterior al registro de fechas. */
+  readonly baja_en?: string | null;
+  /** Administrador que dio de baja el puente. */
+  readonly baja_por?: string | null;
   /** null = Sin evaluar: no hay inspección publicada (RN-INV-10). */
   readonly estado_actual: EstadoCondicion | null;
   readonly indice_condicion_actual: number | null;
@@ -58,11 +62,15 @@ export interface PuenteCercanoDTO {
 
 export type EstadoFiltro = EstadoCondicion | 'SIN_EVALUAR';
 
+/** ACTIVOS por defecto; BAJAS y TODOS solo los puede pedir el Administrador (RN-INV-08). */
+export type SituacionPuentes = 'ACTIVOS' | 'BAJAS' | 'TODOS';
+
 export interface FiltrosPuentes {
   readonly departamento?: string | null;
   readonly municipio?: string | null;
   readonly estado?: EstadoFiltro | null;
   readonly q?: string | null;
+  readonly situacion?: SituacionPuentes | null;
   readonly incluir_bajas?: boolean;
 }
 

@@ -48,6 +48,38 @@ export class FichaPuente {
   protected readonly errorBaja = signal('');
   protected readonly bajaHecha = signal(false);
 
+  // Reactivar exige motivo, igual que la baja: queda en la auditoría (RN-INV-08)
+  protected readonly motivoReactivacion = new FormControl('', {
+    nonNullable: true,
+    validators: [Validators.required, Validators.maxLength(500), Validators.pattern(/\S/)],
+  });
+  protected readonly reactivarAbierta = signal(false);
+  protected readonly enviandoReactivacion = signal(false);
+  protected readonly errorReactivacion = signal('');
+  protected readonly reactivacionHecha = signal(false);
+
+  protected reactivar(): void {
+    if (this.motivoReactivacion.invalid) {
+      this.motivoReactivacion.markAsTouched();
+      return;
+    }
+    this.enviandoReactivacion.set(true);
+    this.errorReactivacion.set('');
+    this.servicio.reactivar(this.id(), this.motivoReactivacion.value.trim()).subscribe({
+      next: (actualizado) => {
+        this.puente.set(actualizado);
+        this.reactivarAbierta.set(false);
+        this.enviandoReactivacion.set(false);
+        this.reactivacionHecha.set(true);
+        this.motivoReactivacion.reset('');
+      },
+      error: (error: unknown) => {
+        this.errorReactivacion.set(mensajeDeError(error));
+        this.enviandoReactivacion.set(false);
+      },
+    });
+  }
+
   protected darDeBaja(): void {
     if (this.motivo.invalid) {
       this.motivo.markAsTouched();

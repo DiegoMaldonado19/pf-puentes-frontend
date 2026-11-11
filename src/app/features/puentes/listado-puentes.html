@@ -73,6 +73,19 @@
       </select>
     </div>
     <div class="flex flex-col">
+      @if (rol() === 'ADMINISTRADOR') {
+        <label for="filtro-situacion" class="hvc-label">{{ t.filtros.situacion }}</label>
+        <select
+          id="filtro-situacion"
+          class="hvc-input"
+          [value]="situacion()"
+          (change)="cambiarSituacion($event)"
+        >
+          @for (s of situaciones; track s) {
+            <option [value]="s">{{ t.filtros.situaciones[s] }}</option>
+          }
+        </select>
+      }
       <label for="filtro-texto" class="hvc-label">{{ t.filtros.texto }}</label>
       <input
         id="filtro-texto"
@@ -132,6 +145,11 @@
                 <td class="p-2 font-mono text-sm">{{ puente.codigo }}</td>
                 <td class="p-2">
                   <a [routerLink]="['/puentes', puente.id]" class="hvc-link">{{ puente.nombre }}</a>
+                  @if (!puente.activo) {
+                    <span class="ml-2 rounded bg-slate-200 px-2 py-0.5 text-xs font-semibold">{{
+                      t.filtros.dadoDeBaja
+                    }}</span>
+                  }
                 </td>
                 <td class="p-2">{{ puente.departamento.nombre }}</td>
                 <td class="p-2">{{ puente.municipio.nombre }}</td>
@@ -149,6 +167,11 @@
                 <a [routerLink]="['/puentes', puente.id]" class="hvc-link">{{ puente.nombre }}</a>
                 <app-estado-puente [estado]="puente.estado_actual" />
               </div>
+              @if (!puente.activo) {
+                <p class="rounded bg-slate-200 px-2 py-0.5 text-xs font-semibold w-fit">
+                  {{ t.filtros.dadoDeBaja }}
+                </p>
+              }
               <p class="font-mono text-sm">{{ puente.codigo }}</p>
               <p class="text-muted">
                 {{ puente.municipio.nombre }}, {{ puente.departamento.nombre }} ·

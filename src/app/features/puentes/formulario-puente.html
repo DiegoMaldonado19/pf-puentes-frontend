@@ -133,6 +133,7 @@
               step="0.000001"
               inputmode="decimal"
               formControlName="latitud"
+              (change)="consultarCercanos()"
               class="hvc-input"
               [attr.aria-invalid]="invalido('latitud')"
               [attr.aria-describedby]="invalido('latitud') ? 'error-latitud' : null"
@@ -149,6 +150,7 @@
               step="0.000001"
               inputmode="decimal"
               formControlName="longitud"
+              (change)="consultarCercanos()"
               class="hvc-input"
               [attr.aria-invalid]="invalido('longitud')"
               [attr.aria-describedby]="invalido('longitud') ? 'error-longitud' : null"
@@ -214,8 +216,17 @@
             modo() === 'solicitud' ? t.duplicado.confirmarSolicitud : t.duplicado.confirmar
           "
           (confirmar)="enviar(true)"
-          (cancelar)="cercanos.set(null)"
+          (cancelar)="cercanos.set(null); confirmarDuplicado.set(false)"
         />
+        <label class="flex items-start gap-2">
+          <input
+            type="checkbox"
+            class="mt-1"
+            [checked]="confirmarDuplicado()"
+            (change)="confirmarDuplicado.set($any($event.target).checked)"
+          />
+          <span>{{ t.duplicado.casilla }}</span>
+        </label>
       }
       @if (error()) {
         <p role="alert" class="hvc-alert">
@@ -224,11 +235,7 @@
       }
 
       <div class="flex flex-wrap gap-2">
-        <button
-          type="submit"
-          class="btn-hvc-primary"
-          [disabled]="enviando() || cercanos() !== null"
-        >
+        <button type="submit" class="btn-hvc-primary" [disabled]="enviando()">
           {{ enviando() ? f.enviando : textoEnviar() }}
         </button>
         <a
