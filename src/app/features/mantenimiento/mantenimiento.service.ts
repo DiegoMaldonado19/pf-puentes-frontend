@@ -12,6 +12,8 @@ import {
   PaginaOrdenes,
   PaginaPropuestas,
   SeguimientoRutinarioDTO,
+  CrearOrden,
+  EditarOrden,
 } from './modelos';
 
 /** La sesión la aporta la cadena HTTP global de P2; no administra tokens ni simula órdenes. */
@@ -28,6 +30,23 @@ export class MantenimientoService {
       `/api/v1/puentes/${encodeURIComponent(puenteId)}/ordenes-mantenimiento/rutinario-anual`,
       { params: { page, size } },
     );
+  }
+
+  /** B9: alta manual de una orden de mantenimiento del puente. */
+  crearOrden(puenteId: string, datos: CrearOrden): Observable<OrdenMantenimientoDTO> {
+    return this.http.post<OrdenMantenimientoDTO>(
+      `/api/v1/puentes/${encodeURIComponent(puenteId)}/ordenes-mantenimiento`,
+      datos,
+    );
+  }
+
+  /** B9: corrige el tipo o la descripción de una orden abierta. */
+  editarOrden(
+    puenteId: string,
+    ordenId: string,
+    datos: EditarOrden,
+  ): Observable<OrdenMantenimientoDTO> {
+    return this.http.patch<OrdenMantenimientoDTO>(this.rutaOrden(puenteId, ordenId), datos);
   }
 
   listarOrdenes(puenteId: string, page = 0, size = 20): Observable<PaginaOrdenes> {

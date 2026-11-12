@@ -19,7 +19,7 @@
       <nav class="my-4 flex gap-3" [attr.aria-label]="t.navegacion">
         <button
           type="button"
-          class="rounded border border-slate-500 p-2 disabled:opacity-50"
+          class="rounded border border-borde-control p-2 disabled:opacity-50"
           [attr.aria-pressed]="vista() === 'ordenes'"
           [disabled]="operacionPendiente()"
           (click)="cambiar('ordenes')"
@@ -28,7 +28,7 @@
         </button>
         <button
           type="button"
-          class="rounded border border-slate-500 p-2 disabled:opacity-50"
+          class="rounded border border-borde-control p-2 disabled:opacity-50"
           [attr.aria-pressed]="vista() === 'propuestas'"
           [disabled]="operacionPendiente()"
           (click)="cambiar('propuestas')"
@@ -40,6 +40,35 @@
         <p role="status">{{ t.guardando }}</p>
       }
       @if (vista() === 'ordenes') {
+        @if (permitido() && !creando() && !editando()) {
+          <div class="mb-4 flex justify-end">
+            <button
+              type="button"
+              class="btn-hvc-primary"
+              [disabled]="operacionPendiente()"
+              (click)="nuevaOrden()"
+            >
+              {{ textosFormulario.nuevaBoton }}
+            </button>
+          </div>
+        }
+        @if (creando()) {
+          <app-formulario-orden
+            class="mb-4 block"
+            [puenteId]="p.id"
+            (guardada)="alGuardarOrden()"
+            (cancelada)="cerrarFormulario()"
+          />
+        }
+        @if (editando(); as orden) {
+          <app-formulario-orden
+            class="mb-4 block"
+            [puenteId]="p.id"
+            [orden]="orden"
+            (guardada)="alGuardarOrden()"
+            (cancelada)="cerrarFormulario()"
+          />
+        }
         <app-consulta-ordenes
           [puenteId]="p.id"
           [puedeConsultar]="permitido()"
@@ -52,6 +81,8 @@
           [puedeAjustarPrioridad]="permitido()"
           [puedeProgramar]="permitido()"
           [mostrarSeguimientoRutinario]="true"
+          [puedeEditar]="permitido()"
+          (editar)="editarOrden($event)"
         />
       } @else {
         <app-consulta-propuestas

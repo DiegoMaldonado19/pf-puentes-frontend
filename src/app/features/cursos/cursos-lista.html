@@ -68,12 +68,12 @@
             </li>
           }
         </ul>
-        <app-paginacion-cursos
+        <app-paginador
           [etiqueta]="textos.misCursos"
           [pagina]="datos.number"
-          [paginas]="datos.total_pages"
-          [ocupado]="ocupado()"
-          (cambio)="cargar($event)"
+          [totalPaginas]="datos.total_pages"
+          [deshabilitado]="ocupado()"
+          (paginaCambia)="cargar($event)"
         />
       }
     </div>

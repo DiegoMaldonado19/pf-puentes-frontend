@@ -75,7 +75,7 @@ export interface FotoParaSubir {
               />
             } @else {
               <span
-                class="flex size-16 shrink-0 items-center justify-center rounded bg-slate-100 text-sm font-bold"
+                class="flex size-16 shrink-0 items-center justify-center rounded bg-lienzo text-sm font-bold"
                 aria-hidden="true"
                 >{{ archivo.tipo === 'DOCUMENTO' ? 'PDF' : 'FOTO' }}</span
               >
@@ -96,8 +96,8 @@ export interface FotoParaSubir {
               }
               <p
                 class="text-sm"
-                [class.text-green-800]="archivo.estado === 'subida'"
-                [class.text-red-800]="archivo.estado === 'error'"
+                [class.text-bueno-texto]="archivo.estado === 'subida'"
+                [class.text-malo-texto]="archivo.estado === 'error'"
                 [attr.role]="archivo.estado === 'error' ? 'alert' : 'status'"
               >
                 {{ etiquetaEstado(archivo) }}

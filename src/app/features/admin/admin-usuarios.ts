@@ -77,6 +77,35 @@ export class AdminUsuariosService {
     return this.vacio(`${API}/usuarios/${id}/reactivacion`);
   }
 
+  /** Alta por el Administrador: la cuenta queda activa y recibe el enlace para fijar su contraseña. */
+  crearUsuario(datos: {
+    readonly nombre: string;
+    readonly correo: string;
+    readonly rol: Rol;
+  }): Observable<UsuarioAdminDTO> {
+    return this.http.post<UsuarioAdminDTO>(`${API}/usuarios`, datos);
+  }
+
+  /** Edición de nombre y correo; el rol solo cambia entre catedrático y administrador. */
+  actualizarUsuario(
+    id: string,
+    datos: { readonly nombre: string; readonly correo: string; readonly rol?: Rol },
+  ): Observable<UsuarioAdminDTO> {
+    return this.http.put<UsuarioAdminDTO>(`${API}/usuarios/${id}`, datos);
+  }
+
+  desbloquear(id: string): Observable<UsuarioAdminDTO> {
+    return this.http.post<UsuarioAdminDTO>(`${API}/usuarios/${id}/desbloqueo`, {});
+  }
+
+  activar(id: string): Observable<UsuarioAdminDTO> {
+    return this.http.post<UsuarioAdminDTO>(`${API}/usuarios/${id}/activacion`, {});
+  }
+
+  reenviarVerificacion(id: string): Observable<void> {
+    return this.vacio(`${API}/usuarios/${id}/reenvio-verificacion`);
+  }
+
   aprobarColegiado(id: string): Observable<void> {
     return this.vacio(`${API}/usuarios/${id}/colegiado/verificacion`);
   }

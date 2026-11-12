@@ -1,16 +1,20 @@
 import { Component, input, output } from '@angular/core';
-import { TEXTOS } from '../../shared/textos';
+import { TEXTOS } from '../textos';
 
+/**
+ * Paginador único (F1): sustituye a los paginadores por pantalla. Con una sola página no se muestra.
+ * `pagina` es base cero, como en las respuestas paginadas del backend.
+ */
 @Component({
-  selector: 'app-paginacion',
+  selector: 'app-paginador',
   template: `
     @if (totalPaginas() > 1) {
       <nav [attr.aria-label]="etiqueta()" class="mt-4 flex items-center justify-between gap-2">
         <button
           type="button"
           class="pagination-btn"
-          [disabled]="pagina() === 0"
-          (click)="cambiar.emit(pagina() - 1)"
+          [disabled]="deshabilitado() || pagina() === 0"
+          (click)="paginaCambia.emit(pagina() - 1)"
         >
           {{ t.anterior }}
         </button>
@@ -20,8 +24,8 @@ import { TEXTOS } from '../../shared/textos';
         <button
           type="button"
           class="pagination-btn"
-          [disabled]="pagina() + 1 >= totalPaginas()"
-          (click)="cambiar.emit(pagina() + 1)"
+          [disabled]="deshabilitado() || pagina() + 1 >= totalPaginas()"
+          (click)="paginaCambia.emit(pagina() + 1)"
         >
           {{ t.siguiente }}
         </button>
@@ -29,10 +33,11 @@ import { TEXTOS } from '../../shared/textos';
     }
   `,
 })
-export class Paginacion {
+export class Paginador {
   readonly pagina = input.required<number>();
   readonly totalPaginas = input.required<number>();
-  readonly etiqueta = input<string>(TEXTOS.puentes.paginacion.etiqueta);
-  readonly cambiar = output<number>();
-  protected readonly t = TEXTOS.puentes.paginacion;
+  readonly deshabilitado = input(false);
+  readonly etiqueta = input<string>(TEXTOS.paginador.etiqueta);
+  readonly paginaCambia = output<number>();
+  protected readonly t = TEXTOS.paginador;
 }

@@ -25,7 +25,7 @@
     <span class="sr-only">{{ textos.campana }}</span>
     @if (servicio.noLeidas() > 0) {
       <span
-        class="absolute -top-0.5 -right-0.5 rounded-full bg-red-600 px-1.5 py-0.5 text-xs leading-none font-semibold text-white"
+        class="absolute -top-0.5 -right-0.5 rounded-full bg-malo px-1.5 py-0.5 text-xs leading-none font-semibold text-superficie"
         aria-live="polite"
       >
         {{ servicio.noLeidas() }}
@@ -44,17 +44,29 @@
       (keydown.escape)="cerrar()"
       class="hvc-card absolute right-0 z-50 mt-3 max-h-[min(32rem,75vh)] w-[min(24rem,calc(100vw-2rem))] overflow-y-auto shadow-xl"
     >
-      <div class="mb-3 flex items-center justify-between gap-3 border-b border-slate-200 pb-3">
+      <div class="mb-3 flex items-center justify-between gap-3 border-b border-borde pb-3">
         <h2 class="text-lg font-bold">{{ textos.titulo }}</h2>
-        <button type="button" class="btn-hvc-secondary btn-hvc-compact" (click)="cerrar()">
-          {{ textos.cerrar }}
-        </button>
+        <div class="flex flex-wrap justify-end gap-2">
+          @if (servicio.noLeidas() > 0) {
+            <button
+              type="button"
+              class="btn-hvc-secondary btn-hvc-compact"
+              [disabled]="servicio.cargando()"
+              (click)="marcarTodas()"
+            >
+              {{ textos.marcarTodas }}
+            </button>
+          }
+          <button type="button" class="btn-hvc-secondary btn-hvc-compact" (click)="cerrar()">
+            {{ textos.cerrar }}
+          </button>
+        </div>
       </div>
 
       @if (!servicio.sesionActiva()) {
         @if (servicio.error(); as errorSesion) {
           <div role="alert" class="hvc-alert">
-            <p class="text-red-700">{{ errorSesion }}</p>
+            <p class="text-malo-texto">{{ errorSesion }}</p>
           </div>
         } @else {
           <p class="text-muted">{{ textos.sinSesion }}</p>
@@ -63,7 +75,7 @@
         <p role="status" class="text-muted">{{ textos.cargando }}</p>
       } @else if (servicio.error(); as mensajeError) {
         <div role="alert" class="hvc-alert">
-          <p class="text-red-700">{{ mensajeError }}</p>
+          <p class="text-malo-texto">{{ mensajeError }}</p>
           <button type="button" class="mt-1 underline" (click)="reintentar()">
             {{ textos.reintentar }}
           </button>
@@ -71,13 +83,13 @@
       } @else if (servicio.notificaciones().length === 0) {
         <p class="text-muted">{{ textos.vacio }}</p>
       } @else {
-        <ul class="divide-y divide-slate-100">
+        <ul class="divide-y divide-borde">
           @for (n of servicio.notificaciones(); track n.id) {
-            <li class="rounded p-3" [class.bg-blue-50]="!n.leida_en">
+            <li class="rounded p-3" [class.bg-primario-50]="!n.leida_en">
               <div class="flex items-start gap-2">
                 <span
                   class="mt-1.5 size-2 shrink-0 rounded-full"
-                  [class.bg-blue-600]="!n.leida_en"
+                  [class.bg-primario-700]="!n.leida_en"
                   [class.bg-transparent]="!!n.leida_en"
                   aria-hidden="true"
                 ></span>
@@ -85,8 +97,9 @@
                   <p class="text-sm wrap-break-word" [class.font-semibold]="!n.leida_en">
                     {{ n.mensaje }}
                   </p>
-                  <p class="text-xs text-slate-500">
-                    {{ fecha(n.creado_en) }} · {{ n.leida_en ? textos.leida : textos.noLeida }}
+                  <p class="text-xs text-texto-atenuado">
+                    {{ etiquetaTipo(n.tipo) }} · {{ fecha(n.creado_en) }} ·
+                    {{ n.leida_en ? textos.leida : textos.noLeida }}
                   </p>
                 </div>
               </div>
@@ -113,11 +126,11 @@
         @if (servicio.totalPaginas() > 0) {
           <nav
             [attr.aria-label]="textos.paginacion"
-            class="mt-2 flex items-center justify-between border-t border-slate-100 pt-2 text-sm"
+            class="mt-2 flex items-center justify-between border-t border-borde pt-2 text-sm"
           >
             <button
               type="button"
-              class="rounded px-2 py-1 hover:bg-slate-100 disabled:opacity-50"
+              class="rounded px-2 py-1 hover:bg-lienzo disabled:opacity-50"
               [disabled]="servicio.pagina() === 0 || servicio.cargando()"
               (click)="paginaAnterior()"
             >
@@ -129,7 +142,7 @@
             </span>
             <button
               type="button"
-              class="rounded px-2 py-1 hover:bg-slate-100 disabled:opacity-50"
+              class="rounded px-2 py-1 hover:bg-lienzo disabled:opacity-50"
               [disabled]="servicio.pagina() + 1 >= servicio.totalPaginas() || servicio.cargando()"
               (click)="paginaSiguiente()"
             >

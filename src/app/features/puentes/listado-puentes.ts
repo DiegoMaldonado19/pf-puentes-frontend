@@ -6,21 +6,28 @@ import { EstadoPuente } from '../../shared/estado-puente/estado-puente';
 import { TEXTOS } from '../../shared/textos';
 import { CatalogoService } from './catalogo.service';
 import { mensajeDeError } from './errores';
-import { EstadoFiltro, FiltrosPuentes } from './modelos';
-import { Paginacion } from './paginacion';
+import { EstadoFiltro, FiltrosPuentes, SituacionPuentes } from './modelos';
+import { Paginador } from '../../shared/ui/paginador';
 import { PuentesService } from './puentes.service';
 import { ROL_PUENTES } from './rol-puentes';
+import { sinInspeccionDesde12Meses } from './inspeccion-vencida';
 
 export const TAMANO_PAGINA_LISTADO = 20;
 
 /** Público (RN-USR-10): solo puentes activos; el estado siempre con texto (DT-FE-13). */
 @Component({
   selector: 'app-listado-puentes',
-  imports: [EstadoPuente, Paginacion, RouterLink],
+  imports: [EstadoPuente, Paginador, RouterLink],
   templateUrl: './listado-puentes.html',
 })
 export class ListadoPuentes {
   protected readonly t = TEXTOS.puentes;
+  protected readonly textosAlertas = TEXTOS.alertasInspeccion;
+  protected cuantosVencidos(
+    puentes: readonly { fecha_ultima_inspeccion: string | null }[],
+  ): number {
+    return puentes.filter((p) => sinInspeccionDesde12Meses(p.fecha_ultima_inspeccion)).length;
+  }
   protected readonly estadosFiltro: readonly EstadoFiltro[] = [
     'BUENO',
     'REGULAR',
@@ -33,6 +40,9 @@ export class ListadoPuentes {
   protected readonly departamento = signal('');
   protected readonly municipio = linkedSignal({ source: this.departamento, computation: () => '' });
   protected readonly estado = signal<EstadoFiltro | ''>('');
+  // Solo el Administrador ve las bajas (RN-INV-08); para los demás el filtro no se envía
+  protected readonly situaciones: readonly SituacionPuentes[] = ['ACTIVOS', 'BAJAS', 'TODOS'];
+  protected readonly situacion = signal<SituacionPuentes>('ACTIVOS');
   protected readonly texto = signal('');
   private readonly textoConPausa = toSignal(toObservable(this.texto).pipe(debounceTime(300)), {
     initialValue: '',
@@ -43,6 +53,8 @@ export class ListadoPuentes {
     municipio: this.municipio() || null,
     estado: this.estado() || null,
     q: this.textoConPausa().trim() || null,
+    // Solo el administrador puede cambiar la situación (el control no existe para los demás)
+    situacion: this.situacion() !== 'ACTIVOS' ? this.situacion() : null,
   }));
   protected readonly hayFiltros = computed(() =>
     Object.values(this.filtros()).some((valor) => valor !== null),
@@ -69,6 +81,11 @@ export class ListadoPuentes {
 
   protected leer(evento: Event): string {
     return (evento.target as HTMLInputElement | HTMLSelectElement).value;
+  }
+
+  protected cambiarSituacion(evento: Event): void {
+    const valor = this.leer(evento);
+    this.situacion.set(valor === 'BAJAS' || valor === 'TODOS' ? valor : 'ACTIVOS');
   }
 
   protected limpiar(): void {

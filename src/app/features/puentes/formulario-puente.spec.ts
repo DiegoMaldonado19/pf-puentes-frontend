@@ -180,6 +180,8 @@ describe('FormularioPuente', () => {
     await estabilizar(fixture);
     expect(campo<HTMLInputElement>('latitud').value).toBe('14.123457');
     expect(campo<HTMLInputElement>('longitud').value).toBe('-90.765432');
+    // Elegir el punto consulta los puentes cercanos, sin bloquear Guardar
+    http.expectOne((r) => r.url === '/api/v1/puentes/cercanos').flush([]);
   });
 
   it('en edición el código, el municipio y los derivados son de solo lectura y no se envían', async () => {

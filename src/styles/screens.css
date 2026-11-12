@@ -9,7 +9,7 @@
   margin: var(--space-6) auto;
   border: var(--border-subtle);
   border-radius: var(--radius-lg);
-  background: var(--color-surface);
+  background: var(--color-superficie);
   box-shadow: var(--shadow-sm);
   padding: var(--space-6);
 }

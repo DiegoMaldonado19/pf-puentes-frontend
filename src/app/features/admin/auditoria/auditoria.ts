@@ -5,7 +5,7 @@ import { AccionAuditoria } from '../../../core/auth/modelos';
 import { TEXTOS } from '../../../shared/textos';
 import { CLASE_ALERTA, CLASE_CAMPO, mensajeHttp } from '../../auth/formulario';
 import { AdminUsuariosService, TAMANO_PAGINA_ADMIN } from '../admin-usuarios';
-import { PaginacionAdmin } from '../paginacion-admin';
+import { Paginador } from '../../../shared/ui/paginador';
 
 const ACCIONES = Object.keys(TEXTOS.admin.auditoria.acciones) as AccionAuditoria[];
 
@@ -18,7 +18,7 @@ function aIso(fecha: string, fin: boolean): string | undefined {
 
 @Component({
   selector: 'app-auditoria',
-  imports: [DatePipe, JsonPipe, PaginacionAdmin],
+  imports: [DatePipe, JsonPipe, Paginador],
   templateUrl: './auditoria.html',
 })
 export class Auditoria {

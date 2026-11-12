@@ -1,3 +1,4 @@
+import { EstadoVacio } from '../../shared/ui/estado-vacio';
 import { Component, DestroyRef, effect, inject, signal, untracked } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
@@ -13,7 +14,7 @@ import {
 
 @Component({
   selector: 'app-mis-revisiones',
-  imports: [RouterLink],
+  imports: [EstadoVacio, RouterLink],
   template: `
     <section class="mx-auto max-w-6xl p-4" [attr.aria-busy]="ocupado()">
       <h1 class="text-h1">{{ t.misPendientes }}</h1>
@@ -58,9 +59,7 @@ import {
               }
             </li>
           } @empty {
-            <li role="status" class="rounded bg-slate-100 p-8 text-center">
-              {{ t.sinPendientes }}
-            </li>
+            <li><app-estado-vacio [mensaje]="t.sinPendientes" /></li>
           }
         </ul>
         <nav class="mt-5 flex items-center gap-4" [attr.aria-label]="t.paginas">
@@ -95,7 +94,7 @@ import {
               }}</a>
             </li>
           } @empty {
-            <li class="rounded bg-slate-100 p-4">{{ t.sinHistorial }}</li>
+            <li class="rounded bg-lienzo p-4">{{ t.sinHistorial }}</li>
           }
         </ul>
         <nav class="mt-4 flex items-center gap-4" [attr.aria-label]="t.historial">

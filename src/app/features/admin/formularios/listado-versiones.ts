@@ -14,10 +14,10 @@ import { ModalPublicar } from './modal-publicar';
     <div class="space-y-6 p-4 max-w-6xl mx-auto">
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 class="text-h1 dark:text-white">
+          <h1 class="text-h1 ">
             {{ textos.titulo }}
           </h1>
-          <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">
+          <p class="text-sm text-texto-secundario  mt-1">
             Control de inmutabilidad y publicación del formulario de inspección SIECA (RN-FRM-01 a
             RN-FRM-06).
           </p>
@@ -32,21 +32,19 @@ import { ModalPublicar } from './modal-publicar';
       </div>
 
       @if (error()) {
-        <div class="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-sm">
+        <div class="p-4 rounded-xl bg-malo-tinte border border-malo text-malo-texto text-sm">
           {{ error() }}
         </div>
       }
 
       <!-- Tabla de versiones -->
-      <div
-        class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden"
-      >
+      <div class="bg-superficie  rounded-2xl shadow-sm border border-borde  overflow-hidden">
         @if (cargando()) {
-          <div class="p-8 text-center text-gray-600 dark:text-gray-300">
+          <div class="p-8 text-center text-texto-secundario ">
             Cargando versiones del formulario…
           </div>
         } @else if (versiones().length === 0) {
-          <div class="p-8 text-center text-gray-600 dark:text-gray-300">
+          <div class="p-8 text-center text-texto-secundario ">
             No se han registrado versiones del formulario.
           </div>
         } @else {
@@ -54,7 +52,7 @@ import { ModalPublicar } from './modal-publicar';
             <table class="w-full text-left border-collapse">
               <thead>
                 <tr
-                  class="border-b border-gray-100 dark:border-gray-700 text-xs font-semibold text-gray-600 dark:text-gray-300 bg-gray-50/50 dark:bg-gray-900/50"
+                  class="border-b border-borde  text-xs font-semibold text-texto-secundario  bg-lienzo/50 "
                 >
                   <th class="p-4">{{ textos.codigo }}</th>
                   <th class="p-4">{{ textos.estado }}</th>
@@ -62,14 +60,14 @@ import { ModalPublicar } from './modal-publicar';
                   <th class="p-4 text-right">{{ textos.acciones }}</th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-gray-100 dark:divide-gray-700 text-sm">
+              <tbody class="divide-y divide-borde  text-sm">
                 @for (v of versiones(); track v.id) {
-                  <tr class="hover:bg-gray-50/50 dark:hover:bg-gray-750 transition-colors">
-                    <td class="p-4 font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                  <tr class="hover:bg-lienzo/50  transition-colors">
+                    <td class="p-4 font-bold text-texto  flex items-center gap-2">
                       {{ v.codigo }}
                       @if (v.estado === 'ACTIVA') {
                         <span
-                          class="text-xs bg-emerald-100 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-200 px-2 py-0.5 rounded-full font-semibold"
+                          class="text-xs bg-bueno-tinte  text-bueno-texto  px-2 py-0.5 rounded-full font-semibold"
                         >
                           Vigente Oficial
                         </span>
@@ -79,24 +77,21 @@ import { ModalPublicar } from './modal-publicar';
                       <span
                         class="text-xs font-semibold px-2.5 py-1 rounded-full inline-block"
                         [ngClass]="{
-                          'bg-emerald-100 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-200':
-                            v.estado === 'ACTIVA',
-                          'bg-amber-100 dark:bg-amber-950/50 text-amber-900 dark:text-amber-200':
-                            v.estado === 'BORRADOR',
-                          'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200':
-                            v.estado === 'RETIRADA',
+                          'bg-bueno-tinte  text-bueno-texto ': v.estado === 'ACTIVA',
+                          'bg-regular-tinte  text-regular-texto ': v.estado === 'BORRADOR',
+                          'bg-lienzo  text-texto ': v.estado === 'RETIRADA',
                         }"
                       >
                         {{ v.estado }}
                       </span>
                     </td>
-                    <td class="p-4 text-gray-600 dark:text-gray-300 text-xs">
+                    <td class="p-4 text-texto-secundario  text-xs">
                       {{ v.publicada_en ? (v.publicada_en | date: 'dd/MM/yyyy HH:mm') : '—' }}
                     </td>
                     <td class="p-4 text-right space-x-2">
                       <a
                         [routerLink]="[v.id, 'editar']"
-                        class="px-3 py-1.5 text-xs font-medium rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200"
+                        class="px-3 py-1.5 text-xs font-medium rounded-lg border border-borde  hover:bg-lienzo  text-texto-secundario "
                       >
                         {{ v.estado === 'BORRADOR' ? textos.editarBorrador : textos.verEsquema }}
                       </a>
@@ -105,7 +100,7 @@ import { ModalPublicar } from './modal-publicar';
                         <button
                           type="button"
                           (click)="abrirPublicar(v)"
-                          class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm"
+                          class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-bueno hover:bg-bueno-texto text-superficie shadow-sm"
                         >
                           {{ textos.publicarBorrador }}
                         </button>

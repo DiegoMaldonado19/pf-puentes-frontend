@@ -23,20 +23,32 @@ describe('VerificarCorreo', () => {
     http.expectNone('/api/v1/auth/verificar-correo');
   });
 
-  it('con token verifica al entrar', async () => {
+  it('con token verifica al entrar y confirma que la cuenta quedó activa', async () => {
     TestBed.configureTestingModule({
       imports: [VerificarCorreo],
       providers: proveedoresAuth(rutaConToken('tok-correo')),
     });
     const http = TestBed.inject(HttpTestingController);
     const fixture = TestBed.createComponent(VerificarCorreo);
-    http
-      .expectOne('/api/v1/auth/verificar-correo')
-      .flush(null, { status: 204, statusText: 'No Content' });
+    http.expectOne('/api/v1/auth/verificar-correo').flush({ resultado: 'ACTIVADA' });
     await estabilizar(fixture);
     expect((fixture.nativeElement as HTMLElement).textContent).toContain(
       TEXTOS.auth.verificar.hecho,
     );
+  });
+
+  it('un enlace ya usado de una cuenta activa dice que ya estaba activa, sin error', async () => {
+    TestBed.configureTestingModule({
+      imports: [VerificarCorreo],
+      providers: proveedoresAuth(rutaConToken('tok-usado')),
+    });
+    const http = TestBed.inject(HttpTestingController);
+    const fixture = TestBed.createComponent(VerificarCorreo);
+    http.expectOne('/api/v1/auth/verificar-correo').flush({ resultado: 'YA_ACTIVA' });
+    await estabilizar(fixture);
+    const texto = (fixture.nativeElement as HTMLElement).textContent ?? '';
+    expect(texto).toContain(TEXTOS.auth.verificar.yaActiva);
+    expect(texto).not.toContain(TEXTOS.auth.verificar.hecho);
   });
 
   it('un token inválido deja el CTA de reenviar', async () => {

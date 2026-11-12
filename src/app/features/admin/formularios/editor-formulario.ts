@@ -1,447 +1,295 @@
-import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { HttpErrorResponse } from '@angular/common/http';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  computed,
+  inject,
+  OnInit,
+  signal,
+} from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { forkJoin, Observable, of } from 'rxjs';
 import { TEXTOS } from '../../../shared/textos';
 import { FormularioService } from '../../formulario/formulario.service';
-import { EsquemaFormulario, FormularioVersionDTO } from '../../formulario/modelos';
+import {
+  CampoExtraDTO,
+  EsquemaBaseDTO,
+  ErrorValidacionCampo,
+  FormularioVersionDTO,
+  TipoCampoExtra,
+} from '../../formulario/modelos';
 import { MotorFormularioComponent } from '../../formulario/motor-formulario/motor-formulario';
+import {
+  claveDesdeTitulo,
+  claveEsValida,
+  componerVistaPrevia,
+  extrasDesdeEsquema,
+  MAXIMO_CAMPOS_EXTRA,
+  TIPOS_CAMPO,
+} from './campos-extra';
 import { ModalPublicar } from './modal-publicar';
 
+type Pestana = 'campos' | 'vista' | 'avanzado';
+
+/** Lo que el administrador escribe en el formulario "Añadir campo" (textos sin convertir). */
+interface BorradorCampo {
+  seccion: string;
+  titulo: string;
+  clave: string;
+  claveEditada: boolean;
+  tipo: TipoCampoExtra;
+  obligatorio: boolean;
+  opciones: string;
+  minimo: string;
+  maximo: string;
+  unidad: string;
+  ayuda: string;
+}
+
+const BORRADOR_VACIO: BorradorCampo = {
+  seccion: '',
+  titulo: '',
+  clave: '',
+  claveEditada: false,
+  tipo: 'texto',
+  obligatorio: false,
+  opciones: '',
+  minimo: '',
+  maximo: '',
+  unidad: '',
+  ayuda: '',
+};
+
+/**
+ * Constructor de formularios (B2): el esquema base es fijo y el administrador añade campos
+ * adicionales con un formulario. El servidor compone, valida y guarda; la vista previa y el JSON
+ * de solo lectura son solo para revisar.
+ */
 @Component({
   selector: 'app-editor-formulario',
-  standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, MotorFormularioComponent, ModalPublicar],
-  template: `
-    <div class="space-y-6 p-4 max-w-7xl mx-auto">
-      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <div class="flex items-center gap-2">
-            <a
-              routerLink="/admin/formularios"
-              class="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline"
-            >
-              ← Volver a versiones
-            </a>
-          </div>
-          <h1 class="text-h1 dark:text-white mt-1">
-            {{
-              esNuevo
-                ? textos.nuevaVersion
-                : version?.estado === 'BORRADOR'
-                  ? textos.editarBorrador
-                  : 'Consulta de Esquema'
-            }}: {{ codigo }}
-          </h1>
-        </div>
-
-        <div class="flex items-center gap-3">
-          @if (!esSoloLectura) {
-            <button
-              type="button"
-              (click)="guardar()"
-              [disabled]="guardando || !!errorSintaxis"
-              class="btn-hvc-primary"
-            >
-              {{ guardando ? 'Guardando…' : textos.guardarBorrador }}
-            </button>
-
-            @if (!esNuevo && version?.estado === 'BORRADOR') {
-              <button
-                type="button"
-                (click)="abrirPublicar()"
-                [disabled]="guardando || !!errorSintaxis"
-                class="px-5 py-2.5 bg-emerald-600 text-white font-semibold text-sm rounded-xl hover:bg-emerald-700 shadow-sm disabled:opacity-50 transition-colors"
-              >
-                {{ textos.publicarBorrador }}
-              </button>
-            }
-          }
-        </div>
-      </div>
-
-      @if (errorGeneral) {
-        <div class="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-sm">
-          {{ errorGeneral }}
-        </div>
-      }
-
-      <!-- Pestañas de Editor vs Vista Previa -->
-      <div class="flex items-center justify-between border-b border-gray-200 dark:border-gray-700">
-        <div class="flex gap-2">
-          <button
-            type="button"
-            (click)="tabActiva = 'editor'"
-            class="px-4 py-2 font-semibold text-sm border-b-2 transition-colors cursor-pointer"
-            [class.border-blue-600]="tabActiva === 'editor'"
-            [class.text-blue-600]="tabActiva === 'editor'"
-            [class.dark:text-blue-400]="tabActiva === 'editor'"
-            [class.border-transparent]="tabActiva !== 'editor'"
-            [class.text-gray-600]="tabActiva !== 'editor'"
-            [class.dark:text-gray-400]="tabActiva !== 'editor'"
-          >
-            Editor JSON Schema
-          </button>
-          <button
-            type="button"
-            (click)="actualizarVistaPrevia()"
-            class="px-4 py-2 font-semibold text-sm border-b-2 transition-colors cursor-pointer"
-            [class.border-blue-600]="tabActiva === 'preview'"
-            [class.text-blue-600]="tabActiva === 'preview'"
-            [class.dark:text-blue-400]="tabActiva === 'preview'"
-            [class.border-transparent]="tabActiva !== 'preview'"
-            [class.text-gray-600]="tabActiva !== 'preview'"
-            [class.dark:text-gray-400]="tabActiva !== 'preview'"
-          >
-            Vista Previa en Vivo
-          </button>
-        </div>
-
-        @if (tabActiva === 'editor' && !esSoloLectura) {
-          <button
-            type="button"
-            (click)="cargarEsquemaActivoComoBase()"
-            class="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium px-2 py-1 rounded hover:bg-blue-50 dark:hover:bg-blue-900/40 cursor-pointer"
-          >
-            ↺ Cargar Esquema Activo Oficial (V1.0.0)
-          </button>
-        }
-      </div>
-
-      <!-- Contenido del Editor -->
-      @if (tabActiva === 'editor') {
-        <div
-          class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 space-y-4"
-        >
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label
-                for="codigo-version-input"
-                class="block text-sm font-semibold text-gray-800 dark:text-gray-200 mb-1"
-              >
-                {{ textos.codigo }}
-              </label>
-              <input
-                id="codigo-version-input"
-                type="text"
-                [(ngModel)]="codigo"
-                [readOnly]="!esNuevo"
-                placeholder="V2.0.0"
-                class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                [class.bg-gray-100]="!esNuevo"
-              />
-            </div>
-          </div>
-
-          <div>
-            <div class="flex items-center justify-between mb-1">
-              <label
-                for="esquema-json-editor"
-                class="block text-sm font-semibold text-gray-800 dark:text-gray-200"
-              >
-                Estructura JSON Schema (Draft 7)
-              </label>
-              @if (errorSintaxis) {
-                <span
-                  class="text-xs text-rose-600 dark:text-rose-400 font-bold flex items-center gap-1"
-                >
-                  <svg
-                    class="w-3.5 h-3.5 flex-shrink-0"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                  <span>{{ errorSintaxis }}</span>
-                </span>
-              } @else if (esquemaCompilado) {
-                <span
-                  class="text-xs text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1"
-                >
-                  <svg
-                    class="w-3.5 h-3.5 flex-shrink-0"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M5 13l4 4L19 7"
-                    />
-                  </svg>
-                  <span>{{ textos.sintaxisValida }}</span>
-                </span>
-              }
-            </div>
-            <textarea
-              id="esquema-json-editor"
-              [ngModel]="esquemaJsonTexto"
-              (ngModelChange)="validarSintaxis($event)"
-              [readOnly]="esSoloLectura"
-              rows="22"
-              class="w-full px-4 py-3 text-xs font-mono rounded-xl border bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white font-medium leading-relaxed transition-colors focus:outline-none"
-              [class.border-rose-500]="!!errorSintaxis"
-              [class.focus:ring-2]="true"
-              [class.focus:ring-rose-500]="!!errorSintaxis"
-              [class.border-gray-300]="!errorSintaxis"
-              [class.dark:border-gray-600]="!errorSintaxis"
-              [class.focus:ring-blue-500]="!errorSintaxis"
-            >
-            </textarea>
-          </div>
-        </div>
-      } @else {
-        <!-- Vista previa renderizada por el motor dinámico -->
-        <div class="space-y-4">
-          <div
-            class="hvc-note bg-blue-50 dark:bg-blue-950/40 dark:border-blue-800 dark:text-blue-200 flex items-center gap-2"
-          >
-            <svg
-              class="w-4 h-4 text-blue-600 dark:text-blue-400 flex-shrink-0"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-            <span>
-              Esta vista previa se genera dinámicamente con el componente
-              <code
-                class="px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-900/60 font-mono text-blue-950 dark:text-blue-200 font-semibold"
-                >&lt;app-motor-formulario&gt;</code
-              >
-              exactamente igual a como lo visualizan los inspectores en campo.
-            </span>
-          </div>
-          @if (esquemaCompilado) {
-            <app-motor-formulario [esquema]="esquemaCompilado" [modo]="'edicion'" />
-          }
-        </div>
-      }
-
-      <!-- Modal de publicación si se solicita desde el editor -->
-      @if (mostrarModalPublicar && version) {
-        <app-modal-publicar
-          [version]="version"
-          (publicado)="alPublicarExitoso()"
-          (cancelar)="mostrarModalPublicar = false"
-        />
-      }
-    </div>
-  `,
+  imports: [RouterLink, MotorFormularioComponent, ModalPublicar],
+  templateUrl: './editor-formulario.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EditorFormulario implements OnInit {
+  protected readonly t = TEXTOS.constructorFormulario;
+  protected readonly tAdmin = TEXTOS.formulario.admin;
+  protected readonly tipos = TIPOS_CAMPO;
+  protected readonly maximo = MAXIMO_CAMPOS_EXTRA;
+
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
-  private readonly formularioService = inject(FormularioService);
-  private readonly cdr = inject(ChangeDetectorRef);
+  private readonly formularios = inject(FormularioService);
+  private readonly destruir = inject(DestroyRef);
 
-  readonly textos = TEXTOS.formulario.admin;
+  protected readonly cargando = signal(true);
+  protected readonly errorCarga = signal(false);
+  protected readonly pestana = signal<Pestana>('campos');
+  protected readonly base = signal<EsquemaBaseDTO | null>(null);
+  protected readonly version = signal<FormularioVersionDTO | null>(null);
+  protected readonly codigo = signal('V2.0.0');
+  protected readonly extras = signal<CampoExtraDTO[]>([]);
+  protected readonly erroresServidor = signal<ErrorValidacionCampo[]>([]);
+  protected readonly borrador = signal<BorradorCampo>({ ...BORRADOR_VACIO });
+  protected readonly errorBorrador = signal<string | null>(null);
+  protected readonly errorGeneral = signal<string | null>(null);
+  protected readonly guardando = signal(false);
+  protected readonly mostrarModalPublicar = signal(false);
 
-  esNuevo = true;
-  idVersion?: string;
-  version?: FormularioVersionDTO;
-  codigo = '';
-  esquemaJsonTexto = '';
-  esquemaCompilado?: EsquemaFormulario;
+  private idVersion: string | null = null;
 
-  tabActiva: 'editor' | 'preview' = 'editor';
-  guardando = false;
-  mostrarModalPublicar = false;
-  errorSintaxis = '';
-  errorGeneral = '';
-
-  get esSoloLectura(): boolean {
-    return !this.esNuevo && this.version?.estado !== 'BORRADOR';
-  }
+  protected readonly esNuevo = signal(true);
+  protected readonly esSoloLectura = computed(() => {
+    const version = this.version();
+    return version !== null && version.estado !== 'BORRADOR';
+  });
+  protected readonly seccionesAbiertas = computed(
+    () => this.base()?.secciones.filter((s) => s.admite_campos_extra) ?? [],
+  );
+  protected readonly seccionesFijas = computed(
+    () => this.base()?.secciones.filter((s) => !s.admite_campos_extra) ?? [],
+  );
+  protected readonly vistaPrevia = computed(() => {
+    const base = this.base();
+    return base ? componerVistaPrevia(base.esquema, this.extras()) : null;
+  });
+  protected readonly esquemaJson = computed(() => {
+    const vista = this.vistaPrevia();
+    return vista ? JSON.stringify(vista, null, 2) : '';
+  });
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
-    if (id) {
-      this.esNuevo = false;
-      this.idVersion = id;
-      this.cargarVersion(id);
-    } else {
-      this.esNuevo = true;
-      this.codigo = 'V2.0.0';
-      this.cargarEsquemaActivoComoBase();
-    }
+    this.idVersion = id;
+    this.esNuevo.set(id === null);
+    const version$: Observable<FormularioVersionDTO | null> = id
+      ? this.formularios.detalle(id)
+      : of(null);
+    forkJoin({ base: this.formularios.esquemaBase(), version: version$ })
+      .pipe(takeUntilDestroyed(this.destruir))
+      .subscribe({
+        next: ({ base, version }) => {
+          this.base.set(base);
+          if (version) {
+            this.version.set(version);
+            this.codigo.set(version.codigo);
+            this.extras.set(extrasDesdeEsquema(version.esquema));
+          }
+          this.cargando.set(false);
+        },
+        error: () => {
+          this.errorCarga.set(true);
+          this.cargando.set(false);
+        },
+      });
   }
 
-  validarSintaxis(nuevoTexto?: string): void {
-    if (nuevoTexto !== undefined) {
-      this.esquemaJsonTexto = nuevoTexto;
+  protected cambiarPestana(pestana: Pestana): void {
+    this.pestana.set(pestana);
+  }
+
+  protected pestanaActiva(pestana: string): boolean {
+    return this.pestana() === pestana;
+  }
+
+  protected actualizarBorrador(cambio: Partial<BorradorCampo>): void {
+    const actual = this.borrador();
+    const siguiente = { ...actual, ...cambio };
+    // Mientras la clave no se haya escrito a mano, sigue al título
+    if (cambio.titulo !== undefined && !actual.claveEditada) {
+      siguiente.clave = claveDesdeTitulo(cambio.titulo);
     }
-    const texto = this.esquemaJsonTexto?.trim() ?? '';
-    if (!texto) {
-      this.errorSintaxis = this.textos.esquemaVacio;
-      this.esquemaCompilado = undefined;
-      this.cdr.markForCheck();
+    this.borrador.set(siguiente);
+  }
+
+  protected marcarClaveEditada(clave: string): void {
+    this.borrador.set({ ...this.borrador(), clave, claveEditada: true });
+  }
+
+  protected agregarCampo(): void {
+    const b = this.borrador();
+    const error = this.errorDelBorrador(b);
+    this.errorBorrador.set(error);
+    if (error) return;
+    this.extras.set([...this.extras(), this.aCampo(b)]);
+    this.borrador.set({ ...BORRADOR_VACIO });
+    this.validar();
+  }
+
+  protected quitarCampo(indice: number): void {
+    this.extras.set(this.extras().filter((_, i) => i !== indice));
+    this.validar();
+  }
+
+  /** Errores del servidor que corresponden a la fila `indice` del listado. */
+  protected erroresDeFila(indice: number): string[] {
+    const prefijo = `campos_extra[${indice}].`;
+    return this.erroresServidor()
+      .filter((e) => e.campo.startsWith(prefijo))
+      .map((e) => e.mensaje);
+  }
+
+  /** Errores generales de la lista (por ejemplo, el máximo de campos). */
+  protected erroresDeLista(): string[] {
+    return this.erroresServidor()
+      .filter((e) => !e.campo.startsWith('campos_extra['))
+      .map((e) => e.mensaje);
+  }
+
+  protected tituloDeSeccion(clave: string): string {
+    return this.base()?.secciones.find((s) => s.clave === clave)?.titulo ?? clave;
+  }
+
+  protected etiquetaTipo(tipo: TipoCampoExtra): string {
+    return TIPOS_CAMPO.find((opcion) => opcion.valor === tipo)?.etiqueta ?? tipo;
+  }
+
+  protected guardar(): void {
+    if (this.guardando() || this.esSoloLectura()) return;
+    if (this.esNuevo() && !this.codigo().trim()) {
+      this.errorGeneral.set(this.t.errorCodigo);
       return;
     }
-    try {
-      const parsed = JSON.parse(texto);
-      if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
-        this.errorSintaxis = this.textos.esquemaRaizObjeto;
-        this.esquemaCompilado = undefined;
-        this.cdr.markForCheck();
-        return;
-      }
-      this.errorSintaxis = '';
-      this.esquemaCompilado = parsed;
-    } catch (e: unknown) {
-      const detalle = e instanceof Error ? e.message : '';
-      this.errorSintaxis = detalle
-        ? `${this.textos.errorSintaxis} (${detalle})`
-        : this.textos.errorSintaxis;
-      this.esquemaCompilado = undefined;
-    }
-    this.cdr.markForCheck();
-  }
-
-  cargarEsquemaActivoComoBase(): void {
-    this.formularioService.obtenerActivo().subscribe({
-      next: (activa) => {
-        if (activa?.esquema) {
-          this.esquemaJsonTexto = JSON.stringify(activa.esquema, null, 2);
-          this.validarSintaxis();
-        } else {
-          this.usarPlantillaMinima();
-        }
-        this.cdr.markForCheck();
-      },
-      error: () => {
-        this.usarPlantillaMinima();
-        this.cdr.markForCheck();
+    this.guardando.set(true);
+    this.errorGeneral.set(null);
+    const campos = this.extras();
+    const peticion: Observable<unknown> = this.esNuevo()
+      ? this.formularios.crearBorrador({ codigo: this.codigo().trim(), campos_extra: campos })
+      : this.formularios.editarBorrador(this.idVersion ?? '', { campos_extra: campos });
+    peticion.pipe(takeUntilDestroyed(this.destruir)).subscribe({
+      next: () => this.router.navigate(['/admin/formularios']),
+      error: (error: HttpErrorResponse) => {
+        this.guardando.set(false);
+        this.erroresServidor.set(this.erroresDelServidor(error));
+        this.errorGeneral.set(
+          error.status === 409 ? this.t.errorCodigoDuplicado : this.t.errorGeneral,
+        );
       },
     });
   }
 
-  private usarPlantillaMinima(): void {
-    this.esquemaJsonTexto = JSON.stringify(
-      {
-        $schema: 'http://json-schema.org/draft-07/schema#',
-        title: 'Formulario de Inspección de Puentes',
-        type: 'object',
-        properties: {
-          seccion_1: {
-            type: 'object',
-            title: 'Sección 1: Datos Generales',
-            properties: {
-              codigo_puente: {
-                type: 'string',
-                title: 'Código del Puente',
-                'x-permanente': true,
-              },
-              calificacion_preliminar: {
-                type: 'integer',
-                minimum: 0,
-                maximum: 4,
-                title: 'Calificación preliminar de daño',
-                'x-dano': true,
-              },
-            },
-          },
-        },
-      },
-      null,
-      2,
-    );
-    this.validarSintaxis();
+  protected abrirPublicar(): void {
+    this.mostrarModalPublicar.set(true);
   }
 
-  cargarVersion(id: string): void {
-    this.formularioService.detalle(id).subscribe({
-      next: (v) => {
-        this.version = v;
-        this.codigo = v.codigo;
-        this.esquemaJsonTexto = JSON.stringify(v.esquema, null, 2);
-        this.validarSintaxis();
-        this.cdr.markForCheck();
-      },
-      error: () => {
-        this.errorGeneral = 'No se pudo cargar la versión del formulario.';
-        this.cdr.markForCheck();
-      },
-    });
-  }
-
-  actualizarVistaPrevia(): void {
-    this.validarSintaxis();
-    if (!this.errorSintaxis && this.esquemaCompilado) {
-      this.tabActiva = 'preview';
-    } else if (!this.errorSintaxis) {
-      this.errorSintaxis = this.textos.corregirAntesDePrevia;
-    }
-    this.cdr.markForCheck();
-  }
-
-  abrirPublicar(): void {
-    this.mostrarModalPublicar = true;
-    this.cdr.markForCheck();
-  }
-
-  alPublicarExitoso(): void {
-    this.mostrarModalPublicar = false;
+  protected alPublicarExitoso(): void {
+    this.mostrarModalPublicar.set(false);
     this.router.navigate(['/admin/formularios']);
   }
 
-  guardar(): void {
-    this.validarSintaxis();
-    if (this.errorSintaxis || !this.esquemaCompilado) {
-      return;
-    }
-    const parsed = this.esquemaCompilado;
+  /** Revalida en el servidor la lista completa; no guarda nada. */
+  private validar(): void {
+    this.formularios
+      .validarComposicion(this.extras())
+      .pipe(takeUntilDestroyed(this.destruir))
+      .subscribe({
+        next: (resultado) => this.erroresServidor.set(resultado.errores),
+        error: () => this.erroresServidor.set([]),
+      });
+  }
 
-    this.guardando = true;
-    this.errorGeneral = '';
-
-    if (this.esNuevo) {
-      this.formularioService
-        .crearBorrador({
-          codigo: this.codigo.trim(),
-          esquema: parsed,
-        })
-        .subscribe({
-          next: () => {
-            this.guardando = false;
-            this.router.navigate(['/admin/formularios']);
-          },
-          error: (err) => {
-            this.guardando = false;
-            this.errorGeneral = err?.error?.detail || 'Error al guardar el nuevo borrador.';
-            this.cdr.markForCheck();
-          },
-        });
-    } else if (this.idVersion) {
-      this.formularioService
-        .editarBorrador(this.idVersion, {
-          esquema: parsed,
-        })
-        .subscribe({
-          next: () => {
-            this.guardando = false;
-            this.router.navigate(['/admin/formularios']);
-          },
-          error: (err) => {
-            this.guardando = false;
-            this.errorGeneral = err?.error?.detail || 'Error al actualizar el borrador.';
-            this.cdr.markForCheck();
-          },
-        });
+  private errorDelBorrador(b: BorradorCampo): string | null {
+    if (this.extras().length >= MAXIMO_CAMPOS_EXTRA) return this.t.errorTope;
+    if (!b.seccion) return this.t.errorSeccion;
+    if (!b.titulo.trim()) return this.t.errorTitulo;
+    if (!claveEsValida(b.clave)) return this.t.errorClave;
+    if (this.extras().some((e) => e.seccion === b.seccion && e.clave === b.clave)) {
+      return this.t.errorCampoRepetido;
     }
+    if (b.tipo === 'opcion' && this.lineas(b.opciones).length === 0) return this.t.errorOpciones;
+    if (b.minimo !== '' && b.maximo !== '' && Number(b.minimo) > Number(b.maximo)) {
+      return this.t.errorLimites;
+    }
+    return null;
+  }
+
+  private aCampo(b: BorradorCampo): CampoExtraDTO {
+    const numerico = b.tipo === 'numero' || b.tipo === 'entero';
+    return {
+      seccion: b.seccion,
+      clave: b.clave,
+      titulo: b.titulo.trim(),
+      tipo: b.tipo,
+      obligatorio: b.obligatorio,
+      opciones: b.tipo === 'opcion' ? this.lineas(b.opciones) : null,
+      minimo: numerico && b.minimo !== '' ? Number(b.minimo) : null,
+      maximo: numerico && b.maximo !== '' ? Number(b.maximo) : null,
+      unidad: numerico && b.unidad.trim() ? b.unidad.trim() : null,
+      ayuda: b.ayuda.trim() ? b.ayuda.trim() : null,
+    };
+  }
+
+  private lineas(texto: string): string[] {
+    return texto
+      .split('\n')
+      .map((linea) => linea.trim())
+      .filter((linea) => linea.length > 0);
+  }
+
+  private erroresDelServidor(error: HttpErrorResponse): ErrorValidacionCampo[] {
+    const errores = (error.error as { errores?: ErrorValidacionCampo[] } | null)?.errores;
+    return Array.isArray(errores) ? errores : [];
   }
 }

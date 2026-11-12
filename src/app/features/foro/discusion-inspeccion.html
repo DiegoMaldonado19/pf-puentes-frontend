@@ -18,7 +18,7 @@
     }
     @case ('ERROR') {
       <div role="alert" class="hvc-alert">
-        <p class="text-red-700">{{ textos.error }}</p>
+        <p class="text-malo-texto">{{ textos.error }}</p>
         @if (mensajeError()) {
           <p class="text-muted mt-1">{{ mensajeError() }}</p>
         }
@@ -42,7 +42,7 @@
         } @else {
           <ul class="space-y-3">
             @for (comentario of comentarios(); track comentario.id) {
-              <li class="rounded-lg border border-slate-200 p-3">
+              <li class="rounded-lg border border-borde p-3">
                 @if (editando() === comentario.id) {
                   <label [for]="'editar-' + comentario.id">Editar comentario</label>
                   <textarea
@@ -91,7 +91,7 @@
                   @if (puedeEditar(comentario)) {
                     <button
                       type="button"
-                      class="rounded px-2 py-1 hover:bg-slate-100 disabled:opacity-50"
+                      class="rounded px-2 py-1 hover:bg-lienzo disabled:opacity-50"
                       [disabled]="publicando()"
                       (click)="editar(comentario)"
                     >
@@ -111,7 +111,7 @@
                   @if (puedeModerar() && !comentario.eliminado) {
                     <button
                       type="button"
-                      class="rounded px-2 py-1 hover:bg-slate-100 disabled:opacity-50"
+                      class="rounded px-2 py-1 hover:bg-lienzo disabled:opacity-50"
                       [disabled]="publicando()"
                       (click)="abrirModeracion(comentario.id)"
                     >
@@ -156,9 +156,7 @@
             <button
               type="submit"
               class="btn-hvc-primary"
-              [disabled]="
-                publicando() || formulario.invalid || !formulario.controls.texto.value.trim()
-              "
+              [disabled]="publicando() || !formulario.controls.texto.value.trim()"
             >
               {{ publicando() ? 'Publicando…' : 'Publicar comentario' }}
             </button>

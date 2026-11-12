@@ -25,7 +25,7 @@ import { InspeccionApi } from './inspeccion-api';
           {{ error() }}
         </p>
       } @else {
-        <ol class="grid gap-3 border-l-2 border-slate-300 pl-4">
+        <ol class="grid gap-3 border-l-2 border-borde pl-4">
           @for (transicion of historial.value() ?? []; track transicion.id) {
             <li class="hvc-card">
               <div class="flex flex-wrap items-center gap-2">

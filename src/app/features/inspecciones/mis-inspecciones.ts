@@ -1,3 +1,4 @@
+import { EstadoVacio } from '../../shared/ui/estado-vacio';
 import { DatePipe } from '@angular/common';
 import { Component, computed, effect, inject, input, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
@@ -22,7 +23,7 @@ const ESTADOS: readonly EstadoInspeccion[] = [
 
 @Component({
   selector: 'app-mis-inspecciones',
-  imports: [ChipEstadoInspeccion, DatePipe, ReactiveFormsModule, RouterLink],
+  imports: [EstadoVacio, ChipEstadoInspeccion, DatePipe, ReactiveFormsModule, RouterLink],
   template: `
     <section class="mx-auto max-w-5xl p-4" aria-labelledby="titulo-mias">
       <h1 id="titulo-mias" class="text-h1">{{ t.titulo }}</h1>
@@ -54,7 +55,12 @@ const ESTADOS: readonly EstadoInspeccion[] = [
         </label>
         <label class="grid gap-1 text-sm font-medium">
           {{ t.hasta }}
-          <input type="date" class="hvc-input" formControlName="hasta" />
+          <input
+            type="date"
+            class="hvc-input"
+            formControlName="hasta"
+            [attr.aria-invalid]="errorFechas() !== ''"
+          />
         </label>
         <div class="flex items-end gap-2">
           <button type="submit" class="btn-hvc-primary">
@@ -65,6 +71,9 @@ const ESTADOS: readonly EstadoInspeccion[] = [
           </button>
         </div>
       </form>
+      @if (errorFechas(); as mensaje) {
+        <p role="alert" class="hvc-alert mt-2">{{ mensaje }}</p>
+      }
 
       @if (inspecciones.isLoading() && !inspecciones.hasValue()) {
         <p role="status" class="mt-4">{{ comun.cargando }}</p>
@@ -93,6 +102,17 @@ const ESTADOS: readonly EstadoInspeccion[] = [
                 </div>
                 <div class="grid justify-items-end gap-2">
                   <app-chip-estado-inspeccion [estado]="fila.estado" />
+                  @if (
+                    fila.estado === 'BORRADOR' &&
+                    fila.revision?.ultimo_veredicto === 'CAMBIOS_SOLICITADOS'
+                  ) {
+                    <span class="hvc-badge hvc-badge--warn">
+                      {{ tCorrecciones.devueltaConCambios }}
+                      @if (fila.revision; as revision) {
+                        · {{ revision.observaciones_pendientes }} {{ tCorrecciones.pendientes }}
+                      }
+                    </span>
+                  }
                   @if (fila.superada) {
                     <span class="text-muted">{{ comun.superada }}</span>
                   }
@@ -112,7 +132,7 @@ const ESTADOS: readonly EstadoInspeccion[] = [
               </div>
             </li>
           } @empty {
-            <li role="status" class="rounded bg-slate-100 p-8 text-center">{{ t.vacio }}</li>
+            <li><app-estado-vacio [mensaje]="t.vacio" /></li>
           }
         </ul>
         <nav class="mt-5 flex items-center gap-4" [attr.aria-label]="comun.paginas">
@@ -146,6 +166,8 @@ export class MisInspecciones {
   protected readonly t = TEXTOS.inspecciones.mias;
   protected readonly comun = TEXTOS.inspecciones.comun;
   protected readonly etiquetas = TEXTOS.inspecciones.estados;
+  protected readonly tCorrecciones = TEXTOS.correcciones;
+  protected readonly errorFechas = signal('');
   protected readonly estados = ESTADOS;
   protected readonly fechaSinHora = fechaSinHora;
   protected readonly pagina = signal(0);
@@ -190,6 +212,12 @@ export class MisInspecciones {
 
   protected aplicar(): void {
     const { estado, desde, hasta } = this.filtros.getRawValue();
+    // Rango invertido: se explica en el propio filtro y no se consulta (B7)
+    if (desde && hasta && desde > hasta) {
+      this.errorFechas.set(this.t.fechasInvertidas);
+      return;
+    }
+    this.errorFechas.set('');
     this.usarIniciales.set(false);
     this.pagina.set(0);
     this.aplicados.set({

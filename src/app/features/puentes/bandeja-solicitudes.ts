@@ -7,7 +7,7 @@ import { TEXTOS } from '../../shared/textos';
 import { AdvertenciaDuplicado } from './advertencia-duplicado';
 import { mensajeDeError, puentesCercanos } from './errores';
 import { EstadoSolicitud, PuenteCercanoDTO, SolicitudPuenteDTO } from './modelos';
-import { Paginacion } from './paginacion';
+import { Paginador } from '../../shared/ui/paginador';
 import { ROL_PUENTES } from './rol-puentes';
 import { SolicitudesService } from './solicitudes.service';
 
@@ -20,7 +20,7 @@ type Accion = { tipo: 'aprobar' | 'rechazar'; id: string } | null;
     AdvertenciaDuplicado,
     DatePipe,
     DecimalPipe,
-    Paginacion,
+    Paginador,
     ReactiveFormsModule,
     RouterLink,
   ],

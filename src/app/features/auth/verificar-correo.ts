@@ -4,7 +4,7 @@ import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { TEXTOS } from '../../shared/textos';
-import { CuentaService } from './cuenta';
+import { CuentaService, ResultadoVerificacion } from './cuenta';
 import {
   CLASE_ALERTA,
   CLASE_BOTON,
@@ -34,6 +34,7 @@ export class VerificarCorreo {
   protected readonly reenviando = signal(false);
   protected readonly error = signal('');
   protected readonly hecho = signal(false);
+  protected readonly resultado = signal<ResultadoVerificacion['resultado']>('ACTIVADA');
   protected readonly reenviado = signal(false);
   protected readonly form = new FormGroup({ correo: controlCorreo() });
 
@@ -50,7 +51,8 @@ export class VerificarCorreo {
       .verificarCorreo(this.token)
       .pipe(takeUntilDestroyed())
       .subscribe({
-        next: () => {
+        next: (respuesta) => {
+          this.resultado.set(respuesta.resultado);
           this.hecho.set(true);
           this.enviando.set(false);
         },

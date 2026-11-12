@@ -1,4 +1,4 @@
-<section class="mx-auto max-w-5xl p-4 text-slate-900" aria-labelledby="titulo-foro-puente">
+<section class="mx-auto max-w-5xl p-4 text-texto" aria-labelledby="titulo-foro-puente">
   <nav class="mb-4 flex flex-wrap gap-4 text-sm" [attr.aria-label]="textos.titulo">
     <a routerLink="/foro" class="hvc-link">← {{ textos.volverForos }}</a>
     <a [routerLink]="['/puentes', puenteId()]" class="hvc-link">{{ textos.verPuente }}</a>
@@ -9,7 +9,7 @@
   </p>
 
   @if (invalido() || lectura.listadoNoEncontrado()) {
-    <p role="alert" class="mt-4 text-red-700">{{ textos.noEncontrado }}</p>
+    <p role="alert" class="mt-4 text-malo-texto">{{ textos.noEncontrado }}</p>
   } @else {
     <div class="mt-4 flex flex-wrap items-center justify-between gap-4">
       <div class="flex flex-wrap items-center gap-2">
@@ -39,7 +39,7 @@
 
         <dialog
           #dialogoCreacion
-          class="fixed inset-0 m-auto max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-lg overflow-y-auto rounded-lg border border-slate-300 bg-white p-6 text-slate-900 shadow-xl backdrop:bg-slate-950/50"
+          class="fixed inset-0 m-auto max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-lg overflow-y-auto rounded-lg border border-borde bg-superficie p-6 text-texto shadow-xl backdrop:bg-texto/50"
           aria-labelledby="titulo-crear-hilo"
           (cancel)="cancelarCreacion($event)"
         >
@@ -76,10 +76,10 @@
                 </select>
               </div>
               @if (errorFormulario(); as errorForm) {
-                <p role="alert" class="mb-2 text-sm text-red-700">{{ errorForm }}</p>
+                <p role="alert" class="mb-2 text-sm text-malo-texto">{{ errorForm }}</p>
               }
               @if (servicio.errorEscritura(); as errorServidor) {
-                <p role="alert" class="mb-2 text-sm text-red-700">{{ errorServidor }}</p>
+                <p role="alert" class="mb-2 text-sm text-malo-texto">{{ errorServidor }}</p>
               }
               <div class="mt-5 flex flex-wrap justify-end gap-3">
                 <button type="button" class="btn-hvc-secondary" (click)="cerrarCreacion()">
@@ -101,7 +101,7 @@
         <a routerLink="/login" class="hvc-link">{{ textos.iniciarSesion }}</a>
       </p>
       @if (servicio.errorEscritura(); as errorSesion) {
-        <p role="alert" class="mt-1 text-sm text-red-700">{{ errorSesion }}</p>
+        <p role="alert" class="mt-1 text-sm text-malo-texto">{{ errorSesion }}</p>
       }
     }
 
@@ -109,7 +109,7 @@
       <p role="status" class="text-muted mt-4">{{ textos.cargandoHilos }}</p>
     } @else if (lectura.errorHilos(); as errorHilos) {
       <div role="alert" class="mt-4 text-sm">
-        <p class="text-red-700">{{ errorHilos }}</p>
+        <p class="text-malo-texto">{{ errorHilos }}</p>
         <button type="button" class="hvc-link mt-2" (click)="reintentar()">
           {{ textos.reintentar }}
         </button>
@@ -121,11 +121,11 @@
         @for (h of lectura.hilos(); track h.id) {
           <li class="hvc-card">
             <div class="flex flex-wrap items-center gap-2">
-              <span class="hvc-badge hvc-badge--accent bg-blue-50">
+              <span class="hvc-badge hvc-badge--accent bg-primario-50">
                 {{ textos.etiquetas[h.categoria] }}
               </span>
               @if (h.cerrado) {
-                <span class="text-muted bg-slate-200">
+                <span class="text-muted bg-borde">
                   {{ textos.hiloCerrado }}
                 </span>
               }
@@ -133,7 +133,7 @@
             <a class="hvc-link mt-1 block" [routerLink]="['/puentes', puenteId(), 'foro', h.id]">
               {{ h.titulo }}
             </a>
-            <p class="mt-1 text-xs text-slate-500">
+            <p class="mt-1 text-xs text-texto-atenuado">
               {{ textos.autor }}:
               {{ h.autor_nombre || (h.autor_id ? textos.autorNoDisponible : textos.autorSistema) }}
               · {{ textos.publicadoEl }}
@@ -142,7 +142,7 @@
             @if (servicio.puedeModerar() && !h.cerrado) {
               <button
                 type="button"
-                class="mt-1 text-sm text-red-700 underline disabled:opacity-50"
+                class="mt-1 text-sm text-malo-texto underline disabled:opacity-50"
                 [disabled]="enCurso('cerrar:' + h.id)"
                 (click)="abrirCierre(h)"
               >
@@ -156,11 +156,11 @@
       @if (lectura.totalPaginasHilos() > 1) {
         <nav
           aria-label="Paginación de hilos"
-          class="mt-4 flex items-center justify-between border-t border-slate-100 pt-3 text-sm"
+          class="mt-4 flex items-center justify-between border-t border-borde pt-3 text-sm"
         >
           <button
             type="button"
-            class="rounded px-3 py-1 hover:bg-slate-100 disabled:opacity-50"
+            class="rounded px-3 py-1 hover:bg-lienzo disabled:opacity-50"
             [disabled]="lectura.paginaHilos() === 0 || lectura.cargandoHilos()"
             (click)="paginaAnterior()"
           >
@@ -172,7 +172,7 @@
           >
           <button
             type="button"
-            class="rounded px-3 py-1 hover:bg-slate-100 disabled:opacity-50"
+            class="rounded px-3 py-1 hover:bg-lienzo disabled:opacity-50"
             [disabled]="
               lectura.paginaHilos() + 1 >= lectura.totalPaginasHilos() || lectura.cargandoHilos()
             "

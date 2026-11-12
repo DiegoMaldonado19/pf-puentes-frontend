@@ -13,7 +13,7 @@ import { TEXTOS } from '../../shared/textos';
       <a [routerLink]="sesion.urlAcceso">{{ textos.irAAcceso }}</a>
     }
   </section>`,
-  styleUrl: './cursos.css',
+  host: { class: 'pantalla-cursos' },
 })
 export class AccesoCursos {
   readonly textos = TEXTOS.cursos;

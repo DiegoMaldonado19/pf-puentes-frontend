@@ -1,3 +1,4 @@
+import { validarAlEnviar } from '../../shared/ui/formularios';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
   Component,
@@ -22,7 +23,7 @@ import { OrdenMantenimientoDTO } from './modelos';
   selector: 'app-decision-con-motivo-orden',
   imports: [ReactiveFormsModule],
   templateUrl: './decision-con-motivo-orden.html',
-  styleUrls: ['./bandeja-propuestas.css', './decision-con-motivo-orden.css'],
+  host: { class: 'pantalla-bandeja pantalla-decision' },
 })
 export class DecisionConMotivoOrden {
   readonly orden = input.required<OrdenMantenimientoDTO>();
@@ -74,8 +75,7 @@ export class DecisionConMotivoOrden {
       this.bloqueada()
     )
       return;
-    if (this.motivo.invalid) {
-      this.motivo.markAsTouched();
+    if (!validarAlEnviar(this.motivo)) {
       this.error.set(this.t().motivoRequerido);
       return;
     }

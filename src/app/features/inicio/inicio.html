@@ -1,0 +1,69 @@
+<div class="mx-auto w-full max-w-[1120px] p-4 md:p-6">
+  <header class="hvc-encabezado">
+    <div>
+      <h1 class="hvc-encabezado__titulo">{{ t.titulo }}</h1>
+      <p class="hvc-encabezado__subtitulo">{{ t.descripcion }}</p>
+    </div>
+  </header>
+
+  <section aria-labelledby="accesos-inicio" class="mb-6">
+    <h2 id="accesos-inicio" class="text-h2 mb-3">{{ t.accesos }}</h2>
+    <ul class="m-0 grid list-none grid-cols-1 gap-3 p-0 sm:grid-cols-2 lg:grid-cols-3">
+      @for (acceso of accesos(); track acceso.ruta) {
+        <li>
+          <a
+            class="hvc-card hvc-card--nav flex items-center gap-3 no-underline"
+            [routerLink]="acceso.ruta"
+          >
+            <app-icono [nombre]="acceso.icono" />
+            <span class="font-semibold">{{ acceso.etiqueta }}</span>
+          </a>
+        </li>
+      }
+    </ul>
+  </section>
+
+  <section aria-labelledby="alertas-inicio" class="hvc-card">
+    <div class="hvc-card__header">
+      <h2 id="alertas-inicio" class="text-h2 m-0">{{ t.alertas }}</h2>
+      @if (esAdmin()) {
+        <button
+          type="button"
+          class="btn-hvc-secondary btn-hvc-compact"
+          [disabled]="ejecutando()"
+          (click)="ejecutarAlertas()"
+        >
+          {{ ejecutando() ? t.ejecutando : t.ejecutarAlertas }}
+        </button>
+      }
+    </div>
+    <div class="hvc-card__body">
+      @if (mensaje(); as texto) {
+        <p role="status" class="hvc-note m-0">{{ texto }}</p>
+      }
+      @if (cargando()) {
+        <p class="text-muted m-0">{{ t.alertasCargando }}</p>
+      } @else if (error()) {
+        <p role="alert" class="hvc-alert m-0">{{ t.alertasError }}</p>
+      } @else if (alertas().length === 0) {
+        <p class="hvc-empty m-0">{{ t.alertasVacias }}</p>
+      } @else {
+        <ul class="m-0 grid list-none gap-2 p-0">
+          @for (alerta of alertas(); track alerta.id) {
+            <li
+              class="hvc-alert--warn hvc-alert flex flex-wrap items-baseline justify-between gap-2"
+            >
+              <span>{{ alerta.mensaje }}</span>
+              <span class="text-muted">
+                @if (alerta.enlace) {
+                  <a class="hvc-link" [routerLink]="alerta.enlace">{{ t.abrir }}</a>
+                }
+                · {{ alerta.creado_en | date: 'dd/MM/yyyy HH:mm' }}
+              </span>
+            </li>
+          }
+        </ul>
+      }
+    </div>
+  </section>
+</div>

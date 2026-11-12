@@ -1,3 +1,4 @@
+import { EstadoVacio } from '../../shared/ui/estado-vacio';
 import { DatePipe } from '@angular/common';
 import { Component, computed, inject, input, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
@@ -12,7 +13,7 @@ import { InspeccionApi, TAMANO_PAGINA } from './inspeccion-api';
 /** `/puentes/:id/inspecciones`: publicadas del puente más los borradores propios (RN-INS-05). */
 @Component({
   selector: 'app-inspecciones-puente',
-  imports: [ChipEstadoInspeccion, DatePipe, RouterLink],
+  imports: [EstadoVacio, ChipEstadoInspeccion, DatePipe, RouterLink],
   template: `
     <section class="mx-auto max-w-5xl p-4" aria-labelledby="titulo-del-puente">
       <a [routerLink]="['/puentes', id()]" class="hvc-link">← {{ comun.volver }}</a>
@@ -59,7 +60,7 @@ import { InspeccionApi, TAMANO_PAGINA } from './inspeccion-api';
               </div>
             </li>
           } @empty {
-            <li role="status" class="rounded bg-slate-100 p-8 text-center">{{ t.vacio }}</li>
+            <li><app-estado-vacio [mensaje]="t.vacio" /></li>
           }
         </ul>
         <nav class="mt-5 flex items-center gap-4" [attr.aria-label]="comun.paginas">

@@ -1,3 +1,4 @@
+import { validarAlEnviar } from '../../shared/ui/formularios';
 import { Component, effect, inject, input, output } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { TEXTOS } from '../../shared/textos';
@@ -28,13 +29,13 @@ import { CursoDTO, GuardarCursoDTO } from './modelos';
         @if (formulario.touched && formulario.invalid) {
           <p role="alert">{{ textos.formularioInvalido }}</p>
         }
-        <button type="submit" [disabled]="formulario.invalid || ocupado()">
+        <button type="submit" [disabled]="ocupado()">
           {{ textos.guardar }}
         </button>
       </fieldset>
     </form>
   `,
-  styleUrl: './cursos.css',
+  host: { class: 'pantalla-cursos' },
 })
 export class FormularioCurso {
   readonly textos = TEXTOS.cursos;
@@ -71,7 +72,7 @@ export class FormularioCurso {
 
   enviar() {
     this.formulario.markAllAsTouched();
-    if (this.formulario.valid && !this.ocupado()) {
+    if (validarAlEnviar(this.formulario) && !this.ocupado()) {
       const datos = this.formulario.getRawValue();
       this.guardado.emit({ ...datos, nombre: datos.nombre.trim() });
     }

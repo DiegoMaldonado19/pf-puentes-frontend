@@ -125,4 +125,44 @@ describe('NotificacionesService', () => {
     servicio.marcarLeida(aviso.id);
     http.expectNone(() => true);
   });
+
+  it('marca todas como leídas y refresca la bandeja y el conteo', () => {
+    servicio.establecerUsuario('usuario-prueba');
+    http.expectOne('/api/v1/notificaciones/no-leidas/conteo').flush({ total: 2 });
+
+    servicio.marcarTodas();
+    http
+      .expectOne({ method: 'PATCH', url: '/api/v1/notificaciones/lectura' })
+      .flush({ marcadas: 2 });
+    http
+      .expectOne((r) => r.url === '/api/v1/notificaciones')
+      .flush({ contenido: [], pagina: 0, tamano: 20, total_elementos: 0, total_paginas: 0 });
+    http.expectOne('/api/v1/notificaciones/no-leidas/conteo').flush({ total: 0 });
+
+    expect(servicio.noLeidas()).toBe(0);
+    expect(servicio.error()).toBeNull();
+  });
+
+  it('sondea el conteo cada 60 s y no consulta con la pestaña oculta', () => {
+    vi.useFakeTimers();
+    try {
+      servicio.establecerUsuario('usuario-prueba');
+      http.expectOne('/api/v1/notificaciones/no-leidas/conteo').flush({ total: 1 });
+
+      vi.advanceTimersByTime(60_000);
+      http.expectOne('/api/v1/notificaciones/no-leidas/conteo').flush({ total: 3 });
+      expect(servicio.noLeidas()).toBe(3);
+
+      const oculta = vi.spyOn(document, 'hidden', 'get').mockReturnValue(true);
+      vi.advanceTimersByTime(60_000);
+      http.expectNone('/api/v1/notificaciones/no-leidas/conteo');
+      oculta.mockRestore();
+
+      servicio.establecerUsuario(null);
+      vi.advanceTimersByTime(60_000);
+      http.expectNone('/api/v1/notificaciones/no-leidas/conteo');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 });

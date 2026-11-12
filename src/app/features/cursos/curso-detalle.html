@@ -45,7 +45,7 @@
               }
             </select>
           </label>
-          <button type="submit" [disabled]="ocupado() || !actual.vigente || inscripcion.invalid">
+          <button type="submit" [disabled]="ocupado() || !actual.vigente">
             {{ textos.inscribir }}
           </button>
         </fieldset>
@@ -55,7 +55,7 @@
           >{{ textos.buscarEstudiante }}
           <input type="search" formControlName="texto" maxlength="120"
         /></label>
-        <button type="submit" [disabled]="ocupado() || buscarEstudiante.invalid">
+        <button type="submit" [disabled]="ocupado()">
           {{ textos.buscar }}
         </button>
       </form>
@@ -64,12 +64,12 @@
         <p role="status">{{ textos.sinElegibles }}</p>
       }
       @if (estudiantes(); as datos) {
-        <app-paginacion-cursos
+        <app-paginador
           [etiqueta]="textos.elegirEstudiante"
           [pagina]="datos.number"
-          [paginas]="datos.total_pages"
-          [ocupado]="ocupado()"
-          (cambio)="paginar('estudiantes', $event)"
+          [totalPaginas]="datos.total_pages"
+          [deshabilitado]="ocupado()"
+          (paginaCambia)="paginar('estudiantes', $event)"
         />
       }
       @if (inscritos(); as datos) {
@@ -85,12 +85,12 @@
             <li>{{ textos.sinInscritos }}</li>
           }
         </ul>
-        <app-paginacion-cursos
+        <app-paginador
           [etiqueta]="textos.estudiantes"
           [pagina]="datos.number"
-          [paginas]="datos.total_pages"
-          [ocupado]="ocupado()"
-          (cambio)="paginar('inscritos', $event)"
+          [totalPaginas]="datos.total_pages"
+          [deshabilitado]="ocupado()"
+          (paginaCambia)="paginar('inscritos', $event)"
         />
       }
       @if (seleccionada(); as inscrito) {
@@ -112,7 +112,7 @@
                   }
                 </select>
               </label>
-              <button type="submit" [disabled]="ocupado() || !actual.vigente || asignacion.invalid">
+              <button type="submit" [disabled]="ocupado() || !actual.vigente">
                 {{ textos.asignar }}
               </button>
             </fieldset>
@@ -122,7 +122,7 @@
               >{{ textos.buscarPuente }}
               <input type="search" formControlName="texto" maxlength="120"
             /></label>
-            <button type="submit" [disabled]="ocupado() || buscarPuente.invalid">
+            <button type="submit" [disabled]="ocupado()">
               {{ textos.buscar }}
             </button>
           </form>
@@ -130,12 +130,12 @@
             @if (!datos.content.length) {
               <p role="status">{{ textos.sinPuentes }}</p>
             }
-            <app-paginacion-cursos
+            <app-paginador
               [etiqueta]="textos.elegirPuente"
               [pagina]="datos.number"
-              [paginas]="datos.total_pages"
-              [ocupado]="ocupado()"
-              (cambio)="paginar('puentes', $event)"
+              [totalPaginas]="datos.total_pages"
+              [deshabilitado]="ocupado()"
+              (paginaCambia)="paginar('puentes', $event)"
             />
           }
           @if (asignaciones(); as datos) {
@@ -149,12 +149,12 @@
                 <li>{{ textos.sinAsignaciones }}</li>
               }
             </ul>
-            <app-paginacion-cursos
+            <app-paginador
               [etiqueta]="textos.asignaciones"
               [pagina]="datos.number"
-              [paginas]="datos.total_pages"
-              [ocupado]="ocupado()"
-              (cambio)="paginar('asignaciones', $event)"
+              [totalPaginas]="datos.total_pages"
+              [deshabilitado]="ocupado()"
+              (paginaCambia)="paginar('asignaciones', $event)"
             />
           }
         </div>

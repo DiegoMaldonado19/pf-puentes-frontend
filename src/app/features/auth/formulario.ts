@@ -97,7 +97,12 @@ export function mensajeDeControl(
   }
   if (control.hasError('email')) return TEXTOS.auth.errores.correoInvalido;
   if (control.hasError('politica')) return MENSAJE_POLITICA_CONTRASENA;
-  if (control.hasError('maxlength')) return TEXTOS.auth.errores.obligatorio;
+  if (control.hasError('maxlength')) {
+    const maximo = control.getError('maxlength')?.requiredLength;
+    return maximo
+      ? TEXTOS.auth.errores.maximoCaracteres.replace('{max}', String(maximo))
+      : TEXTOS.auth.errores.obligatorio;
+  }
   if (grupo?.hasError('confirmarDistinta') && (control.touched || control.dirty)) {
     return TEXTOS.auth.errores.confirmarDistinta;
   }

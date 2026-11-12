@@ -1,3 +1,5 @@
+import { validarAlEnviar } from '../../shared/ui/formularios';
+import { AvisoPropuestasGeneradas } from '../mantenimiento/aviso-propuestas-generadas';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, DestroyRef, effect, inject, signal, untracked } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
@@ -25,6 +27,7 @@ import {
 @Component({
   selector: 'app-detalle-revision',
   imports: [
+    AvisoPropuestasGeneradas,
     RouterLink,
     ReactiveFormsModule,
     MotorFormularioComponent,
@@ -154,9 +157,7 @@ export class DetalleRevision {
   puedeDecidir(): boolean {
     const datos = this.decision.getRawValue();
     return (
-      !this.decision.invalid &&
-      !!datos.observacion.trim() &&
-      (datos.veredicto !== 'APROBADA' || this.confirmacionValida())
+      !!datos.observacion.trim() && (datos.veredicto !== 'APROBADA' || this.confirmacionValida())
     );
   }
 
@@ -177,6 +178,7 @@ export class DetalleRevision {
   emitir() {
     const actual = this.detalle();
     if (!actual || actual.veredicto || this.guardando() || !this.puedeDecidir()) return;
+    if (!validarAlEnviar(this.decision)) return;
     const datos = this.decision.getRawValue();
     const generacion = this.generacion;
     this.guardando.set(true);

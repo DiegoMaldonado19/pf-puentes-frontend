@@ -27,7 +27,7 @@ registerLocaleData(localeEsGt);
   imports: [DatePipe, DecimalPipe, ReactiveFormsModule, EstadoPuente],
   providers: [{ provide: LOCALE_ID, useValue: 'es-GT' }],
   templateUrl: './recalculo-ic.html',
-  styleUrls: ['./consulta-pesos.css'],
+  host: { class: 'pantalla-pesos' },
   styles: `
     .recalculos-ic {
       margin-block: 1.5rem;
