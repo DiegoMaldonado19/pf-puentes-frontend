@@ -1,0 +1,315 @@
+<div class="mx-auto w-full max-w-[1120px] p-4 md:p-6">
+  <header class="hvc-encabezado">
+    <div>
+      <a class="hvc-link text-sm" routerLink="/admin/formularios">{{ t.volver }}</a>
+      <h1 class="hvc-encabezado__titulo mt-1">
+        {{ esNuevo() ? t.tituloNuevo : t.tituloEditar }}
+      </h1>
+    </div>
+    @if (version(); as v) {
+      <span class="hvc-badge" [class.hvc-badge--ok]="v.estado === 'BORRADOR'"
+        >{{ v.codigo }} · {{ v.estado }}</span
+      >
+    }
+  </header>
+
+  @if (cargando()) {
+    <p class="text-muted" role="status">{{ t.cargando }}</p>
+  } @else if (errorCarga()) {
+    <p class="hvc-alert" role="alert">{{ t.error }}</p>
+  } @else {
+    @if (esSoloLectura()) {
+      <p class="hvc-alert--warn hvc-alert" role="status">{{ t.noEditable }}</p>
+    }
+
+    <div class="hvc-tabs" role="tablist" aria-label="Secciones del constructor">
+      @for (pestana of ['campos', 'vista', 'avanzado']; track pestana) {
+        <button
+          type="button"
+          role="tab"
+          class="hvc-tab"
+          [attr.aria-selected]="pestanaActiva(pestana)"
+          (click)="cambiarPestana($any(pestana))"
+        >
+          {{
+            pestana === 'campos'
+              ? t.pestanas.campos
+              : pestana === 'vista'
+                ? t.pestanas.vista
+                : t.pestanas.avanzado
+          }}
+        </button>
+      }
+    </div>
+
+    @if (pestana() === 'campos') {
+      <div class="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
+        <section class="hvc-card" aria-labelledby="base-titulo">
+          <h2 id="base-titulo" class="text-h2 mb-1">{{ t.base }}</h2>
+          <p class="hvc-hint mb-3">{{ t.baseAyuda }}</p>
+
+          <div class="hvc-campo mb-3">
+            <label class="hvc-label" for="codigo-version">{{ t.codigo }}</label>
+            @if (esNuevo()) {
+              <input
+                id="codigo-version"
+                class="hvc-input"
+                maxlength="20"
+                [value]="codigo()"
+                (input)="codigo.set($any($event.target).value)"
+              />
+              <span class="hvc-hint">{{ t.codigoAyuda }}</span>
+            } @else {
+              <input id="codigo-version" class="hvc-input" [value]="codigo()" readonly />
+            }
+          </div>
+
+          <h3 class="text-h3 mb-2">{{ t.admiteCampos }}</h3>
+          <ul class="m-0 mb-4 grid list-none gap-2 p-0">
+            @for (seccion of seccionesAbiertas(); track seccion.clave) {
+              <li class="hvc-note m-0">
+                {{ seccion.titulo }}
+              </li>
+            }
+          </ul>
+          <h3 class="text-h3 mb-2">{{ t.bloqueada }}</h3>
+          <ul class="m-0 grid list-none gap-2 p-0">
+            @for (seccion of seccionesFijas(); track seccion.clave) {
+              <li class="hvc-card m-0 p-3 text-sm">{{ seccion.titulo }}</li>
+            }
+          </ul>
+        </section>
+
+        <section class="hvc-card" aria-labelledby="campos-titulo">
+          <h2 id="campos-titulo" class="text-h2 mb-3">{{ t.camposAnadidos }}</h2>
+
+          @for (mensaje of erroresDeLista(); track mensaje) {
+            <p class="hvc-alert m-0 mb-2" role="alert">{{ mensaje }}</p>
+          }
+
+          @if (extras().length === 0) {
+            <p class="hvc-empty m-0">{{ t.sinCampos }}</p>
+          } @else {
+            <ol class="m-0 mb-4 grid list-none gap-2 p-0">
+              @for (campo of extras(); track $index; let i = $index) {
+                <li class="hvc-card m-0 p-3">
+                  <div class="flex flex-wrap items-start justify-between gap-2">
+                    <div class="min-w-0">
+                      <p class="m-0 font-semibold">{{ campo.titulo }}</p>
+                      <p class="hvc-hint m-0">
+                        {{ t.enSeccion }} {{ tituloDeSeccion(campo.seccion) }} ·
+                        {{ etiquetaTipo(campo.tipo) }} · {{ campo.clave }}
+                        @if (campo.obligatorio) {
+                          · <span class="hvc-badge hvc-badge--accent">{{ t.obligatorio }}</span>
+                        }
+                      </p>
+                      @if (campo.opciones && campo.tipo === 'opcion') {
+                        <p class="hvc-hint m-0">{{ campo.opciones.join(' · ') }}</p>
+                      }
+                    </div>
+                    @if (!esSoloLectura()) {
+                      <button
+                        type="button"
+                        class="btn-hvc-secondary btn-hvc-compact"
+                        (click)="quitarCampo(i)"
+                      >
+                        {{ t.quitar }}<span class="sr-only"> {{ campo.titulo }}</span>
+                      </button>
+                    }
+                  </div>
+                  @for (mensaje of erroresDeFila(i); track mensaje) {
+                    <p class="hvc-error m-0 mt-2">{{ mensaje }}</p>
+                  }
+                </li>
+              }
+            </ol>
+          }
+
+          @if (!esSoloLectura()) {
+            <form
+              class="grid gap-3 border-t border-borde pt-4"
+              (submit)="$event.preventDefault(); agregarCampo()"
+            >
+              <h3 class="text-h3 m-0">{{ t.anadirCampo }}</h3>
+
+              <div class="hvc-campo">
+                <label class="hvc-label" for="campo-seccion">{{ t.seccion }}</label>
+                <select
+                  id="campo-seccion"
+                  class="hvc-input"
+                  [value]="borrador().seccion"
+                  (change)="actualizarBorrador({ seccion: $any($event.target).value })"
+                >
+                  <option value="">{{ t.elijaSeccion }}</option>
+                  @for (seccion of seccionesAbiertas(); track seccion.clave) {
+                    <option [value]="seccion.clave">{{ seccion.titulo }}</option>
+                  }
+                </select>
+              </div>
+
+              <div class="hvc-campo">
+                <label class="hvc-label" for="campo-titulo">{{ t.titulo }}</label>
+                <input
+                  id="campo-titulo"
+                  class="hvc-input"
+                  maxlength="120"
+                  [value]="borrador().titulo"
+                  (input)="actualizarBorrador({ titulo: $any($event.target).value })"
+                />
+              </div>
+
+              <div class="hvc-campo">
+                <label class="hvc-label" for="campo-clave">{{ t.clave }}</label>
+                <input
+                  id="campo-clave"
+                  class="hvc-input"
+                  maxlength="41"
+                  [value]="borrador().clave"
+                  (input)="marcarClaveEditada($any($event.target).value)"
+                />
+                <span class="hvc-hint">{{ t.claveAyuda }}</span>
+              </div>
+
+              <div class="hvc-campo">
+                <label class="hvc-label" for="campo-tipo">{{ t.tipo }}</label>
+                <select
+                  id="campo-tipo"
+                  class="hvc-input"
+                  [value]="borrador().tipo"
+                  (change)="actualizarBorrador({ tipo: $any($event.target).value })"
+                >
+                  @for (opcion of tipos; track opcion.valor) {
+                    <option [value]="opcion.valor">{{ opcion.etiqueta }}</option>
+                  }
+                </select>
+              </div>
+
+              @if (borrador().tipo === 'opcion') {
+                <div class="hvc-campo">
+                  <label class="hvc-label" for="campo-opciones">{{ t.opciones }}</label>
+                  <textarea
+                    id="campo-opciones"
+                    class="hvc-input"
+                    rows="3"
+                    [value]="borrador().opciones"
+                    (input)="actualizarBorrador({ opciones: $any($event.target).value })"
+                  ></textarea>
+                </div>
+              }
+
+              @if (borrador().tipo === 'numero' || borrador().tipo === 'entero') {
+                <div class="grid gap-3 sm:grid-cols-3">
+                  <div class="hvc-campo">
+                    <label class="hvc-label" for="campo-minimo">{{ t.minimo }}</label>
+                    <input
+                      id="campo-minimo"
+                      class="hvc-input"
+                      type="number"
+                      [value]="borrador().minimo"
+                      (input)="actualizarBorrador({ minimo: $any($event.target).value })"
+                    />
+                  </div>
+                  <div class="hvc-campo">
+                    <label class="hvc-label" for="campo-maximo">{{ t.maximo }}</label>
+                    <input
+                      id="campo-maximo"
+                      class="hvc-input"
+                      type="number"
+                      [value]="borrador().maximo"
+                      (input)="actualizarBorrador({ maximo: $any($event.target).value })"
+                    />
+                  </div>
+                  <div class="hvc-campo">
+                    <label class="hvc-label" for="campo-unidad">{{ t.unidad }}</label>
+                    <input
+                      id="campo-unidad"
+                      class="hvc-input"
+                      maxlength="20"
+                      [value]="borrador().unidad"
+                      (input)="actualizarBorrador({ unidad: $any($event.target).value })"
+                    />
+                  </div>
+                </div>
+              }
+
+              <div class="hvc-campo">
+                <label class="hvc-label" for="campo-ayuda">{{ t.ayuda }}</label>
+                <input
+                  id="campo-ayuda"
+                  class="hvc-input"
+                  maxlength="300"
+                  [value]="borrador().ayuda"
+                  (input)="actualizarBorrador({ ayuda: $any($event.target).value })"
+                />
+              </div>
+
+              <label class="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  [checked]="borrador().obligatorio"
+                  (change)="actualizarBorrador({ obligatorio: $any($event.target).checked })"
+                />
+                {{ t.obligatorio }}
+              </label>
+
+              @if (errorBorrador(); as mensaje) {
+                <p class="hvc-alert m-0" role="alert">{{ mensaje }}</p>
+              }
+
+              <div>
+                <button type="submit" class="btn-hvc-primary">{{ t.agregar }}</button>
+              </div>
+            </form>
+          }
+        </section>
+      </div>
+    }
+
+    @if (pestana() === 'vista') {
+      <section class="hvc-card" aria-labelledby="vista-titulo">
+        <h2 id="vista-titulo" class="text-h2 mb-1">{{ t.pestanas.vista }}</h2>
+        <p class="hvc-hint mb-4">{{ t.vistaPrevia }}</p>
+        @if (vistaPrevia(); as vista) {
+          <app-motor-formulario [esquema]="vista" modo="edicion" />
+        }
+      </section>
+    }
+
+    @if (pestana() === 'avanzado') {
+      <section class="hvc-card" aria-labelledby="avanzado-titulo">
+        <h2 id="avanzado-titulo" class="text-h2 mb-1">{{ t.pestanas.avanzado }}</h2>
+        <p class="hvc-hint mb-3">{{ t.avanzado }}</p>
+        <pre
+          class="m-0 max-h-[60vh] overflow-auto rounded-md border border-borde bg-lienzo p-3 text-xs"
+          tabindex="0"
+          aria-readonly="true"
+          >{{ esquemaJson() }}</pre>
+      </section>
+    }
+
+    @if (errorGeneral(); as mensaje) {
+      <p class="hvc-alert mt-4" role="alert">{{ mensaje }}</p>
+    }
+
+    @if (!esSoloLectura()) {
+      <div class="mt-6 flex flex-wrap justify-end gap-2">
+        <button type="button" class="btn-hvc-primary" [disabled]="guardando()" (click)="guardar()">
+          {{ guardando() ? t.guardando : t.guardar }}
+        </button>
+        @if (version()) {
+          <button type="button" class="btn-hvc-accent" (click)="abrirPublicar()">
+            {{ t.publicar }}
+          </button>
+        }
+      </div>
+    }
+
+    @if (mostrarModalPublicar() && version(); as v) {
+      <app-modal-publicar
+        [version]="v"
+        (publicado)="alPublicarExitoso()"
+        (cancelar)="mostrarModalPublicar.set(false)"
+      />
+    }
+  }
+</div>

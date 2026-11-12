@@ -5,12 +5,12 @@ import { firstValueFrom } from 'rxjs';
 import { TEXTOS } from '../../shared/textos';
 import { CursosApi, mensajeErrorCursos } from './cursos-api';
 import { AsignacionDTO, PaginaDTO } from './modelos';
-import { PaginacionCursos } from './paginacion';
+import { Paginador } from '../../shared/ui/paginador';
 import { vigilarSesionCursos } from './sesion-cursos';
 
 @Component({
   selector: 'app-mis-asignaciones',
-  imports: [DatePipe, RouterLink, PaginacionCursos],
+  imports: [DatePipe, RouterLink, Paginador],
   template: `
     <section [attr.aria-busy]="ocupado()">
       <h1>{{ textos.misAsignaciones }}</h1>
@@ -53,17 +53,17 @@ import { vigilarSesionCursos } from './sesion-cursos';
             <li>{{ textos.sinAsignaciones }}</li>
           }
         </ul>
-        <app-paginacion-cursos
+        <app-paginador
           [etiqueta]="textos.misAsignaciones"
           [pagina]="datos.number"
-          [paginas]="datos.total_pages"
-          [ocupado]="ocupado()"
-          (cambio)="cargar($event)"
+          [totalPaginas]="datos.total_pages"
+          [deshabilitado]="ocupado()"
+          (paginaCambia)="cargar($event)"
         />
       }
     </section>
   `,
-  styleUrl: './cursos.css',
+  host: { class: 'pantalla-cursos' },
 })
 export class MisAsignaciones {
   readonly textos = TEXTOS.cursos;

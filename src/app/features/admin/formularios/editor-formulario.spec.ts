@@ -1,144 +1,198 @@
 import { provideHttpClient } from '@angular/common/http';
-import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
-import { of } from 'rxjs';
-import { FormularioService } from '../../formulario/formulario.service';
+import { Router, provideRouter } from '@angular/router';
+import { RouterTestingHarness } from '@angular/router/testing';
+import { TEXTOS } from '../../../shared/textos';
+import { EsquemaBaseDTO, FormularioVersionDTO } from '../../formulario/modelos';
 import { EditorFormulario } from './editor-formulario';
 
-describe('EditorFormulario', () => {
-  let formularioServiceMock: Partial<Record<keyof FormularioService, ReturnType<typeof vi.fn>>>;
+const t = TEXTOS.constructorFormulario;
 
-  beforeEach(async () => {
-    formularioServiceMock = {
-      obtenerActivo: vi.fn(() =>
-        of({
-          id: 'v1',
-          codigo: 'V1.0.0',
-          estado: 'ACTIVA',
-          esquema: {
-            title: 'SIECA V1.0',
-            type: 'object',
-            properties: {
-              seccion_1: {
-                type: 'object',
-                title: 'General',
-                properties: {
-                  codigo: { type: 'string', title: 'Código' },
-                  dano: { type: 'integer', title: 'Nivel Daño', 'x-dano': true },
-                },
-              },
-            },
+const base: EsquemaBaseDTO = {
+  esquema: {
+    title: 'SIECA',
+    type: 'object',
+    properties: {
+      identificacion: {
+        type: 'object',
+        title: 'Sección 1: Identificación',
+        properties: { codigo: { type: 'string', title: 'Código', 'x-orden': 1 } },
+      },
+      otros: {
+        type: 'object',
+        title: 'Sección 8: Otros',
+        properties: { senales: { type: 'string', title: 'Señales', 'x-orden': 1 } },
+      },
+    },
+  },
+  secciones: [
+    { clave: 'identificacion', titulo: 'Sección 1: Identificación', admite_campos_extra: false },
+    { clave: 'otros', titulo: 'Sección 8: Otros', admite_campos_extra: true },
+  ],
+};
+
+const borrador: FormularioVersionDTO = {
+  id: 'v-borrador',
+  codigo: 'V2.0.0',
+  estado: 'BORRADOR',
+  esquema: {
+    title: 'SIECA',
+    type: 'object',
+    properties: {
+      otros: {
+        type: 'object',
+        title: 'Sección 8: Otros',
+        required: ['estado_drenaje'],
+        properties: {
+          senales: { type: 'string', title: 'Señales', 'x-orden': 1 },
+          estado_drenaje: {
+            type: 'string',
+            title: 'Estado del drenaje',
+            enum: ['Bueno', 'Malo'],
+            'x-extra': true,
+            'x-orden': 2,
           },
-        }),
-      ),
-      detalle: vi.fn(() => of(undefined)),
-      crearBorrador: vi.fn(),
-      editarBorrador: vi.fn(),
-      publicar: vi.fn(),
-    };
+        },
+      },
+    },
+  },
+  creado_en: '2026-11-01T00:00:00Z',
+  actualizado_en: '2026-11-01T00:00:00Z',
+} as FormularioVersionDTO;
 
-    await TestBed.configureTestingModule({
-      imports: [EditorFormulario],
-      providers: [
-        provideRouter([]),
-        provideHttpClient(),
-        provideHttpClientTesting(),
-        { provide: FormularioService, useValue: formularioServiceMock },
-      ],
-    }).compileComponents();
+async function abrir(ruta: string) {
+  TestBed.configureTestingModule({
+    providers: [
+      provideHttpClient(),
+      provideHttpClientTesting(),
+      provideRouter([
+        { path: 'admin/formularios/nuevo', component: EditorFormulario },
+        { path: 'admin/formularios/:id/editar', component: EditorFormulario },
+        { path: 'admin/formularios', component: EditorFormulario },
+      ]),
+    ],
+  });
+  const harness = await RouterTestingHarness.create(ruta);
+  const http = TestBed.inject(HttpTestingController);
+  const elemento = harness.routeNativeElement as HTMLElement;
+  const instancia = harness.routeDebugElement?.componentInstance as EditorFormulario;
+  return { harness, http, elemento, instancia };
+}
+
+function texto(elemento: HTMLElement): string {
+  return elemento.textContent ?? '';
+}
+
+describe('EditorFormulario (constructor B2)', () => {
+  afterEach(() => TestBed.inject(HttpTestingController).verify());
+
+  it('muestra la base fija y las secciones que admiten campos', async () => {
+    const { http, elemento, harness } = await abrir('/admin/formularios/nuevo');
+    http.expectOne('/api/v1/formularios/base').flush(base);
+    harness.detectChanges();
+
+    expect(texto(elemento)).toContain(t.tituloNuevo);
+    expect(texto(elemento)).toContain('Sección 8: Otros');
+    expect(texto(elemento)).toContain(t.bloqueada);
   });
 
-  it('debe iniciar en la pestaña de editor y permitir cambiar a la vista previa en vivo', () => {
-    const fixture = TestBed.createComponent(EditorFormulario);
-    fixture.detectChanges();
+  it('no deja añadir un campo sin título y lo indica junto al formulario', async () => {
+    const { http, elemento, harness, instancia } = await abrir('/admin/formularios/nuevo');
+    http.expectOne('/api/v1/formularios/base').flush(base);
+    harness.detectChanges();
 
-    expect(fixture.componentInstance.tabActiva).toBe('editor');
+    instancia['actualizarBorrador']({ seccion: 'otros' });
+    instancia['agregarCampo']();
+    harness.detectChanges();
 
-    // Cambiar a la vista previa en vivo
-    fixture.componentInstance.actualizarVistaPrevia();
-    fixture.detectChanges();
-
-    expect(fixture.componentInstance.tabActiva).toBe('preview');
-
-    const appMotor = fixture.nativeElement.querySelector('app-motor-formulario');
-    expect(appMotor).toBeTruthy();
-
-    const bannerAviso = fixture.nativeElement.querySelector('.bg-blue-50');
-    expect(bannerAviso).toBeTruthy();
-    expect(bannerAviso.textContent).toContain('<app-motor-formulario>');
+    expect(texto(elemento)).toContain(t.errorTitulo);
+    http.expectNone('/api/v1/formularios/validacion');
   });
 
-  it('debe tener contraste y clases adecuadas en la pestaña de vista previa', () => {
-    const fixture = TestBed.createComponent(EditorFormulario);
-    fixture.detectChanges();
+  it('valida la lista en el servidor al añadir un campo y muestra sus errores en la fila', async () => {
+    const { http, elemento, harness, instancia } = await abrir('/admin/formularios/nuevo');
+    http.expectOne('/api/v1/formularios/base').flush(base);
+    harness.detectChanges();
 
-    fixture.componentInstance.actualizarVistaPrevia();
-    fixture.detectChanges();
+    instancia['actualizarBorrador']({ seccion: 'otros', titulo: 'Estado del drenaje' });
+    instancia['agregarCampo']();
+    http.expectOne('/api/v1/formularios/validacion').flush({
+      valido: false,
+      errores: [{ campo: 'campos_extra[0].clave', mensaje: 'Ya existe un campo con esa clave.' }],
+    });
+    harness.detectChanges();
 
-    const botonesPestana: HTMLButtonElement[] = fixture.nativeElement.querySelectorAll('button');
-    const botonVistaPrevia = Array.from(botonesPestana).find((b) =>
-      b.textContent?.includes('Vista Previa en Vivo'),
+    expect(texto(elemento)).toContain('Estado del drenaje');
+    expect(texto(elemento)).toContain('Ya existe un campo con esa clave.');
+  });
+
+  it('guarda el borrador nuevo con campos_extra y vuelve al listado', async () => {
+    const { http, harness, instancia } = await abrir('/admin/formularios/nuevo');
+    http.expectOne('/api/v1/formularios/base').flush(base);
+    harness.detectChanges();
+    const router = TestBed.inject(Router);
+    const navegar = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+
+    instancia['actualizarBorrador']({ seccion: 'otros', titulo: 'Caudal de agua' });
+    instancia['agregarCampo']();
+    http.expectOne('/api/v1/formularios/validacion').flush({ valido: true, errores: [] });
+    instancia['guardar']();
+
+    const peticion = http.expectOne('/api/v1/formularios');
+    expect(peticion.request.body.codigo).toBe('V2.0.0');
+    expect(peticion.request.body.campos_extra[0]).toMatchObject({
+      seccion: 'otros',
+      clave: 'caudal_de_agua',
+      titulo: 'Caudal de agua',
+      tipo: 'texto',
+    });
+    peticion.flush({ id: 'nuevo' }, { status: 201, statusText: 'Created' });
+    expect(navegar).toHaveBeenCalledWith(['/admin/formularios']);
+  });
+
+  it('muestra los errores del servidor al guardar y no navega', async () => {
+    const { http, elemento, harness, instancia } = await abrir('/admin/formularios/nuevo');
+    http.expectOne('/api/v1/formularios/base').flush(base);
+    harness.detectChanges();
+    instancia['actualizarBorrador']({ seccion: 'otros', titulo: 'Caudal' });
+    instancia['agregarCampo']();
+    http.expectOne('/api/v1/formularios/validacion').flush({ valido: true, errores: [] });
+
+    instancia['guardar']();
+    http.expectOne('/api/v1/formularios').flush(
+      {
+        errores: [{ campo: 'campos_extra[0].titulo', mensaje: 'Título no válido.' }],
+      },
+      { status: 422, statusText: 'Unprocessable' },
     );
-    expect(botonVistaPrevia).toBeTruthy();
-    expect(botonVistaPrevia?.classList.contains('text-blue-600')).toBe(true);
+    harness.detectChanges();
+
+    expect(texto(elemento)).toContain('Título no válido.');
+    expect(texto(elemento)).toContain(t.errorGeneral);
   });
 
-  it('debe validar la sintaxis en tiempo real al escribir JSON inválido sin necesidad de guardar', () => {
-    const fixture = TestBed.createComponent(EditorFormulario);
-    fixture.detectChanges();
+  it('reconstruye los campos adicionales de un borrador existente', async () => {
+    const { http, elemento, harness } = await abrir('/admin/formularios/v-borrador/editar');
+    http.expectOne('/api/v1/formularios/base').flush(base);
+    http.expectOne('/api/v1/formularios/v-borrador').flush(borrador);
+    harness.detectChanges();
 
-    // Estado inicial válido desde el esquema mock
-    expect(fixture.componentInstance.errorSintaxis).toBe('');
-    const badgeValidoInicial = fixture.nativeElement.querySelector('.text-emerald-600');
-    expect(badgeValidoInicial).toBeTruthy();
-    expect(badgeValidoInicial.textContent).toContain('Sintaxis JSON válida');
-
-    // Simular escritura de JSON incompleto/inválido en tiempo real
-    const textarea: HTMLTextAreaElement = fixture.nativeElement.querySelector('textarea');
-    textarea.value = '{ "title": "Incompleto", ';
-    textarea.dispatchEvent(new Event('input'));
-    fixture.componentInstance.validarSintaxis(textarea.value);
-    fixture.detectChanges();
-
-    // Verificación inmediata de error sintáctico sin presionar guardar
-    expect(fixture.componentInstance.errorSintaxis).toBeTruthy();
-    expect(fixture.componentInstance.errorSintaxis).toContain('Sintaxis JSON inválida');
-
-    const mensajeError = fixture.nativeElement.querySelector('.text-rose-600');
-    expect(mensajeError).toBeTruthy();
-    expect(mensajeError.textContent).toContain('Sintaxis JSON inválida');
-
-    // El botón guardar borrador debe quedar deshabilitado
-    const botones: HTMLButtonElement[] = fixture.nativeElement.querySelectorAll('button');
-    const botonGuardar = Array.from(botones).find((b) =>
-      b.textContent?.includes('Guardar borrador'),
-    );
-    expect(botonGuardar?.disabled).toBe(true);
+    expect(texto(elemento)).toContain('Estado del drenaje');
+    expect(texto(elemento)).toContain(t.obligatorio);
+    expect(elemento.querySelector('#codigo-version')).toHaveProperty('readOnly', true);
+    expect(texto(elemento)).toContain('Guardar borrador');
   });
 
-  it('debe restablecer la validación en tiempo real cuando el JSON se corrige', () => {
-    const fixture = TestBed.createComponent(EditorFormulario);
-    fixture.detectChanges();
+  it('una versión activa se muestra solo como lectura', async () => {
+    const { http, elemento, harness } = await abrir('/admin/formularios/v-activa/editar');
+    http.expectOne('/api/v1/formularios/base').flush(base);
+    http
+      .expectOne('/api/v1/formularios/v-activa')
+      .flush({ ...borrador, id: 'v-activa', estado: 'ACTIVA' });
+    harness.detectChanges();
 
-    // Poner primero un error
-    fixture.componentInstance.validarSintaxis('{ error de sintaxis ');
-    fixture.detectChanges();
-    expect(fixture.componentInstance.errorSintaxis).toBeTruthy();
-
-    // Corregir el JSON en tiempo real
-    fixture.componentInstance.validarSintaxis(JSON.stringify({ title: 'Válido', type: 'object' }));
-    fixture.detectChanges();
-
-    expect(fixture.componentInstance.errorSintaxis).toBe('');
-    const badgeValido = fixture.nativeElement.querySelector('.text-emerald-600');
-    expect(badgeValido).toBeTruthy();
-    expect(badgeValido.textContent).toContain('Sintaxis JSON válida');
-
-    const botones: HTMLButtonElement[] = fixture.nativeElement.querySelectorAll('button');
-    const botonGuardar = Array.from(botones).find((b) =>
-      b.textContent?.includes('Guardar borrador'),
-    );
-    expect(botonGuardar?.disabled).toBe(false);
+    expect(texto(elemento)).toContain(t.noEditable);
+    expect(texto(elemento)).not.toContain('Guardar borrador');
   });
 });

@@ -1,3 +1,4 @@
+import { validarAlEnviar } from '../../shared/ui/formularios';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
   Component,
@@ -21,7 +22,7 @@ import { OrdenMantenimientoDTO } from './modelos';
   selector: 'app-programacion-orden',
   imports: [ReactiveFormsModule],
   templateUrl: './programacion-orden.html',
-  styleUrls: ['./bandeja-propuestas.css', './programacion-orden.css'],
+  host: { class: 'pantalla-bandeja pantalla-programacion' },
 })
 export class ProgramacionOrden {
   readonly orden = input.required<OrdenMantenimientoDTO>();
@@ -73,8 +74,7 @@ export class ProgramacionOrden {
       this.error.set(this.t.sinCambio);
       return;
     }
-    if (this.formulario.invalid) {
-      this.formulario.markAllAsTouched();
+    if (!validarAlEnviar(this.formulario)) {
       this.error.set(this.t.fechaRequerida);
       return;
     }

@@ -16,7 +16,7 @@ interface IntentoAceptacion {
 @Component({
   selector: 'app-aceptacion-propuesta',
   templateUrl: './aceptacion-propuesta.html',
-  styleUrl: './aceptacion-propuesta.css',
+  host: { class: 'pantalla-aceptacion' },
 })
 export class AceptacionPropuesta {
   // El contenedor entrega la selección real y deriva el permiso de la sesión de P2.

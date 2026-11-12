@@ -9,7 +9,7 @@
 
     @if (hecho()) {
       <div role="status" [class]="claseHecho">
-        <p>{{ t.hecho }}</p>
+        <p>{{ resultado() === 'YA_ACTIVA' ? t.yaActiva : t.hecho }}</p>
         <a routerLink="/login" [class]="claseEnlace">{{ t.irALogin }}</a>
       </div>
     }

@@ -1,3 +1,4 @@
+import { EstadoVacio } from '../../shared/ui/estado-vacio';
 import { Component, computed, inject, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
@@ -7,7 +8,7 @@ import { InspeccionApi, TAMANO_PAGINA } from './inspeccion-api';
 
 @Component({
   selector: 'app-puentes-inspeccionables',
-  imports: [RouterLink],
+  imports: [EstadoVacio, RouterLink],
   template: `
     <section class="mx-auto max-w-5xl p-4" aria-labelledby="titulo-inspeccionables">
       <h1 id="titulo-inspeccionables" class="text-h1">{{ t.titulo }}</h1>
@@ -32,7 +33,7 @@ import { InspeccionApi, TAMANO_PAGINA } from './inspeccion-api';
                 <h2 class="text-lg font-semibold">{{ puente.nombre }}</h2>
                 <p class="text-muted">{{ t.curso }}: {{ puente.curso_nombre ?? t.sinCurso }}</p>
                 @if (puente.borrador_en_curso) {
-                  <p class="hvc-badge hvc-badge--warn mt-1 inline-block bg-amber-50">
+                  <p class="hvc-badge hvc-badge--warn mt-1 inline-block bg-regular-tinte">
                     {{ t.borradorEnCurso }}
                   </p>
                 }
@@ -54,7 +55,7 @@ import { InspeccionApi, TAMANO_PAGINA } from './inspeccion-api';
               }
             </li>
           } @empty {
-            <li role="status" class="rounded bg-slate-100 p-8 text-center">{{ t.vacio }}</li>
+            <li><app-estado-vacio [mensaje]="t.vacio" /></li>
           }
         </ul>
         <nav class="mt-5 flex items-center gap-4" [attr.aria-label]="comun.paginas">

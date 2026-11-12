@@ -41,12 +41,12 @@
           </thead>
           <tbody>
             @for (formulario of datos.content; track formulario.id) {
-              <tr class="border-t border-slate-300">
+              <tr class="border-t border-borde">
                 <th scope="row" class="p-2">{{ formulario.codigo }}</th>
                 <td class="p-2">
                   <button
                     type="button"
-                    class="rounded border border-blue-700 p-2 text-blue-800"
+                    class="rounded border border-primario-700 p-2 text-primario-900"
                     [attr.aria-pressed]="seleccion()?.id === formulario.id"
                     (click)="seleccionar(formulario)"
                   >

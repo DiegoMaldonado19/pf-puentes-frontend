@@ -1,3 +1,4 @@
+import { validarAlEnviar } from '../../shared/ui/formularios';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -224,7 +225,7 @@ export class DiscusionInspeccion {
       !this.auth.usuario() ||
       this.contexto()?.cerrado ||
       this.publicando() ||
-      this.formulario.invalid ||
+      !validarAlEnviar(this.formulario) ||
       !entrada.texto.trim()
     )
       return;

@@ -11,12 +11,15 @@ import {
 } from '@angular/core';
 import type { Map as MapaMapLibre, Marker } from 'maplibre-gl';
 import { TEXTOS } from '../../../shared/textos';
-import { CARGADOR_MAPLIBRE, CENTRO_GUATEMALA, ESTILO_OSM } from './maplibre';
+import { CARGADOR_MAPLIBRE, CENTRO_GUATEMALA, ESTILO_OSM, type MapLibre } from './maplibre';
 
 export interface Coordenadas {
   readonly latitud: number;
   readonly longitud: number;
 }
+
+/** Punto de un puente cercano que se marca como posible duplicado. */
+export type PuntoDuplicado = Coordenadas;
 
 /** Mapa pequeño: muestra la ubicación (ficha) o permite elegirla con un clic (formulario). */
 @Component({
@@ -39,6 +42,8 @@ export class MapaUbicacion implements OnDestroy {
   readonly latitud = input<number | null>(null);
   readonly longitud = input<number | null>(null);
   readonly seleccionable = input(false);
+  /** Puentes cercanos que podrían ser duplicados (B8): se marcan en el mapa, sin bloquear nada. */
+  readonly duplicados = input<readonly PuntoDuplicado[]>([]);
   readonly elegido = output<Coordenadas>();
   protected readonly t = TEXTOS.puentes.mapa;
   protected readonly error = signal(false);
@@ -48,6 +53,8 @@ export class MapaUbicacion implements OnDestroy {
   private readonly listo = signal(false);
   private mapa?: MapaMapLibre;
   private marcador?: Marker;
+  private libreria?: Pick<MapLibre, 'Marker'>;
+  private marcadoresDuplicados: Marker[] = [];
   private destruido = false;
 
   constructor() {
@@ -63,12 +70,34 @@ export class MapaUbicacion implements OnDestroy {
       this.marcador.setLngLat([lon, lat]).addTo(this.mapa);
       this.mapa.easeTo({ center: [lon, lat] });
     });
+    effect(() => {
+      const lista = this.duplicados();
+      if (this.listo()) this.pintarDuplicados(lista);
+    });
+  }
+
+  private pintarDuplicados(lista: readonly PuntoDuplicado[]): void {
+    for (const marcador of this.marcadoresDuplicados) marcador.remove();
+    this.marcadoresDuplicados = [];
+    if (!this.mapa || !this.libreria) return;
+    // El color sale del token de estado "regular" para no fijar un valor en el código
+    const color =
+      getComputedStyle(document.documentElement).getPropertyValue('--color-regular').trim() ||
+      '#b45309';
+    for (const punto of lista) {
+      this.marcadoresDuplicados.push(
+        new this.libreria.Marker({ color })
+          .setLngLat([punto.longitud, punto.latitud])
+          .addTo(this.mapa),
+      );
+    }
   }
 
   private async iniciar(): Promise<void> {
     try {
       const maplibre = await this.cargar();
       if (this.destruido) return;
+      this.libreria = maplibre;
       const lat = this.latitud();
       const lon = this.longitud();
       const conPunto = lat !== null && lon !== null;

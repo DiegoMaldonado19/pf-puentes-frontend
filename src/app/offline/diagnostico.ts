@@ -71,7 +71,7 @@ import { IndicadorOffline } from './indicador';
           <h3 class="mt-3 text-sm font-semibold break-all">{{ t.inspeccion }} · {{ grupo.id }}</h3>
           <ol class="mt-2 grid gap-2">
             @for (o of grupo.operaciones; track o.id) {
-              <li class="rounded bg-slate-50 p-2 font-mono text-xs break-all text-slate-800">
+              <li class="rounded bg-lienzo p-2 font-mono text-xs break-all text-texto">
                 {{ t.tiposOperacion[o.tipo] }} · {{ o.entidad_id }} · {{ t.estado }}:
                 {{ o.estado }} · {{ t.intentos }}: {{ o.intentos }} · {{ t.siguiente }}:
                 {{ o.proximo_intento }} · {{ t.dependencias }}:

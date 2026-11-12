@@ -1,6 +1,6 @@
 <a
   href="#contenido"
-  class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:rounded focus:bg-white focus:p-2"
+  class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:rounded focus:bg-superficie focus:p-2"
   >{{ t.saltar }}</a
 >
 <div class="hvc-shell">
@@ -69,61 +69,126 @@
   <aside class="hvc-sidebar">
     <nav class="hvc-sidebar__nav" [attr.aria-label]="t.principal">
       @if (auth.listo() && auth.autenticado()) {
-        <div class="hvc-side-usuario">
-          @if (auth.rol() !== 'ADMINISTRADOR') {
+        <div class="hvc-side-grupo">
+          <a
+            routerLink="/inicio"
+            routerLinkActive="hvc-side-link--active"
+            ariaCurrentWhenActive="page"
+            class="hvc-side-link"
+            (click)="menuLateral.checked = false"
+            ><app-icono nombre="inicio" />{{ tShell.inicio }}</a
+          >
+        </div>
+      }
+      <div class="hvc-side-grupo">
+        <p class="hvc-side-grupo__titulo">{{ tShell.grupoPuentes }}</p>
+        <a
+          routerLink="/puentes"
+          routerLinkActive="hvc-side-link--active"
+          [routerLinkActiveOptions]="{ exact: true }"
+          ariaCurrentWhenActive="page"
+          class="hvc-side-link"
+          (click)="menuLateral.checked = false"
+          ><app-icono nombre="puente" />{{ t.inventario }}</a
+        >
+        <a
+          routerLink="/puentes/mapa"
+          routerLinkActive="hvc-side-link--active"
+          ariaCurrentWhenActive="page"
+          class="hvc-side-link"
+          (click)="menuLateral.checked = false"
+          ><app-icono nombre="mapa" />{{ t.mapa }}</a
+        >
+        <a
+          routerLink="/offline/local"
+          routerLinkActive="hvc-side-link--active"
+          ariaCurrentWhenActive="page"
+          class="hvc-side-link"
+          (click)="menuLateral.checked = false"
+          ><app-icono nombre="local" />{{ t.local }}</a
+        >
+        <a
+          routerLink="/foro"
+          routerLinkActive="hvc-side-link--active"
+          ariaCurrentWhenActive="page"
+          class="hvc-side-link"
+          (click)="menuLateral.checked = false"
+          ><app-icono nombre="foro" />{{ t.foro }}</a
+        >
+      </div>
+      @if (auth.listo() && auth.autenticado()) {
+        @if (auth.rol() !== 'ADMINISTRADOR') {
+          <div class="hvc-side-grupo">
+            <p class="hvc-side-grupo__titulo">{{ tShell.grupoInspecciones }}</p>
             <a
               routerLink="/inspecciones"
               routerLinkActive="hvc-side-link--active"
               ariaCurrentWhenActive="page"
               class="hvc-side-link"
               (click)="menuLateral.checked = false"
-              >{{ textosInspecciones.nav }}</a
+              ><app-icono nombre="inspeccion" />{{ textosInspecciones.nav }}</a
             >
-          }
-          @if (auth.rol() === 'CATEDRATICO') {
+            @if (auth.rol() === 'CATEDRATICO') {
+              <a
+                routerLink="/revisiones"
+                routerLinkActive="hvc-side-link--active"
+                ariaCurrentWhenActive="page"
+                class="hvc-side-link"
+                (click)="menuLateral.checked = false"
+                ><app-icono nombre="revision" />{{ textosRevision.titulo }}</a
+              >
+              <a
+                routerLink="/cursos"
+                routerLinkActive="hvc-side-link--active"
+                ariaCurrentWhenActive="page"
+                class="hvc-side-link"
+                (click)="menuLateral.checked = false"
+                ><app-icono nombre="curso" />{{ textosCursos.misCursos }}</a
+              >
+            }
+            @if (auth.rol() === 'ESTUDIANTE') {
+              <a
+                routerLink="/mis-revisiones"
+                routerLinkActive="hvc-side-link--active"
+                ariaCurrentWhenActive="page"
+                class="hvc-side-link"
+                (click)="menuLateral.checked = false"
+                ><app-icono nombre="revision" />{{ textosRevision.misPendientes }}</a
+              >
+              <a
+                routerLink="/mis-asignaciones"
+                routerLinkActive="hvc-side-link--active"
+                ariaCurrentWhenActive="page"
+                class="hvc-side-link"
+                (click)="menuLateral.checked = false"
+                ><app-icono nombre="curso" />{{ textosCursos.misAsignaciones }}</a
+              >
+            }
+          </div>
+        }
+        @if (auth.rol() === 'CATEDRATICO' || auth.rol() === 'ADMINISTRADOR') {
+          <div class="hvc-side-grupo">
+            <p class="hvc-side-grupo__titulo">{{ tShell.grupoMantenimiento }}</p>
             <a
-              routerLink="/revisiones"
+              routerLink="/mantenimiento"
               routerLinkActive="hvc-side-link--active"
               ariaCurrentWhenActive="page"
               class="hvc-side-link"
               (click)="menuLateral.checked = false"
-              >{{ textosRevision.titulo }}</a
+              ><app-icono nombre="mantenimiento" />{{ tShell.mantenimiento }}</a
             >
-            <a
-              routerLink="/cursos"
-              routerLinkActive="hvc-side-link--active"
-              ariaCurrentWhenActive="page"
-              class="hvc-side-link"
-              (click)="menuLateral.checked = false"
-              >{{ textosCursos.misCursos }}</a
-            >
-          }
-          @if (auth.rol() === 'ESTUDIANTE') {
-            <a
-              routerLink="/mis-revisiones"
-              routerLinkActive="hvc-side-link--active"
-              ariaCurrentWhenActive="page"
-              class="hvc-side-link"
-              (click)="menuLateral.checked = false"
-              >{{ textosRevision.misPendientes }}</a
-            >
-            <a
-              routerLink="/mis-asignaciones"
-              routerLinkActive="hvc-side-link--active"
-              ariaCurrentWhenActive="page"
-              class="hvc-side-link"
-              (click)="menuLateral.checked = false"
-              >{{ textosCursos.misAsignaciones }}</a
-            >
-          }
-          @if (auth.rol() === 'ADMINISTRADOR') {
+          </div>
+        }
+        @if (auth.rol() === 'ADMINISTRADOR') {
+          <div class="hvc-side-grupo">
+            <p class="hvc-side-grupo__titulo">{{ tShell.grupoAdministracion }}</p>
             <a
               routerLink="/admin/pesos"
               routerLinkActive="hvc-side-link--active"
               ariaCurrentWhenActive="page"
               class="hvc-side-link"
               (click)="menuLateral.checked = false"
-              >{{ tPesos }}</a
+              ><app-icono nombre="pesos" />{{ tPesos }}</a
             >
             <a
               routerLink="/admin/usuarios"
@@ -131,7 +196,7 @@
               ariaCurrentWhenActive="page"
               class="hvc-side-link"
               (click)="menuLateral.checked = false"
-              >{{ n.usuarios }}</a
+              ><app-icono nombre="usuarios" />{{ n.usuarios }}</a
             >
             <a
               routerLink="/admin/invitaciones"
@@ -139,7 +204,7 @@
               ariaCurrentWhenActive="page"
               class="hvc-side-link"
               (click)="menuLateral.checked = false"
-              >{{ n.invitaciones }}</a
+              ><app-icono nombre="invitacion" />{{ n.invitaciones }}</a
             >
             <a
               routerLink="/admin/auditoria"
@@ -147,7 +212,7 @@
               ariaCurrentWhenActive="page"
               class="hvc-side-link"
               (click)="menuLateral.checked = false"
-              >{{ n.auditoria }}</a
+              ><app-icono nombre="auditoria" />{{ n.auditoria }}</a
             >
             <a
               routerLink="/admin/formularios"
@@ -155,44 +220,11 @@
               ariaCurrentWhenActive="page"
               class="hvc-side-link"
               (click)="menuLateral.checked = false"
-              >{{ n.formularios }}</a
+              ><app-icono nombre="formulario" />{{ n.formularios }}</a
             >
-          }
-        </div>
+          </div>
+        }
       }
-      <a
-        routerLink="/puentes"
-        routerLinkActive="hvc-side-link--active"
-        [routerLinkActiveOptions]="{ exact: true }"
-        ariaCurrentWhenActive="page"
-        class="hvc-side-link"
-        (click)="menuLateral.checked = false"
-        >{{ t.inventario }}</a
-      >
-      <a
-        routerLink="/puentes/mapa"
-        routerLinkActive="hvc-side-link--active"
-        ariaCurrentWhenActive="page"
-        class="hvc-side-link"
-        (click)="menuLateral.checked = false"
-        >{{ t.mapa }}</a
-      >
-      <a
-        routerLink="/offline/local"
-        routerLinkActive="hvc-side-link--active"
-        ariaCurrentWhenActive="page"
-        class="hvc-side-link"
-        (click)="menuLateral.checked = false"
-        >{{ t.local }}</a
-      >
-      <a
-        routerLink="/foro"
-        routerLinkActive="hvc-side-link--active"
-        ariaCurrentWhenActive="page"
-        class="hvc-side-link"
-        (click)="menuLateral.checked = false"
-        >{{ t.foro }}</a
-      >
     </nav>
     @if (auth.listo() && auth.autenticado()) {
       <button type="button" class="hvc-side-logout" (click)="salir(); menuLateral.checked = false">
@@ -209,4 +241,5 @@
       <p role="alert" class="m-0">{{ estadoLocal.error() }}</p>
     }
   </footer>
+  <app-toaster />
 </div>

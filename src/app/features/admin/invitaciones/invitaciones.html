@@ -1,6 +1,23 @@
 <section class="mx-auto max-w-6xl p-4" aria-labelledby="titulo-invitaciones">
   <h1 id="titulo-invitaciones" class="text-h1">{{ t.titulo }}</h1>
   <p class="text-muted">{{ t.descripcion }}</p>
+  <nav class="hvc-tabs mt-3" aria-label="Cuentas e invitaciones">
+    <a
+      class="hvc-tab no-underline"
+      routerLink="/admin/usuarios"
+      routerLinkActive
+      [routerLinkActiveOptions]="{ exact: true }"
+      #pestanaUsuarios="routerLinkActive"
+      >{{ pestanas.usuarios }}</a
+    >
+    <a
+      class="hvc-tab no-underline"
+      routerLink="/admin/invitaciones"
+      routerLinkActive
+      #pestanaInvitaciones="routerLinkActive"
+      >{{ pestanas.invitaciones }}</a
+    >
+  </nav>
 
   @if (error()) {
     <p role="alert" [class]="claseAlerta">{{ error() }}</p>
@@ -88,7 +105,7 @@
             </thead>
             <tbody>
               @for (inv of lista.content; track inv.id) {
-                <tr class="border-b border-slate-200">
+                <tr class="border-b border-borde">
                   <td class="p-2">{{ inv.correo }}</td>
                   <td class="p-2">{{ roles[inv.rol] }}</td>
                   <td class="p-2">{{ t.estados[inv.estado] }}</td>
@@ -107,10 +124,10 @@
             </tbody>
           </table>
         </div>
-        <app-paginacion-admin
+        <app-paginador
           [pagina]="lista.number"
           [totalPaginas]="lista.total_pages"
-          (cambiar)="pagina.set($event)"
+          (paginaCambia)="pagina.set($event)"
         />
       }
     }

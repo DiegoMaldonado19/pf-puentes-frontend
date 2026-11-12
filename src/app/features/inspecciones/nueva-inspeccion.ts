@@ -36,7 +36,7 @@ type EstadoUbicacion = 'pendiente' | 'obteniendo' | 'obtenida' | 'no-disponible'
         </p>
         <p class="text-muted my-3">{{ t.descripcion }}</p>
         @if (esCorreccion()) {
-          <p class="hvc-note mb-3 bg-blue-50">
+          <p class="hvc-note mb-3 bg-primario-50">
             {{ t.corrige.replace('{id}', corrige() ?? '') }}
           </p>
         }
@@ -61,7 +61,7 @@ type EstadoUbicacion = 'pendiente' | 'obteniendo' | 'obtenida' | 'no-disponible'
 
           <div class="hvc-card grid gap-2" aria-live="polite">
             <p class="hvc-label">{{ t.ubicacion }}</p>
-            <p [class.text-red-800]="ubicacion() === 'no-disponible'">
+            <p [class.text-malo-texto]="ubicacion() === 'no-disponible'">
               {{ textoUbicacion() }}
             </p>
             <button

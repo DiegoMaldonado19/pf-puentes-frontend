@@ -40,6 +40,13 @@ export interface PuenteInspeccionableDTO {
   readonly borrador_en_curso: boolean;
 }
 
+/** Última revisión emitida, para el autor (B3). `ultimo_veredicto` es el nombre del enum del backend. */
+export interface RevisionResumenDTO {
+  readonly ultimo_veredicto: string;
+  readonly observaciones_pendientes: number;
+  readonly emitido_en?: string;
+}
+
 export interface InspeccionResumenDTO {
   readonly id: string;
   readonly puente: PuenteResumenDTO;
@@ -49,6 +56,7 @@ export interface InspeccionResumenDTO {
   readonly creado_en: string;
   readonly superada: boolean;
   readonly superada_por: string | null;
+  readonly revision?: RevisionResumenDTO | null;
 }
 
 /** InspeccionDTO usa NON_NULL: los campos opcionales pueden no venir (p. ej. el IC en un borrador). */
@@ -85,6 +93,7 @@ export interface InspeccionDTO {
   readonly supersede_a_id?: string;
   readonly motivo_correccion?: string;
   readonly advertencias?: readonly string[];
+  readonly revision?: RevisionResumenDTO;
 }
 
 export interface DatosPermanentesDTO {

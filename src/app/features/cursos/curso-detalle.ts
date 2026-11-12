@@ -1,3 +1,4 @@
+import { validarAlEnviar } from '../../shared/ui/formularios';
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -14,14 +15,14 @@ import {
   PaginaDTO,
   PuenteDisponibleDTO,
 } from './modelos';
-import { PaginacionCursos } from './paginacion';
+import { Paginador } from '../../shared/ui/paginador';
 import { vigilarSesionCursos } from './sesion-cursos';
 
 @Component({
   selector: 'app-curso-detalle',
-  imports: [RouterLink, ReactiveFormsModule, FormularioCurso, PaginacionCursos],
+  imports: [RouterLink, ReactiveFormsModule, FormularioCurso, Paginador],
   templateUrl: './curso-detalle.html',
-  styleUrl: './cursos.css',
+  host: { class: 'pantalla-cursos' },
 })
 export class CursoDetalle {
   readonly textos = TEXTOS.cursos;
@@ -72,7 +73,7 @@ export class CursoDetalle {
   }
 
   async inscribir() {
-    if (this.inscripcion.invalid || !this.curso()?.vigente || this.ocupado()) return;
+    if (!validarAlEnviar(this.inscripcion) || !this.curso()?.vigente || this.ocupado()) return;
     await this.operar(async () => {
       await firstValueFrom(
         this.api.inscribir(this.cursoId, this.inscripcion.controls.estudiante.value),
@@ -101,7 +102,8 @@ export class CursoDetalle {
 
   async asignar() {
     const inscrito = this.seleccionada();
-    if (!inscrito || this.asignacion.invalid || !this.curso()?.vigente || this.ocupado()) return;
+    if (!inscrito || !validarAlEnviar(this.asignacion) || !this.curso()?.vigente || this.ocupado())
+      return;
     await this.operar(async () => {
       await firstValueFrom(
         this.api.asignar(this.cursoId, inscrito.id, this.asignacion.controls.puente.value),
@@ -142,7 +144,7 @@ export class CursoDetalle {
   async buscar(tipo: 'estudiantes' | 'puentes') {
     const formulario = tipo === 'estudiantes' ? this.buscarEstudiante : this.buscarPuente;
     formulario.markAllAsTouched();
-    if (formulario.invalid) return;
+    if (!validarAlEnviar(formulario)) return;
     const texto = formulario.controls.texto.value.trim();
     await this.operar(async () => {
       if (tipo === 'estudiantes') {

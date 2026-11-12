@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import {
   ChangeDetectorRef,
   Component,
+  ElementRef,
   EventEmitter,
   inject,
   Input,
@@ -44,6 +45,12 @@ export interface SeccionMeta {
   tieneDanos: boolean;
 }
 
+/** Observación del revisor sin resolver, con la referencia del campo al que se ancla (B3). */
+export interface ObservacionMarcada {
+  readonly referencia: string;
+  readonly texto: string;
+}
+
 @Component({
   selector: 'app-motor-formulario',
   standalone: true,
@@ -56,6 +63,8 @@ export class MotorFormularioComponent implements OnInit, OnChanges, OnDestroy {
   @Input() modo: ModoFormulario = 'edicion';
   @Input() impresion = false;
   @Input() erroresServidor: Record<string, string> = {};
+  /** Observaciones del revisor sin resolver: se muestran junto a su campo (`x-elemento-ref`). */
+  @Input() observaciones: readonly ObservacionMarcada[] = [];
 
   @Output() datosChange = new EventEmitter<Record<string, unknown>>();
   @Output() validoChange = new EventEmitter<boolean>();
@@ -63,7 +72,9 @@ export class MotorFormularioComponent implements OnInit, OnChanges, OnDestroy {
   @Output() grupoSinDanos = new EventEmitter<string>();
 
   readonly textos = TEXTOS.formulario.motor;
+  readonly correcciones = TEXTOS.correcciones;
   private cdr = inject(ChangeDetectorRef);
+  private readonly elemento = inject<ElementRef<HTMLElement>>(ElementRef);
 
   formGroup: FormGroup = new FormGroup({});
   secciones: SeccionMeta[] = [];
@@ -93,6 +104,84 @@ export class MotorFormularioComponent implements OnInit, OnChanges, OnDestroy {
     if (index >= 0 && index < this.secciones.length) {
       this.seccionActiva = index;
     }
+  }
+
+  /**
+   * Al intentar enviar (B7): marca todos los campos para que muestren su error. El envío nunca se
+   * bloquea por la validez; el resumen y el salto al primer error lo resuelven.
+   */
+  marcarTodoComoTocado(): void {
+    this.intentoEnvio = true;
+    this.formGroup.markAllAsTouched();
+    this.cdr.markForCheck();
+  }
+
+  /** Tras intentar enviar, cada pestaña muestra cuántos campos le faltan (B7). */
+  intentoEnvio = false;
+
+  /** Campos de una sección que aún no cumplen. */
+  contadorErrores(seccionClave: string): number {
+    return this.camposConError().filter((e) => e.seccion === seccionClave).length;
+  }
+
+  /** Campos de secciones de objeto que no cumplen, con el título con que se muestran. */
+  camposConError(): { seccion: string; campo: string; titulo: string }[] {
+    const errores: { seccion: string; campo: string; titulo: string }[] = [];
+    for (const seccion of this.secciones) {
+      if (seccion.tipo !== 'object') continue;
+      const grupo = this.formGroup.get(seccion.clave);
+      if (!(grupo instanceof FormGroup)) continue;
+      for (const [campo, control] of Object.entries(grupo.controls)) {
+        if (control.invalid) {
+          const titulo = this.esquema.properties[seccion.clave]?.properties?.[campo]?.title;
+          errores.push({ seccion: seccion.clave, campo, titulo: titulo ?? campo });
+        }
+      }
+    }
+    return errores;
+  }
+
+  /** Muestra la sección del primer error y enfoca su campo. */
+  enfocarPrimerError(): void {
+    const primero = this.camposConError()[0];
+    if (!primero) return;
+    const indice = this.secciones.findIndex((s) => s.clave === primero.seccion);
+    this.cambiarSeccion(indice);
+    this.cdr.detectChanges();
+    // Los ids de los campos son sus claves (snake_case): basta el selector por atributo
+    const campo = this.elemento.nativeElement.querySelector<HTMLElement>(`[id="${primero.campo}"]`);
+    campo?.focus();
+  }
+
+  /** Observaciones del revisor anclada a un campo (`x-elemento-ref`). */
+  observacionesDelCampo(referencia: string | undefined): readonly ObservacionMarcada[] {
+    if (!referencia) return [];
+    return this.observaciones.filter((o) => o.referencia === referencia);
+  }
+
+  /** Observaciones sin resolver de una sección: su referencia empieza por la clave de la sección. */
+  contadorObservaciones(seccionClave: string): number {
+    return this.observaciones.filter((o) => o.referencia.split('.')[0] === seccionClave).length;
+  }
+
+  /**
+   * «Ir al campo» (B3): cambia a la sección del campo, lo lleva a la vista y le da el foco.
+   * Devuelve false si el campo no está en este formulario.
+   */
+  enfocarRef(referencia: string): boolean {
+    const indice = this.secciones.findIndex((s) => s.clave === referencia.split('.')[0]);
+    if (indice < 0) return false;
+    this.cambiarSeccion(indice);
+    this.cdr.detectChanges();
+    const contenedor = Array.from(
+      this.elemento.nativeElement.querySelectorAll<HTMLElement>('[data-elemento-ref]'),
+    ).find((el) => el.getAttribute('data-elemento-ref') === referencia);
+    if (!contenedor) return false;
+    contenedor.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    contenedor
+      .querySelector<HTMLElement>('input, select, textarea')
+      ?.focus({ preventScroll: true });
+    return true;
   }
 
   obtenerTituloPestana(seccion: SeccionMeta, index: number): string {

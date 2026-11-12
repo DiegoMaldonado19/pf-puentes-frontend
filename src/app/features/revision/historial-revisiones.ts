@@ -28,7 +28,7 @@ import { CicloRevision, PaginaSeguimiento, RevisionApi } from './revision-api';
         <ol class="grid gap-4">
           @for (ciclo of datos.content; track ciclo.id) {
             <li class="hvc-card">
-              <h3 class="text-h3">{{ ciclo.veredicto || t.enRevision }}</h3>
+              <h3 class="text-h3">{{ etiquetaVeredicto(ciclo.veredicto) }}</h3>
               <p class="text-muted break-all">
                 {{ t.ciclo }}: {{ ciclo.id }} ·
                 {{ ciclo.creado_en | date: 'dd/MM/yyyy HH:mm' : '-0600' }}
@@ -36,11 +36,11 @@ import { CicloRevision, PaginaSeguimiento, RevisionApi } from './revision-api';
               <p class="my-2 whitespace-pre-wrap">{{ ciclo.observacion }}</p>
               <ul class="grid gap-3">
                 @for (observacion of ciclo.observaciones; track observacion.id) {
-                  <li class="rounded bg-slate-50 p-3">
+                  <li class="rounded bg-lienzo p-3">
                     <strong class="break-all">{{ observacion.elemento_ref }}</strong>
                     <p class="whitespace-pre-wrap">{{ observacion.texto }}</p>
                     @if (observacion.resuelta_en) {
-                      <p class="text-sm text-green-800">
+                      <p class="text-sm text-bueno-texto">
                         {{ t.resuelta }}:
                         {{ observacion.resuelta_en | date: 'dd/MM/yyyy HH:mm' : '-0600' }}
                       </p>
@@ -64,7 +64,7 @@ import { CicloRevision, PaginaSeguimiento, RevisionApi } from './revision-api';
               <app-calificacion-revision [revisionId]="ciclo.id" />
             </li>
           } @empty {
-            <li class="rounded bg-slate-100 p-4">{{ t.sinHistorial }}</li>
+            <li class="rounded bg-lienzo p-4">{{ t.sinHistorial }}</li>
           }
         </ol>
         <nav class="mt-4 flex items-center gap-4" [attr.aria-label]="t.paginas">
@@ -94,6 +94,13 @@ export class HistorialRevisiones {
   readonly inspeccionId = input.required<string>();
   readonly puedeResolver = input(false);
   readonly t = TEXTOS.revision;
+
+  /** Veredicto en el idioma de la interfaz; un ciclo sin veredicto sigue en revisión. */
+  etiquetaVeredicto(veredicto: string | null): string {
+    if (!veredicto) return this.t.enRevision;
+    const etiquetas: Record<string, string> = this.t.veredictos;
+    return etiquetas[veredicto] ?? veredicto;
+  }
   readonly pagina = signal<PaginaSeguimiento<CicloRevision> | null>(null);
   readonly ocupado = signal(false);
   readonly error = signal('');

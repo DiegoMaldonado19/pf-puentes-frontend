@@ -65,6 +65,9 @@ export class FormularioPuente {
   protected readonly enviando = signal(false);
   protected readonly error = signal('');
   protected readonly cercanos = signal<readonly PuenteCercanoDTO[] | null>(null);
+  // Casilla "Registrar de todos modos": envía confirmar_duplicado=true
+  protected readonly confirmarDuplicado = signal(false);
+  private ultimaConsulta = 0;
   protected readonly solicitudEnviada = signal(false);
 
   private readonly puentes = inject(PuentesService);
@@ -133,6 +136,32 @@ export class FormularioPuente {
     this.form.patchValue({ latitud: punto.latitud, longitud: punto.longitud });
     this.form.controls.latitud.markAsTouched();
     this.form.controls.longitud.markAsTouched();
+    this.consultarCercanos();
+  }
+
+  /**
+   * RN-INV-06: puentes activos a menos de 100 m. Se consulta al cambiar una coordenada o al elegir
+   * el punto en el mapa, sin bloquear Guardar; la respuesta vieja no pisa a la nueva.
+   */
+  protected consultarCercanos(): void {
+    const { latitud, longitud } = this.form.controls;
+    const consulta = ++this.ultimaConsulta;
+    if (latitud.invalid || longitud.invalid || latitud.value === null || longitud.value === null) {
+      this.cercanos.set(null);
+      return;
+    }
+    this.puentes.cercanos(latitud.value, longitud.value, this.id()).subscribe({
+      next: (lista) => {
+        if (consulta === this.ultimaConsulta) {
+          this.cercanos.set(lista.length > 0 ? lista : null);
+        }
+      },
+      error: () => {
+        if (consulta === this.ultimaConsulta) {
+          this.cercanos.set(null);
+        }
+      },
+    });
   }
 
   protected invalido(campo: keyof typeof this.form.controls): boolean {
@@ -152,7 +181,7 @@ export class FormularioPuente {
     return this.f.errores.anio;
   }
 
-  protected enviar(confirmarDuplicado = false): void {
+  protected enviar(confirmarDuplicado = this.confirmarDuplicado()): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;

@@ -104,3 +104,17 @@ export interface SeguimientoRutinarioDTO {
   readonly posteriores_al_limite: number;
   readonly ordenes: PaginaOrdenes;
 }
+
+/** Alta manual de orden: entra como PROPUESTA (RN-MTO-02). */
+export interface CrearOrden {
+  readonly tipo: TipoOrden;
+  readonly descripcion: string;
+  readonly elemento_ref: string | null;
+  readonly prioridad: PrioridadOrden;
+}
+
+/** Corrección de una orden abierta: solo tipo y descripción. */
+export interface EditarOrden {
+  readonly tipo: TipoOrden;
+  readonly descripcion: string;
+}

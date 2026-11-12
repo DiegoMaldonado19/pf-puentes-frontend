@@ -12,7 +12,7 @@ import { PuenteCercanoDTO } from './modelos';
     <section
       role="alert"
       aria-labelledby="titulo-duplicado"
-      class="hvc-alert hvc-alert--warn bg-amber-50"
+      class="hvc-alert hvc-alert--warn bg-regular-tinte"
     >
       <h2 id="titulo-duplicado" class="text-lg font-semibold">{{ t.titulo }}</h2>
       <p class="mt-1">{{ t.explicacion }}</p>
@@ -29,7 +29,7 @@ import { PuenteCercanoDTO } from './modelos';
       <div class="mt-4 flex flex-wrap gap-2">
         <button
           type="button"
-          class="rounded bg-amber-700 px-4 py-2 font-medium text-white hover:bg-amber-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-900 disabled:opacity-50"
+          class="rounded bg-regular-texto px-4 py-2 font-medium text-superficie hover:bg-regular-texto focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-regular disabled:opacity-50"
           [disabled]="enviando()"
           (click)="confirmar.emit()"
         >
@@ -37,7 +37,7 @@ import { PuenteCercanoDTO } from './modelos';
         </button>
         <button
           type="button"
-          class="rounded border border-amber-800 px-4 py-2 font-medium hover:bg-amber-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-900"
+          class="rounded border border-regular px-4 py-2 font-medium hover:bg-regular-tinte focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-regular"
           [disabled]="enviando()"
           (click)="cancelar.emit()"
         >

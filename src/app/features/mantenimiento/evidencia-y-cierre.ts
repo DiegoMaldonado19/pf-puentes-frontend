@@ -1,3 +1,4 @@
+import { validarAlEnviar } from '../../shared/ui/formularios';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
   Component,
@@ -23,7 +24,7 @@ import { OrdenMantenimientoDTO, PaginaEvidencias } from './modelos';
   selector: 'app-evidencia-y-cierre',
   imports: [CapturaFoto, ReactiveFormsModule],
   templateUrl: './evidencia-y-cierre.html',
-  styleUrls: ['./bandeja-propuestas.css', './evidencia-y-cierre.css'],
+  host: { class: 'pantalla-bandeja pantalla-evidencia' },
 })
 export class EvidenciaYCierre {
   readonly orden = input.required<OrdenMantenimientoDTO>();
@@ -230,8 +231,7 @@ export class EvidenciaYCierre {
       this.bloqueada()
     )
       return;
-    if (this.formulario.invalid) {
-      this.formulario.markAllAsTouched();
+    if (!validarAlEnviar(this.formulario)) {
       this.aviso.set(this.t.camposInvalidos);
       return;
     }

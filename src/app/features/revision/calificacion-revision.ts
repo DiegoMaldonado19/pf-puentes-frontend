@@ -1,3 +1,4 @@
+import { validarAlEnviar } from '../../shared/ui/formularios';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, DestroyRef, effect, inject, input, signal, untracked } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -33,7 +34,7 @@ import { RevisionApi } from './revision-api';
                 [formControl]="control"
                 class="hvc-input mt-1 block"
             /></label>
-            <button type="submit" class="btn-hvc-primary" [disabled]="ocupado() || control.invalid">
+            <button type="submit" class="btn-hvc-primary" [disabled]="ocupado()">
               {{ t.guardarNota }}
             </button>
           </form>
@@ -103,7 +104,8 @@ export class CalificacionRevision {
   }
 
   guardar() {
-    if (!this.editable() || this.ocupado() || this.control.invalid || !this.visible()) return;
+    if (!this.editable() || this.ocupado() || !validarAlEnviar(this.control) || !this.visible())
+      return;
     const generacion = this.generacion;
     this.ocupado.set(true);
     this.control.disable();

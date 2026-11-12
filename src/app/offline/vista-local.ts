@@ -114,9 +114,9 @@ import { PreparacionLocal, ProgresoPreparacion, ResultadoPreparacion } from './p
         </section>
       }
       @if (!propietario()) {
-        <p role="status" class="mt-6 rounded bg-slate-100 p-4">{{ t.sinAcceso }}</p>
+        <p role="status" class="mt-6 rounded bg-lienzo p-4">{{ t.sinAcceso }}</p>
       } @else if (!capturas().length) {
-        <p role="status" class="mt-6 rounded bg-slate-100 p-4">{{ t.sinCapturas }}</p>
+        <p role="status" class="mt-6 rounded bg-lienzo p-4">{{ t.sinCapturas }}</p>
       }
       @for (i of capturas(); track i.id) {
         <section class="hvc-card mt-4">

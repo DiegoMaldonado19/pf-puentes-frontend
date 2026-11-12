@@ -23,21 +23,21 @@
 }
 
 .estado[data-estado='BUENO'] {
-  color: var(--color-success);
-  background: color-mix(in srgb, var(--color-success) 12%, white);
+  color: var(--color-bueno);
+  background: color-mix(in srgb, var(--color-bueno) 12%, white);
 }
 
 .estado[data-estado='REGULAR'] {
-  color: var(--color-primary-dark);
-  background: var(--color-accent-peach);
+  color: var(--color-texto);
+  background: var(--color-regular-tinte);
 }
 
 .estado[data-estado='MALO'] {
-  color: var(--color-danger);
-  background: color-mix(in srgb, var(--color-danger) 12%, white);
+  color: var(--color-malo);
+  background: color-mix(in srgb, var(--color-malo) 12%, white);
 }
 
 .estado[data-estado='SIN_EVALUAR'] {
-  color: var(--color-primary-dark);
-  background: var(--color-canvas);
+  color: var(--color-texto);
+  background: var(--color-lienzo);
 }

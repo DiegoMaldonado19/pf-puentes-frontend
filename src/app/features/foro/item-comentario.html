@@ -11,10 +11,10 @@
       (input)="cambioBorrador.emit($any($event.target).value)"
     ></textarea>
     @if (errorFormulario(); as errorForm) {
-      <p role="alert" class="mt-1 text-sm text-red-700">{{ errorForm }}</p>
+      <p role="alert" class="mt-1 text-sm text-malo-texto">{{ errorForm }}</p>
     }
     @if (servicio.errorEscritura(); as errorEsc) {
-      <p role="alert" class="mt-1 text-sm text-red-700">{{ errorEsc }}</p>
+      <p role="alert" class="mt-1 text-sm text-malo-texto">{{ errorEsc }}</p>
     }
     <div class="mt-1 flex gap-3 text-sm">
       <button
@@ -35,13 +35,13 @@
     </div>
   </form>
 } @else if (comentario().eliminado) {
-  <p class="text-sm text-slate-500 italic" data-eliminado>
+  <p class="text-sm text-texto-atenuado italic" data-eliminado>
     {{ textos.eliminado }}
   </p>
 } @else {
   <p class="text-sm wrap-break-word">{{ textoVisible() }}</p>
 }
-<p class="mt-1 text-xs text-slate-500">
+<p class="mt-1 text-xs text-texto-atenuado">
   {{ textos.autor }}: {{ comentario().autor_nombre || textos.autorNoDisponible }} ·
   {{ textos.publicadoEl }}
   {{ fechaUtc(comentario().creado_en) }}
@@ -81,7 +81,7 @@
   @if (puedeBorrar()) {
     <button
       type="button"
-      class="text-red-700 underline disabled:opacity-50"
+      class="text-malo-texto underline disabled:opacity-50"
       [disabled]="enCurso('borrar:' + comentario().id)"
       (click)="eliminar.emit()"
     >

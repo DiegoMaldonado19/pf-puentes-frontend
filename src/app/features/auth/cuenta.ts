@@ -13,6 +13,10 @@ import {
 const API_AUTH = '/api/v1/auth';
 const API_USUARIOS = '/api/v1/usuarios';
 
+export interface ResultadoVerificacion {
+  readonly resultado: 'ACTIVADA' | 'YA_ACTIVA';
+}
+
 @Injectable({ providedIn: 'root' })
 export class CuentaService {
   private readonly http = inject(HttpClient);
@@ -26,8 +30,9 @@ export class CuentaService {
     return this.http.post<CuentaRegistradaDTO>(`${API_AUTH}/registro`, cuerpo);
   }
 
-  verificarCorreo(token: string): Observable<void> {
-    return this.vacio(`${API_AUTH}/verificar-correo`, { token });
+  /** ACTIVADA: el enlace activó la cuenta. YA_ACTIVA: la cuenta ya lo estaba (RN-USR-01). */
+  verificarCorreo(token: string): Observable<ResultadoVerificacion> {
+    return this.http.post<ResultadoVerificacion>(`${API_AUTH}/verificar-correo`, { token });
   }
 
   reenviarVerificacion(correo: string): Observable<void> {

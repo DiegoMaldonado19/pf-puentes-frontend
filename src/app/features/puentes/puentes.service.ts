@@ -64,4 +64,10 @@ export class PuentesService {
   darDeBaja(id: string, motivo: string): Observable<PuenteDTO> {
     return this.http.post<PuenteDTO>(`${this.base}/${encodeURIComponent(id)}/baja`, { motivo });
   }
+
+  reactivar(id: string, motivo: string): Observable<PuenteDTO> {
+    return this.http.post<PuenteDTO>(`${this.base}/${encodeURIComponent(id)}/reactivacion`, {
+      motivo,
+    });
+  }
 }

@@ -1,4 +1,13 @@
-import { Component, computed, effect, inject, input, signal, untracked } from '@angular/core';
+import {
+  Component,
+  computed,
+  effect,
+  inject,
+  input,
+  signal,
+  untracked,
+  viewChild,
+} from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { TEXTOS } from '../../shared/textos';
@@ -26,7 +35,7 @@ import { DatosPermanentesDTO } from './modelos';
       @if (cargando()) {
         <p role="status">{{ comun.cargando }}</p>
       } @else if (store.noEncontrada()) {
-        <p role="alert" class="rounded border border-slate-500 bg-slate-100 p-3">
+        <p role="alert" class="rounded border border-borde-control bg-lienzo p-3">
           {{ capturaTextos.noEncontradaDetalle }}
         </p>
       } @else if (errorCarga()) {
@@ -49,7 +58,7 @@ import { DatosPermanentesDTO } from './modelos';
           </p>
         }
         @if (!store.editable()) {
-          <p role="note" class="mb-3 rounded border border-slate-500 bg-slate-100 p-3">
+          <p role="note" class="mb-3 rounded border border-borde-control bg-lienzo p-3">
             {{ capturaTextos.soloLecturaEstado }}
           </p>
         }
@@ -63,7 +72,7 @@ import { DatosPermanentesDTO } from './modelos';
               (datosChange)="datosEditados.set($event)"
             />
           } @else {
-            <p role="status" class="rounded bg-slate-100 p-4">{{ t.sinCampos }}</p>
+            <p role="status" class="rounded bg-lienzo p-4">{{ t.sinCampos }}</p>
           }
         }
 
@@ -77,6 +86,16 @@ import { DatosPermanentesDTO } from './modelos';
           <p role="alert" class="hvc-alert mt-3">
             {{ store.error() }}
           </p>
+        }
+        @if (erroresLocales().length) {
+          <section role="alert" class="hvc-alert mt-3">
+            <p class="m-0 font-semibold">{{ captura.envioConErrores }}</p>
+            <ul class="m-0 mt-2 list-disc pl-5">
+              @for (error of erroresLocales(); track error.seccion + error.campo) {
+                <li>{{ error.titulo }}</li>
+              }
+            </ul>
+          </section>
         }
         @if (store.editable()) {
           <button
@@ -97,6 +116,12 @@ export class PermanentesInspeccion {
 
   protected readonly store = inject(InspeccionStore);
   protected readonly t = TEXTOS.inspecciones.permanentes;
+  protected readonly captura = TEXTOS.inspecciones.captura;
+  /** Campos que impiden confirmar, con su título (B7). */
+  protected readonly erroresLocales = signal<{ seccion: string; campo: string; titulo: string }[]>(
+    [],
+  );
+  private readonly motor = viewChild(MotorFormularioComponent);
   protected readonly comun = TEXTOS.inspecciones.comun;
   protected readonly capturaTextos = TEXTOS.inspecciones.captura;
   protected readonly precarga = signal<DatosPermanentesDTO | null>(null);
@@ -144,6 +169,15 @@ export class PermanentesInspeccion {
   }
 
   protected async confirmar(id: string): Promise<void> {
+    // Un formulario incompleto no sale: se marcan los campos, se listan y se lleva al primero (B7).
+    const motor = this.motor();
+    if (motor && !motor.formGroup.valid) {
+      motor.marcarTodoComoTocado();
+      this.erroresLocales.set(motor.camposConError());
+      motor.enfocarPrimerError();
+      return;
+    }
+    this.erroresLocales.set([]);
     // Sin ediciones se confirma la precarga tal como llegó.
     const datos = this.datosEditados() ?? this.datosIniciales();
     if (await this.store.confirmarPermanentes(datos)) {
